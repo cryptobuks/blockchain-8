@@ -106,7 +106,7 @@ public:
         pchMessageStart[3] = 0xde;//0xd9;
         vAlertPubKey = ParseHex("04fc9702847840aaf195de8442ebecedf5b095cdbb9bc716bda9110971b28a49e0ead8564ff0db22209e0374782c093bb899692d524e9d6a6956e7c5ecbcd68284");
         nDefaultPort = 8222;//8333;
-        nMaxTipAge = 24 * 60 * 60;
+        nMaxTipAge = 24 * 60 * 60; // 挖矿代码中限制区块链的离线时间不能超过 24h
         nPruneAfterHeight = 100000;
 
         //genesis = CreateGenesisBlock(1231006505, 2083236893, 0x1d00ffff, 1, 50 * COIN);
