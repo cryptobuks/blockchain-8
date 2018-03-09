@@ -1564,16 +1564,16 @@ bool ReadBlockFromDisk(CBlock& block, const CBlockIndex* pindex, const Consensus
     return true;
 }
 
-CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
+CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams) // 获取当前的区块奖励
 {
-    int halvings = nHeight / consensusParams.nSubsidyHalvingInterval;
-    // Force block reward to zero when right shift is undefined.
-    if (halvings >= 64)
+    int halvings = nHeight / consensusParams.nSubsidyHalvingInterval; // 链高度（当前块数） / 奖励减半间隔（在 3 个网络中初始化）
+    // Force block reward to zero when right shift is undefined. // 当右移是未定义的大小时，强制块奖励为 0。
+    if (halvings >= 64) // 区块奖励 nSubsidy 最大右移 63 位
         return 0;
 
-    CAmount nSubsidy = 50 * COIN;
-    // Subsidy is cut in half every 210,000 blocks which will occur approximately every 4 years.
-    nSubsidy >>= halvings;
+    CAmount nSubsidy = 50 * COIN; // CAmount 是 int64_t 类型
+    // Subsidy is cut in half every 210,000 blocks which will occur approximately every 4 years. // 区块奖励每 210,000 块进行减半，大概每 4 年发生一次。
+    nSubsidy >>= halvings; // 右移减半
     return nSubsidy;
 }
 
@@ -1589,10 +1589,10 @@ bool IsInitialBlockDownload()
     if (lockIBDState)
         return false;
     bool state = (chainActive.Height() < pindexBestHeader->nHeight - 24 * 6 ||
-            pindexBestHeader->GetBlockTime() < GetTime() - chainParams.MaxTipAge());
+            pindexBestHeader->GetBlockTime() < GetTime() - chainParams.MaxTipAge()); // 最新的块据当前时间的间隔不能超过 nMaxTipAge，否则不能挖矿
     if (!state)
         lockIBDState = true;
-    return state;
+    return state; // 只有从这里返回，才满足挖矿条件
 }
 
 bool fLargeWorkForkFound = false;

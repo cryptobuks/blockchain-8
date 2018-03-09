@@ -20,22 +20,22 @@
 
 static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesisOutputScript, uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
 {
-    CMutableTransaction txNew;
+    CMutableTransaction txNew; // 创币交易 coinbase （区块中的第一笔交易）
     txNew.nVersion = 1;
     txNew.vin.resize(1);
     txNew.vout.resize(1);
     txNew.vin[0].scriptSig = CScript() << 486604799 << CScriptNum(4) << std::vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
-    txNew.vout[0].nValue = genesisReward;
-    txNew.vout[0].scriptPubKey = genesisOutputScript;
+    txNew.vout[0].nValue = genesisReward; // 区块奖励
+    txNew.vout[0].scriptPubKey = genesisOutputScript; // 私钥对应的公钥地址脚本，即创世区块奖励发送的地址
 
     CBlock genesis;
-    genesis.nTime    = nTime;
-    genesis.nBits    = nBits;
-    genesis.nNonce   = nNonce;
-    genesis.nVersion = nVersion;
-    genesis.vtx.push_back(txNew);
-    genesis.hashPrevBlock.SetNull();
-    genesis.hashMerkleRoot = BlockMerkleRoot(genesis);
+    genesis.nTime    = nTime; // 记录生成该区块的时间（时间戳）
+    genesis.nBits    = nBits; // 对应难度
+    genesis.nNonce   = nNonce; // 可根据其变化进行挖矿
+    genesis.nVersion = nVersion; // 区块版本
+    genesis.vtx.push_back(txNew); // 创币交易（区块体，其余 6 项为区块头信息）
+    genesis.hashPrevBlock.SetNull(); // 创世区块之前没有区块
+    genesis.hashMerkleRoot = BlockMerkleRoot(genesis); // 根据区块体中的交易生成默克树根
     return genesis;
 }
 
@@ -53,7 +53,7 @@ static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesi
 static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
 {
     //const char* pszTimestamp = "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks";
-    const char* pszTimestamp = "2018/02/29 24:00:00 全国残業";
+    const char* pszTimestamp = "2018/02/29 24:00:00 全国残業"; //文字版时间戳，可以附加信息
     const CScript genesisOutputScript = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG;
     return CreateGenesisBlock(pszTimestamp, genesisOutputScript, nTime, nNonce, nBits, nVersion, genesisReward);
 }
