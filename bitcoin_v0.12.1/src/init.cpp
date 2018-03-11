@@ -783,7 +783,7 @@ void InitLogging()
 /** Initialize bitcoin.
  *  @pre Parameters should be parsed and config file should be read.
  */
-bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
+bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) //3.11
 {
     // ********************************************************* Step 1: setup
 #ifdef _MSC_VER
@@ -1040,7 +1040,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     // ********************************************************* Step 4: application initialization: dir lock, daemonize, pidfile, debug log
 
     // Initialize elliptic curve code
-    ECC_Start();
+    ECC_Start(); // 椭圆曲线编码启动
     globalVerifyHandle.reset(new ECCVerifyHandle());
 
     // Sanity check
@@ -1093,8 +1093,8 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     }
 
     // Start the lightweight task scheduler thread
-    CScheduler::Function serviceLoop = boost::bind(&CScheduler::serviceQueue, &scheduler);
-    threadGroup.create_thread(boost::bind(&TraceThread<CScheduler::Function>, "scheduler", serviceLoop));
+    CScheduler::Function serviceLoop = boost::bind(&CScheduler::serviceQueue, &scheduler); // Function/bind
+    threadGroup.create_thread(boost::bind(&TraceThread<CScheduler::Function>, "scheduler", serviceLoop)); // create_thread
 
     /* Start the RPC server already.  It will be started in "warmup" mode
      * and not really process calls already (but it will signify connections
@@ -1112,9 +1112,9 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
 
     // ********************************************************* Step 5: verify wallet database integrity
 #ifdef ENABLE_WALLET
-    if (!fDisableWallet) {
-        LogPrintf("Using wallet %s\n", strWalletFile);
-        uiInterface.InitMessage(_("Verifying wallet..."));
+    if (!fDisableWallet) { // 禁止钱包标志，默认关闭
+        LogPrintf("Using wallet %s\n", strWalletFile); // 记录钱包文件名（指定/默认）
+        uiInterface.InitMessage(_("Verifying wallet...")); // UI 交互，初始化钱包信息
 
         std::string warningString;
         std::string errorString;
@@ -1261,7 +1261,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
 
     // ********************************************************* Step 7: load block chain
 
-    fReindex = GetBoolArg("-reindex", false);
+    fReindex = GetBoolArg("-reindex", false); // 再索引标志，默认关闭
 
     // Upgrading to 0.8; hard-link the old blknnnn.dat files into /blocks/
     boost::filesystem::path blocksDir = GetDataDir() / "blocks";
@@ -1622,7 +1622,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
 
     // ********************************************************* Step 11: start node
 
-    if (!CheckDiskSpace())
+    if (!CheckDiskSpace()) // 检测硬盘空间，用于接收新区块
         return false;
 
     if (!strErrors.str().empty())
