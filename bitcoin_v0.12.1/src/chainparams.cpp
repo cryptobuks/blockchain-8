@@ -20,22 +20,22 @@
 
 static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesisOutputScript, uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
 {
-    CMutableTransaction txNew; // åˆ›å¸äº¤æ˜“ coinbase ï¼ˆåŒºå—ä¸­çš„ç¬¬ä¸€ç¬”äº¤æ˜“ï¼‰
+    CMutableTransaction txNew; // ´´±Ò½»Ò× coinbase £¨Çø¿éÖĞµÄµÚÒ»±Ê½»Ò×£©
     txNew.nVersion = 1;
     txNew.vin.resize(1);
     txNew.vout.resize(1);
     txNew.vin[0].scriptSig = CScript() << 486604799 << CScriptNum(4) << std::vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
-    txNew.vout[0].nValue = genesisReward; // åŒºå—å¥–åŠ±
-    txNew.vout[0].scriptPubKey = genesisOutputScript; // ç§é’¥å¯¹åº”çš„å…¬é’¥åœ°å€è„šæœ¬ï¼Œå³åˆ›ä¸–åŒºå—å¥–åŠ±å‘é€çš„åœ°å€
+    txNew.vout[0].nValue = genesisReward; // Çø¿é½±Àø
+    txNew.vout[0].scriptPubKey = genesisOutputScript; // Ë½Ô¿¶ÔÓ¦µÄ¹«Ô¿µØÖ·½Å±¾£¬¼´´´ÊÀÇø¿é½±Àø·¢ËÍµÄµØÖ·
 
     CBlock genesis;
-    genesis.nTime    = nTime; // è®°å½•ç”Ÿæˆè¯¥åŒºå—çš„æ—¶é—´ï¼ˆæ—¶é—´æˆ³ï¼‰
-    genesis.nBits    = nBits; // å¯¹åº”éš¾åº¦
-    genesis.nNonce   = nNonce; // å¯æ ¹æ®å…¶å˜åŒ–è¿›è¡ŒæŒ–çŸ¿
-    genesis.nVersion = nVersion; // åŒºå—ç‰ˆæœ¬
-    genesis.vtx.push_back(txNew); // åˆ›å¸äº¤æ˜“ï¼ˆåŒºå—ä½“ï¼Œå…¶ä½™ 6 é¡¹ä¸ºåŒºå—å¤´ä¿¡æ¯ï¼‰
-    genesis.hashPrevBlock.SetNull(); // åˆ›ä¸–åŒºå—ä¹‹å‰æ²¡æœ‰åŒºå—
-    genesis.hashMerkleRoot = BlockMerkleRoot(genesis); // æ ¹æ®åŒºå—ä½“ä¸­çš„äº¤æ˜“ç”Ÿæˆé»˜å…‹æ ‘æ ¹
+    genesis.nTime    = nTime; // ¼ÇÂ¼Éú³É¸ÃÇø¿éµÄÊ±¼ä£¨Ê±¼ä´Á£©
+    genesis.nBits    = nBits; // ¶ÔÓ¦ÄÑ¶È
+    genesis.nNonce   = nNonce; // ¿É¸ù¾İÆä±ä»¯½øĞĞÍÚ¿ó
+    genesis.nVersion = nVersion; // Çø¿é°æ±¾
+    genesis.vtx.push_back(txNew); // ´´±Ò½»Ò×£¨Çø¿éÌå£¬ÆäÓà 6 ÏîÎªÇø¿éÍ·ĞÅÏ¢£©
+    genesis.hashPrevBlock.SetNull(); // ´´ÊÀÇø¿éÖ®Ç°Ã»ÓĞÇø¿é
+    genesis.hashMerkleRoot = BlockMerkleRoot(genesis); // ¸ù¾İÇø¿éÌåÖĞµÄ½»Ò×Éú³ÉÄ¬¿ËÊ÷¸ù
     return genesis;
 }
 
@@ -53,7 +53,7 @@ static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesi
 static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
 {
     //const char* pszTimestamp = "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks";
-    const char* pszTimestamp = "2018/02/29 24:00:00 å…¨å›½æ®‹æ¥­"; //æ–‡å­—ç‰ˆæ—¶é—´æˆ³ï¼Œå¯ä»¥é™„åŠ ä¿¡æ¯
+    const char* pszTimestamp = "2018/02/29 24:00:00 È«¹ú²Ğ˜I"; //ÎÄ×Ö°æÊ±¼ä´Á£¬¿ÉÒÔ¸½¼ÓĞÅÏ¢
     const CScript genesisOutputScript = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG;
     return CreateGenesisBlock(pszTimestamp, genesisOutputScript, nTime, nNonce, nBits, nVersion, genesisReward);
 }
@@ -106,7 +106,7 @@ public:
         pchMessageStart[3] = 0xde;//0xd9;
         vAlertPubKey = ParseHex("04fc9702847840aaf195de8442ebecedf5b095cdbb9bc716bda9110971b28a49e0ead8564ff0db22209e0374782c093bb899692d524e9d6a6956e7c5ecbcd68284");
         nDefaultPort = 8222;//8333;
-        nMaxTipAge = 24 * 60 * 60; // æŒ–çŸ¿ä»£ç ä¸­é™åˆ¶åŒºå—é“¾çš„ç¦»çº¿æ—¶é—´ä¸èƒ½è¶…è¿‡ 24h
+        nMaxTipAge = 24 * 60 * 60; // ÍÚ¿ó´úÂëÖĞÏŞÖÆÇø¿éÁ´µÄÀëÏßÊ±¼ä²»ÄÜ³¬¹ı 24h
         nPruneAfterHeight = 100000;
 
         //genesis = CreateGenesisBlock(1231006505, 2083236893, 0x1d00ffff, 1, 50 * COIN);
