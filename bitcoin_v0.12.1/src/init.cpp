@@ -1625,10 +1625,10 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) //3.11
     if (!CheckDiskSpace()) // 检测硬盘空间，用于接收新区块
         return false;
 
-    if (!strErrors.str().empty())
+    if (!strErrors.str().empty()) // 检查错误信息
         return InitError(strErrors.str());
 
-    RandAddSeedPerfmon();
+    RandAddSeedPerfmon(); // Linux 上可忽略
 
     //// debug print
     LogPrintf("mapBlockIndex.size() = %u\n",   mapBlockIndex.size());
@@ -1639,10 +1639,10 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) //3.11
     LogPrintf("mapAddressBook.size() = %u\n",  pwalletMain ? pwalletMain->mapAddressBook.size() : 0);
 #endif
 
-    if (GetBoolArg("-listenonion", DEFAULT_LISTEN_ONION))
+    if (GetBoolArg("-listenonion", DEFAULT_LISTEN_ONION)) // 监听洋葱路由，默认打开
         StartTorControl(threadGroup, scheduler);
 
-    StartNode(threadGroup, scheduler);
+    StartNode(threadGroup, scheduler); // 启动各种线程
 
     // Monitor the chain, and alert if we get blocks much quicker or slower than expected
     // The "bad chain alert" scheduler has been disabled because the current system gives far
@@ -1658,7 +1658,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) //3.11
     // --- end disabled ---
 
     // Generate coins in the background
-    GenerateBitcoins(GetBoolArg("-gen", DEFAULT_GENERATE), GetArg("-genproclimit", DEFAULT_GENERATE_THREADS), chainparams);
+    GenerateBitcoins(GetBoolArg("-gen", DEFAULT_GENERATE), GetArg("-genproclimit", DEFAULT_GENERATE_THREADS), chainparams); // 创建挖矿线程，默认关闭，线程数默认为 1
 
     // ********************************************************* Step 12: finished
 
