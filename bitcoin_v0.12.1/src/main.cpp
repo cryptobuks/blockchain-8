@@ -937,17 +937,17 @@ unsigned int GetP2SHSigOpCount(const CTransaction& tx, const CCoinsViewCache& in
 bool CheckTransaction(const CTransaction& tx, CValidationState &state)
 {
     // Basic checks that don't depend on any context
-    if (tx.vin.empty()) // è¾“å…¥ä¸èƒ½ä¸ºç©º
+    if (tx.vin.empty()) // ÊäÈë²»ÄÜÎª¿Õ
         return state.DoS(10, false, REJECT_INVALID, "bad-txns-vin-empty");
-    if (tx.vout.empty()) // è¾“å‡ºä¸èƒ½ä¸ºç©º
+    if (tx.vout.empty()) // Êä³ö²»ÄÜÎª¿Õ
         return state.DoS(10, false, REJECT_INVALID, "bad-txns-vout-empty");
     // Size limits
-    if (::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE) // äº¤æ˜“å°äºç­‰äº MAX_BLOCK_SIZE
+    if (::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE) // ½»Ò×Ğ¡ÓÚµÈÓÚ MAX_BLOCK_SIZE
         return state.DoS(100, false, REJECT_INVALID, "bad-txns-oversize");
 
-    // Check for negative or overflow output values // æ£€æŸ¥å°äºæˆ–ä¸Šæº¢çš„è¾“å‡ºå€¼
+    // Check for negative or overflow output values // ¼ì²éĞ¡ÓÚ»òÉÏÒçµÄÊä³öÖµ
     CAmount nValueOut = 0;
-    BOOST_FOREACH(const CTxOut& txout, tx.vout) // æ¯ä¸ªè¾“å‡ºå’Œå…¶æ€»é‡ä¸èƒ½è¶…è¿‡è§„å®šèŒƒå›´(0, 2,100ä¸‡)
+    BOOST_FOREACH(const CTxOut& txout, tx.vout) // Ã¿¸öÊä³öºÍÆä×ÜÁ¿²»ÄÜ³¬¹ı¹æ¶¨·¶Î§(0, 2,100Íò)
     {
         if (txout.nValue < 0)
             return state.DoS(100, false, REJECT_INVALID, "bad-txns-vout-negative");
@@ -958,7 +958,7 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state)
             return state.DoS(100, false, REJECT_INVALID, "bad-txns-txouttotal-toolarge");
     }
 
-    // Check for duplicate inputs // æ£€æŸ¥é‡å¤è¾“å…¥
+    // Check for duplicate inputs // ¼ì²éÖØ¸´ÊäÈë
     set<COutPoint> vInOutPoints;
     BOOST_FOREACH(const CTxIn& txin, tx.vin)
     {
@@ -967,7 +967,7 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state)
         vInOutPoints.insert(txin.prevout);
     }
 
-    if (tx.IsCoinBase()) // æ˜¯å¦ä¸ºåˆ›å¸äº¤æ˜“
+    if (tx.IsCoinBase()) // ÊÇ·ñÎª´´±Ò½»Ò×
     {
         if (tx.vin[0].scriptSig.size() < 2 || tx.vin[0].scriptSig.size() > 100)
             return state.DoS(100, false, REJECT_INVALID, "bad-cb-length");
@@ -1564,16 +1564,16 @@ bool ReadBlockFromDisk(CBlock& block, const CBlockIndex* pindex, const Consensus
     return true;
 }
 
-CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams) // è·å–å½“å‰çš„åŒºå—å¥–åŠ±
+CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams) // »ñÈ¡µ±Ç°µÄÇø¿é½±Àø
 {
-    int halvings = nHeight / consensusParams.nSubsidyHalvingInterval; // é“¾é«˜åº¦ï¼ˆå½“å‰å—æ•°ï¼‰ / å¥–åŠ±å‡åŠé—´éš”ï¼ˆåœ¨ 3 ä¸ªç½‘ç»œä¸­åˆå§‹åŒ–ï¼‰
-    // Force block reward to zero when right shift is undefined. // å½“å³ç§»æ˜¯æœªå®šä¹‰çš„å¤§å°æ—¶ï¼Œå¼ºåˆ¶å—å¥–åŠ±ä¸º 0ã€‚
-    if (halvings >= 64) // åŒºå—å¥–åŠ± nSubsidy æœ€å¤§å³ç§» 63 ä½
+    int halvings = nHeight / consensusParams.nSubsidyHalvingInterval; // Á´¸ß¶È£¨µ±Ç°¿éÊı£© / ½±Àø¼õ°ë¼ä¸ô£¨ÔÚ 3 ¸öÍøÂçÖĞ³õÊ¼»¯£©
+    // Force block reward to zero when right shift is undefined. // µ±ÓÒÒÆÊÇÎ´¶¨ÒåµÄ´óĞ¡Ê±£¬Ç¿ÖÆ¿é½±ÀøÎª 0¡£
+    if (halvings >= 64) // Çø¿é½±Àø nSubsidy ×î´óÓÒÒÆ 63 Î»
         return 0;
 
-    CAmount nSubsidy = 50 * COIN; // CAmount æ˜¯ int64_t ç±»å‹
-    // Subsidy is cut in half every 210,000 blocks which will occur approximately every 4 years. // åŒºå—å¥–åŠ±æ¯ 210,000 å—è¿›è¡Œå‡åŠï¼Œå¤§æ¦‚æ¯ 4 å¹´å‘ç”Ÿä¸€æ¬¡ã€‚
-    nSubsidy >>= halvings; // å³ç§»å‡åŠ
+    CAmount nSubsidy = 50 * COIN; // CAmount ÊÇ int64_t ÀàĞÍ
+    // Subsidy is cut in half every 210,000 blocks which will occur approximately every 4 years. // Çø¿é½±ÀøÃ¿ 210,000 ¿é½øĞĞ¼õ°ë£¬´ó¸ÅÃ¿ 4 Äê·¢ÉúÒ»´Î¡£
+    nSubsidy >>= halvings; // ÓÒÒÆ¼õ°ë
     return nSubsidy;
 }
 
@@ -1589,10 +1589,10 @@ bool IsInitialBlockDownload()
     if (lockIBDState)
         return false;
     bool state = (chainActive.Height() < pindexBestHeader->nHeight - 24 * 6 ||
-            pindexBestHeader->GetBlockTime() < GetTime() - chainParams.MaxTipAge()); // æœ€æ–°çš„å—æ®å½“å‰æ—¶é—´çš„é—´éš”ä¸èƒ½è¶…è¿‡ nMaxTipAgeï¼Œå¦åˆ™ä¸èƒ½æŒ–çŸ¿
+            pindexBestHeader->GetBlockTime() < GetTime() - chainParams.MaxTipAge()); // ×îĞÂµÄ¿é¾İµ±Ç°Ê±¼äµÄ¼ä¸ô²»ÄÜ³¬¹ı nMaxTipAge£¬·ñÔò²»ÄÜÍÚ¿ó
     if (!state)
         lockIBDState = true;
-    return state; // åªæœ‰ä»è¿™é‡Œè¿”å›ï¼Œæ‰æ»¡è¶³æŒ–çŸ¿æ¡ä»¶
+    return state; // Ö»ÓĞ´ÓÕâÀï·µ»Ø£¬²ÅÂú×ãÍÚ¿óÌõ¼ş
 }
 
 bool fLargeWorkForkFound = false;
@@ -3654,10 +3654,10 @@ void FindFilesToPrune(std::set<int>& setFilesToPrune, uint64_t nPruneAfterHeight
 
 bool CheckDiskSpace(uint64_t nAdditionalBytes)
 {
-    uint64_t nFreeBytesAvailable = boost::filesystem::space(GetDataDir()).available; // »ñÈ¡Ö¸¶¨Êı¾İÄ¿Â¼µ±Ç°ËùÔÚÓ²ÅÌ¿Õ¼ä£¬µ¥Î» B
+    uint64_t nFreeBytesAvailable = boost::filesystem::space(GetDataDir()).available; // ??????????????????????????¦Ë B
 
     // Check for nMinDiskSpace bytes (currently 50MB)
-    if (nFreeBytesAvailable < nMinDiskSpace + nAdditionalBytes) // µ±Ç°Ó²ÅÌ¿Õ¼ä²»ÄÜµÍÓÚ 50MB
+    if (nFreeBytesAvailable < nMinDiskSpace + nAdditionalBytes) // ????????????? 50MB
         return AbortNode("Disk space is low!", _("Error: Disk space is low!"));
 
     return true;
