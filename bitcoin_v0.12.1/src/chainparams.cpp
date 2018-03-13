@@ -73,19 +73,19 @@ class CMainParams : public CChainParams {
 public:
     CMainParams() {
         strNetworkID = "main";
-        consensus.nSubsidyHalvingInterval = 210000;
+        consensus.nSubsidyHalvingInterval = 210000; // 奖励减半间隔：控制货币总量
         consensus.nMajorityEnforceBlockUpgrade = 750;
         consensus.nMajorityRejectBlockOutdated = 950;
         consensus.nMajorityWindow = 1000;
         consensus.BIP34Height = 227931;
         consensus.BIP34Hash = uint256S("0x000000000000024b89b42a942fe0d9fea3bb44ab7bd1b19115dd6a759c0808b8");
-        consensus.powLimit = uint256S("00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-        consensus.nPowTargetTimespan = 14 * 24 * 60 * 60; // two weeks
-        consensus.nPowTargetSpacing = 10 * 60;
+        consensus.powLimit = uint256S("00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff"); // 最低难度
+        consensus.nPowTargetTimespan = 14 * 24 * 60 * 60; // two weeks // 调整难度时间
+        consensus.nPowTargetSpacing = 10 * 60; // 产生区块时间，平均每 10 分钟出一个，若时间太短，则易分叉（因为区块传播需要时间）
         consensus.fPowAllowMinDifficultyBlocks = false;
         consensus.fPowNoRetargeting = false;
         consensus.nRuleChangeActivationThreshold = 1916; // 95% of 2016
-        consensus.nMinerConfirmationWindow = 2016; // nPowTargetTimespan / nPowTargetSpacing
+        consensus.nMinerConfirmationWindow = 2016; // nPowTargetTimespan / nPowTargetSpacing // 约 2016 个块调整一次难度，按平均每 10 分钟出一个块
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].bit = 28;
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime = 1199145601; // January 1, 2008
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout = 1230767999; // December 31, 2008
@@ -100,18 +100,18 @@ public:
          * The characters are rarely used upper ASCII, not valid as UTF-8, and produce
          * a large 32-bit integer with any alignment.
          */
-        pchMessageStart[0] = 0xab;//0xf9;
-        pchMessageStart[1] = 0xbc;//0xbe;
+        pchMessageStart[0] = 0xab;//0xf9; // 约定通讯协议头
+        pchMessageStart[1] = 0xbc;//0xbe; // 随意设置，不重即可
         pchMessageStart[2] = 0xcd;//0xb4;
         pchMessageStart[3] = 0xde;//0xd9;
         vAlertPubKey = ParseHex("04fc9702847840aaf195de8442ebecedf5b095cdbb9bc716bda9110971b28a49e0ead8564ff0db22209e0374782c093bb899692d524e9d6a6956e7c5ecbcd68284");
-        nDefaultPort = 8222;//8333;
+        nDefaultPort = 8222;//8333; // 接受连接的默认监听端口
         nMaxTipAge = 24 * 60 * 60; // 挖矿代码中限制区块链的离线时间不能超过 24h
         nPruneAfterHeight = 100000;
 
         //genesis = CreateGenesisBlock(1231006505, 2083236893, 0x1d00ffff, 1, 50 * COIN); // 创世区块硬编位置
         genesis = CreateGenesisBlock(1520306142, 404602852, 0x1d00ffff, 1, 50 * COIN);
-		//getGenesisBlock(&genesis);
+		//getGenesisBlock(&genesis); // 挖创世区块的代码
         consensus.hashGenesisBlock = genesis.GetHash();
 		//printf("hashGenesisBlock: %s\n", consensus.hashGenesisBlock.ToString().c_str());
 		//printf("genesis.hashMerkleRoot: %s\n", genesis.hashMerkleRoot.ToString().c_str());
@@ -127,9 +127,9 @@ public:
         //vSeeds.push_back(CDNSSeedData("xf2.org", "bitseed.xf2.org")); // Jeff Garzik
         //vSeeds.push_back(CDNSSeedData("bitcoin.jonasschnelli.ch", "seed.bitcoin.jonasschnelli.ch")); // Jonas Schnelli
 
-        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,0);
-        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,5);
-        base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,128);
+        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,0); // 公钥地址前缀：https://en.bitcoin.it/wiki/List_of_address_prefixes（这里 0 对应 1）
+        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,5); // 5 对应 3
+        base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,128); // 128 对应 t
         base58Prefixes[EXT_PUBLIC_KEY] = boost::assign::list_of(0x04)(0x88)(0xB2)(0x1E).convert_to_container<std::vector<unsigned char> >();
         base58Prefixes[EXT_SECRET_KEY] = boost::assign::list_of(0x04)(0x88)(0xAD)(0xE4).convert_to_container<std::vector<unsigned char> >();
 
@@ -149,7 +149,7 @@ public:
 				     //   (the tx=... number in the SetBestChain debug.log lines)
 		        1    // * estimated number of transactions per day after checkpoint
 		};
-        //checkpointData = (CCheckpointData) { // 监测点：区块号对应其哈希，区块生成后填入，用于验证当前链上的区块，检测当前链的完整性
+        //checkpointData = (CCheckpointData) { // 检测点：区块号对应其哈希，区块生成后填入，用于验证当前链上的区块，检测当前链的完整性
         //    boost::assign::map_list_of
         //    ( 11111, uint256S("0x0000000069e244f73d78e8fd29ba2fd2ed618bd6fa2ee92559f542fdb26e7c1d"))
         //    ( 33333, uint256S("0x000000002dd5588a74784eaa7ab0507a18ad16a236e7b1ce69f00d7ddfb5d0a6"))
@@ -168,7 +168,7 @@ public:
         //    36544669,   // * total number of transactions between genesis and last checkpoint
         //                //   (the tx=... number in the SetBestChain debug.log lines)
         //    60000.0     // * estimated number of transactions per day after checkpoint
-        //};
+        //}; // 主要目的：防止网络分叉
     }
 };
 static CMainParams mainParams;

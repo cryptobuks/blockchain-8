@@ -842,7 +842,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
 #endif
 
     // ********************************************************* Step 2: parameter interactions
-    const CChainParams& chainparams = Params();
+    const CChainParams& chainparams = Params(); // 获取当前的链参数
 
     // also see: InitParameterInteraction()
 
