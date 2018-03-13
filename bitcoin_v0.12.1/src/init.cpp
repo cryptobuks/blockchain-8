@@ -783,7 +783,7 @@ void InitLogging()
 /** Initialize bitcoin.
  *  @pre Parameters should be parsed and config file should be read.
  */
-bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
+bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) //3.11
 {
     // ********************************************************* Step 1: setup
 #ifdef _MSC_VER
@@ -1040,7 +1040,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     // ********************************************************* Step 4: application initialization: dir lock, daemonize, pidfile, debug log
 
     // Initialize elliptic curve code
-    ECC_Start();
+    ECC_Start(); // 椭圆曲线编码启动
     globalVerifyHandle.reset(new ECCVerifyHandle());
 
     // Sanity check
@@ -1093,8 +1093,8 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     }
 
     // Start the lightweight task scheduler thread
-    CScheduler::Function serviceLoop = boost::bind(&CScheduler::serviceQueue, &scheduler);
-    threadGroup.create_thread(boost::bind(&TraceThread<CScheduler::Function>, "scheduler", serviceLoop));
+    CScheduler::Function serviceLoop = boost::bind(&CScheduler::serviceQueue, &scheduler); // Function/bind
+    threadGroup.create_thread(boost::bind(&TraceThread<CScheduler::Function>, "scheduler", serviceLoop)); // create_thread
 
     /* Start the RPC server already.  It will be started in "warmup" mode
      * and not really process calls already (but it will signify connections
@@ -1112,9 +1112,9 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
 
     // ********************************************************* Step 5: verify wallet database integrity
 #ifdef ENABLE_WALLET
-    if (!fDisableWallet) {
-        LogPrintf("Using wallet %s\n", strWalletFile);
-        uiInterface.InitMessage(_("Verifying wallet..."));
+    if (!fDisableWallet) { // 禁止钱包标志，默认关闭
+        LogPrintf("Using wallet %s\n", strWalletFile); // 记录钱包文件名（指定/默认）
+        uiInterface.InitMessage(_("Verifying wallet...")); // UI 交互，初始化钱包信息
 
         std::string warningString;
         std::string errorString;
@@ -1261,7 +1261,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
 
     // ********************************************************* Step 7: load block chain
 
-    fReindex = GetBoolArg("-reindex", false);
+    fReindex = GetBoolArg("-reindex", false); // 再索引标志，默认关闭
 
     // Upgrading to 0.8; hard-link the old blknnnn.dat files into /blocks/
     boost::filesystem::path blocksDir = GetDataDir() / "blocks";
@@ -1622,13 +1622,13 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
 
     // ********************************************************* Step 11: start node
 
-    if (!CheckDiskSpace())
+    if (!CheckDiskSpace()) // 检测硬盘空间，用于接收新区块
         return false;
 
-    if (!strErrors.str().empty())
+    if (!strErrors.str().empty()) // 检查错误信息
         return InitError(strErrors.str());
 
-    RandAddSeedPerfmon();
+    RandAddSeedPerfmon(); // Linux 上可忽略
 
     //// debug print
     LogPrintf("mapBlockIndex.size() = %u\n",   mapBlockIndex.size());
@@ -1639,10 +1639,10 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     LogPrintf("mapAddressBook.size() = %u\n",  pwalletMain ? pwalletMain->mapAddressBook.size() : 0);
 #endif
 
-    if (GetBoolArg("-listenonion", DEFAULT_LISTEN_ONION))
+    if (GetBoolArg("-listenonion", DEFAULT_LISTEN_ONION)) // 监听洋葱路由，默认打开
         StartTorControl(threadGroup, scheduler);
 
-    StartNode(threadGroup, scheduler);
+    StartNode(threadGroup, scheduler); // 启动各种线程
 
     // Monitor the chain, and alert if we get blocks much quicker or slower than expected
     // The "bad chain alert" scheduler has been disabled because the current system gives far
@@ -1658,7 +1658,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     // --- end disabled ---
 
     // Generate coins in the background
-    GenerateBitcoins(GetBoolArg("-gen", DEFAULT_GENERATE), GetArg("-genproclimit", DEFAULT_GENERATE_THREADS), chainparams);
+    GenerateBitcoins(GetBoolArg("-gen", DEFAULT_GENERATE), GetArg("-genproclimit", DEFAULT_GENERATE_THREADS), chainparams); // 创建挖矿线程，默认关闭，线程数默认为 1
 
     // ********************************************************* Step 12: finished
 
