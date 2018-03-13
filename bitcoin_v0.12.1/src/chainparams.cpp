@@ -59,7 +59,7 @@ static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits
 }
 
 /**
- * Main network
+ * Main network // 主网
  */
 /**
  * What makes a good checkpoint block?
@@ -109,7 +109,7 @@ public:
         nMaxTipAge = 24 * 60 * 60; // 挖矿代码中限制区块链的离线时间不能超过 24h
         nPruneAfterHeight = 100000;
 
-        //genesis = CreateGenesisBlock(1231006505, 2083236893, 0x1d00ffff, 1, 50 * COIN);
+        //genesis = CreateGenesisBlock(1231006505, 2083236893, 0x1d00ffff, 1, 50 * COIN); // 创世区块硬编位置
         genesis = CreateGenesisBlock(1520306142, 404602852, 0x1d00ffff, 1, 50 * COIN);
 		//getGenesisBlock(&genesis);
         consensus.hashGenesisBlock = genesis.GetHash();
@@ -135,10 +135,10 @@ public:
 
         //vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_main, pnSeed6_main + ARRAYLEN(pnSeed6_main));
 
-        fMiningRequiresPeers = true;
+        fMiningRequiresPeers = true; // 挖矿是否需要伙伴，即是否单机挖矿，默认关闭，回归测试打开
         fDefaultConsistencyChecks = false;
         fRequireStandard = true;
-        fMineBlocksOnDemand = false;
+        fMineBlocksOnDemand = false; // 矿/区块 一次需求，默认关闭，回归测试打开
         fTestnetToBeDeprecatedFieldRPC = false;
 
         checkpointData = (CCheckpointData) {
@@ -149,7 +149,7 @@ public:
 				     //   (the tx=... number in the SetBestChain debug.log lines)
 		        1    // * estimated number of transactions per day after checkpoint
 		};
-        //checkpointData = (CCheckpointData) {
+        //checkpointData = (CCheckpointData) { // 监测点：区块号对应其哈希，区块生成后填入，用于验证当前链上的区块，检测当前链的完整性
         //    boost::assign::map_list_of
         //    ( 11111, uint256S("0x0000000069e244f73d78e8fd29ba2fd2ed618bd6fa2ee92559f542fdb26e7c1d"))
         //    ( 33333, uint256S("0x000000002dd5588a74784eaa7ab0507a18ad16a236e7b1ce69f00d7ddfb5d0a6"))
@@ -174,7 +174,7 @@ public:
 static CMainParams mainParams;
 
 /**
- * Testnet (v3)
+ * Testnet (v3) // 公共测试（类似主网）
  */
 class CTestNetParams : public CChainParams {
 public:
@@ -253,7 +253,7 @@ public:
 static CTestNetParams testNetParams;
 
 /**
- * Regression test
+ * Regression test // 回归测试
  */
 class CRegTestParams : public CChainParams {
 public:
@@ -323,25 +323,25 @@ static CRegTestParams regTestParams;
 
 static CChainParams *pCurrentParams = 0;
 
-const CChainParams &Params() {
+const CChainParams &Params() { // 获取链参数，在 3.5.SelectParams() 初始化后，才能调用
     assert(pCurrentParams);
     return *pCurrentParams;
 }
 
-CChainParams& Params(const std::string& chain)
+CChainParams& Params(const std::string& chain) // 根据网络名字返回相应的网络
 {
     if (chain == CBaseChainParams::MAIN)
-            return mainParams;
+            return mainParams; // 主网参数
     else if (chain == CBaseChainParams::TESTNET)
-            return testNetParams;
+            return testNetParams; // 公测网参数
     else if (chain == CBaseChainParams::REGTEST)
-            return regTestParams;
+            return regTestParams; // 内测网参数
     else
         throw std::runtime_error(strprintf("%s: Unknown chain %s.", __func__, chain));
 }
 
 void SelectParams(const std::string& network)
 {
-    SelectBaseParams(network);
-    pCurrentParams = &Params(network);
+    SelectBaseParams(network); // 选择网络基础参数：RPC 端口 + 网络/目录 名（主网默认为空）
+    pCurrentParams = &Params(network); // 初始化网络参数
 }
