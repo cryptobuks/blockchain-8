@@ -328,14 +328,14 @@ void IncrementExtraNonce(CBlock* pblock, const CBlockIndex* pindexPrev, unsigned
 // nonce is 0xffff0000 or above, the block is rebuilt and nNonce starts over at
 // zero.
 //
-bool static ScanHash(const CBlockHeader *pblock, uint32_t& nNonce, uint256 *phash)
+bool static ScanHash(const CBlockHeader *pblock, uint32_t& nNonce, uint256 *phash) // 挖矿算法
 {
     // Write the first 76 bytes of the block header to a double-SHA256 state.
     CHash256 hasher;
     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
     ss << *pblock;
-    assert(ss.size() == 80);
-    hasher.Write((unsigned char*)&ss[0], 76);
+    assert(ss.size() == 80); // BlockHeader Size: 80 Bytes
+    hasher.Write((unsigned char*)&ss[0], 76); // 写入前 5 个字段（nVersion、hashPrevBlock、hashMerkleRoot、nTime、nBits），最后一个字段 nNonce 作为变量
 
     while (true) {
         nNonce++;
@@ -346,7 +346,7 @@ bool static ScanHash(const CBlockHeader *pblock, uint32_t& nNonce, uint256 *phas
 
         // Return the nonce if the hash has at least some zero bits,
         // caller will check if it has enough to reach the target
-        if (((uint16_t*)phash)[15] == 0)
+        if (((uint16_t*)phash)[15] == 0) // 共 32 字节，最后一个元素（2 个字节）为 0，即最后 16 位为 0，则返回
             return true;
 
         // If nothing found after trying for a while, return -1
@@ -468,10 +468,10 @@ void static BitcoinMiner(const CChainParams& chainparams)
             uint32_t nNonce = 0;
             while (true) {
                 // Check if something found
-                if (ScanHash(pblock, nNonce, &hash))
+                if (ScanHash(pblock, nNonce, &hash)) // 挖矿，hash 最后 16 位为 0 则满足条件
                 {
 					LogPrintf("Search now\n");
-                    if (UintToArith256(hash) <= hashTarget)
+                    if (UintToArith256(hash) <= hashTarget) // 转化为小端模式，与难度目标值比较，判断是否为合格的块
                     {
                         // Found a solution
                         pblock->nNonce = nNonce;

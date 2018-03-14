@@ -20,13 +20,13 @@
 class CBlockHeader
 {
 public:
-    // header
-    int32_t nVersion;
-    uint256 hashPrevBlock;
-    uint256 hashMerkleRoot;
-    uint32_t nTime;
-    uint32_t nBits;
-    uint32_t nNonce;
+    // header // Size: 80 Bytes
+    int32_t nVersion; // 4 Bytes
+    uint256 hashPrevBlock; // 32 Bytes
+    uint256 hashMerkleRoot; // 32 Bytes
+    uint32_t nTime; // 4 Bytes
+    uint32_t nBits; // 4 Bytes
+    uint32_t nNonce; // 4 Bytes
 
     CBlockHeader()
     {
