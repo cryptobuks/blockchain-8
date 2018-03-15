@@ -207,8 +207,8 @@ public:
         pchMessageStart[2] = 0x09;
         pchMessageStart[3] = 0x07;
         vAlertPubKey = ParseHex("04302390343f91cc401d56d68b123028bf52e5fca1939df127f63c6467cdf9c8e2c14b61104cf817d0b780da337893ecc4aaff1309e536162dabbdb45200ca2b0a");
-        nDefaultPort = 18333;
-        nMaxTipAge = 0x7fffffff;
+        nDefaultPort = 18222;//18333;
+        nMaxTipAge = 0x7fffffff; // 测试网离线时间超过 24h
         nPruneAfterHeight = 1000;
 
         genesis = CreateGenesisBlock(1296688602, 414098458, 0x1d00ffff, 1, 50 * COIN);
@@ -220,7 +220,7 @@ public:
         assert(consensus.hashGenesisBlock == uint256S("0x511a3525fe6e47093204b4e8d42127e060dd364372e86493bcedaddc7266dc1d"));
         assert(genesis.hashMerkleRoot == uint256S("0x5e0a6e24146fd44d4d292702345430d0f9da69e4f2b0103b5c1cf7950e3bd75a"));
 
-        vFixedSeeds.clear();
+        vFixedSeeds.clear(); // 测试网中先清空 dns seed 再添加
         vSeeds.clear();
         vSeeds.push_back(CDNSSeedData("bitcoin.petertodd.org", "testnet-seed.bitcoin.petertodd.org"));
         vSeeds.push_back(CDNSSeedData("bluematt.me", "testnet-seed.bluematt.me"));
@@ -283,8 +283,8 @@ public:
         pchMessageStart[1] = 0xbf;
         pchMessageStart[2] = 0xb5;
         pchMessageStart[3] = 0xda;
-        nMaxTipAge = 24 * 60 * 60;
-        nDefaultPort = 18444;
+        nMaxTipAge = 24 * 60 * 60; // 回归测试网无法开启挖矿线程，这里对挖矿线程无意义
+        nDefaultPort = 18333;//18444;
         nPruneAfterHeight = 1000;
 
         genesis = CreateGenesisBlock(1296688602, 2, 0x207fffff, 1, 50 * COIN);
