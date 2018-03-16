@@ -1,0 +1,6 @@
+usr/local/bin/crowcoin-qt usr/bin
+share/pixmaps/crowcoin32.xpm usr/share/pixmaps
+share/pixmaps/crowcoin16.xpm usr/share/pixmaps
+share/pixmaps/crowcoin128.png usr/share/pixmaps
+debian/crowcoin-qt.desktop usr/share/applications
+debian/crowcoin-qt.protocol usr/share/kde4/services/

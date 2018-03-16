@@ -1,0 +1,12 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Crowcoin
+Comment=Crowcoin P2P Cryptocurrency
+Comment[fr]=Crowcoin, monnaie virtuelle cryptographique pair à pair
+Comment[tr]=Crowcoin, eşten eşe kriptografik sanal para birimi
+Exec=crowcoin-qt %u
+Terminal=false
+Type=Application
+Icon=crowcoin128
+MimeType=x-scheme-handler/crowcoin;
+Categories=Office;Finance;

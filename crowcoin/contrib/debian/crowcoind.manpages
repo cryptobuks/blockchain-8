@@ -1,0 +1,3 @@
+debian/manpages/crowcoind.1
+debian/manpages/crowcoin.conf.5
+debian/manpages/crowcoin-cli.1
