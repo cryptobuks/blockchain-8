@@ -37,10 +37,10 @@ static inline int64_t GetPerformanceCounter()
 
 void RandAddSeed()
 {
-    // Seed with CPU performance counter
-    int64_t nCounter = GetPerformanceCounter();
-    RAND_add(&nCounter, sizeof(nCounter), 1.5);
-    memory_cleanse((void*)&nCounter, sizeof(nCounter));
+    // Seed with CPU performance counter // 带 CPU 性能计数器的种子
+    int64_t nCounter = GetPerformanceCounter(); // 获取当前时间（微秒数，据 1970 年 1 月 1 日）
+    RAND_add(&nCounter, sizeof(nCounter), 1.5); // 增加生成随机数的不可预知性，把 arg1 中 arg2 个数据加入 PRNG 中，arg3 是对 arg1 中数据随机性的估值，arg1 一般采用系统中随机事件，比如鼠标滑过的位置，这里是取的当前时间
+    memory_cleanse((void*)&nCounter, sizeof(nCounter)); // 清除该变量，意味不明
 }
 
 void RandAddSeedPerfmon()
@@ -85,7 +85,7 @@ void RandAddSeedPerfmon()
 
 void GetRandBytes(unsigned char* buf, int num)
 {
-    if (RAND_bytes(buf, num) != 1) {
+    if (RAND_bytes(buf, num) != 1) { // 通过加密算法生成随机数，实际还是伪随机数，若提前设定种子，则该随机数无法被预先计算
         LogPrintf("%s: OpenSSL RAND_bytes() failed with error: %s\n", __func__, ERR_error_string(ERR_get_error(), NULL));
         assert(false);
     }

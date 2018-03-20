@@ -88,16 +88,16 @@ CPubKey CWallet::GenerateNewKey()
     bool fCompressed = CanSupportFeature(FEATURE_COMPRPUBKEY); // default to compressed public keys if we want 0.6.0 wallets
 
     CKey secret; // 创建一个私钥
-    secret.MakeNewKey(fCompressed);
+    secret.MakeNewKey(fCompressed); // 随机生成一个数来初始化私钥，注意边界，下界为 1
 
     // Compressed public keys were introduced in version 0.6.0
     if (fCompressed)
         SetMinVersion(FEATURE_COMPRPUBKEY);
 
-    CPubKey pubkey = secret.GetPubKey(); // 获取与私钥对应的公钥
-    assert(secret.VerifyPubKey(pubkey));
+    CPubKey pubkey = secret.GetPubKey(); // 获取与私钥对应的公钥（椭圆曲线加密算法）
+    assert(secret.VerifyPubKey(pubkey)); // 验证私钥公钥对是否匹配
 
-    // Create new metadata
+    // Create new metadata // 创建新元数据/中继数据
     int64_t nCreationTime = GetTime();
     mapKeyMetadata[pubkey.GetID()] = CKeyMetadata(nCreationTime);
     if (!nTimeFirstKey || nCreationTime < nTimeFirstKey)
