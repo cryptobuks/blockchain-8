@@ -87,14 +87,14 @@ CPubKey CWallet::GenerateNewKey()
     AssertLockHeld(cs_wallet); // mapKeyMetadata
     bool fCompressed = CanSupportFeature(FEATURE_COMPRPUBKEY); // default to compressed public keys if we want 0.6.0 wallets
 
-    CKey secret;
+    CKey secret; // 创建一个私钥
     secret.MakeNewKey(fCompressed);
 
     // Compressed public keys were introduced in version 0.6.0
     if (fCompressed)
         SetMinVersion(FEATURE_COMPRPUBKEY);
 
-    CPubKey pubkey = secret.GetPubKey();
+    CPubKey pubkey = secret.GetPubKey(); // 获取与私钥对应的公钥
     assert(secret.VerifyPubKey(pubkey));
 
     // Create new metadata
@@ -2550,7 +2550,7 @@ bool CWallet::GetKeyFromPool(CPubKey& result)
     {
         LOCK(cs_wallet);
         ReserveKeyFromKeyPool(nIndex, keypool);
-        if (nIndex == -1)
+        if (nIndex == -1) // -1 表示当前 keypool 为空
         {
             if (IsLocked()) return false;
             result = GenerateNewKey();
