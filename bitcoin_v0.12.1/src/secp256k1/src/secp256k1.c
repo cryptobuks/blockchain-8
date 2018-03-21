@@ -1,4 +1,4 @@
-/**********************************************************************
+???/**********************************************************************
  * Copyright (c) 2013-2015 Pieter Wuille                              *
  * Distributed under the MIT software license, see the accompanying   *
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.*
@@ -400,8 +400,8 @@ int secp256k1_ec_seckey_verify(const secp256k1_context* ctx, const unsigned char
     ARG_CHECK(seckey != NULL);
     (void)ctx;
 
-    secp256k1_scalar_set_b32(&sec, seckey, &overflow); // ??????????????趨??Χ
-    ret = !overflow && !secp256k1_scalar_is_zero(&sec); // ?ж???????磬?±?????? 0
+    secp256k1_scalar_set_b32(&sec, seckey, &overflow); // 从大端字节数组中设定范围
+    ret = !overflow && !secp256k1_scalar_is_zero(&sec); // 判断是否上溢，下边界是否为 0
     secp256k1_scalar_clear(&sec);
     return ret;
 }
