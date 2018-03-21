@@ -52,13 +52,8 @@ static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesi
  */
 static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
 {
-<<<<<<< HEAD
-    //const char* pszTimestamp = "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks"; // psz 表示以 0 结尾的字符串，p 表示指针，s 表示字符串，z 表示 0
-    const char* pszTimestamp = "2018/02/29 24:00:00 全国残業"; // 文字版时间戳，附加信息
-=======
     //const char* pszTimestamp = "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks";
     const char* pszTimestamp = "Financial Times 2018/03/20 Facebook data storm wipes nearly $37bn off market value"; // 文字版时间戳，附加信息
->>>>>>> 45763fade48eeeda43392ce269bfc7dc90c72397
     const CScript genesisOutputScript = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG; // pubkeyhash
     return CreateGenesisBlock(pszTimestamp, genesisOutputScript, nTime, nNonce, nBits, nVersion, genesisReward);
 }
@@ -249,10 +244,10 @@ public:
 
         checkpointData = (CCheckpointData) {
             boost::assign::map_list_of
-            ( 546, uint256S("000000002a936ca763904c3c35fce2f3556c559c0214345d31b1bcebf76acb70")),
-            1337966069,
-            1488,
-            300
+            ( 0, uint256S("00000000ebb5be714214be9f3933e85f7264f7f386954517591c343eea4087dc")),
+            1521611815,
+            0,
+            3
         };
         //checkpointData = (CCheckpointData) {
         //    boost::assign::map_list_of
