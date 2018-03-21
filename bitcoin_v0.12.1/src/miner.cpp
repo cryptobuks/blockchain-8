@@ -384,6 +384,7 @@ void getGenesisBlock(CBlock *pblock)
 	printf("hashTarget: %s\n", hashTarget.ToString().c_str());
 	uint256 hash;
 	uint32_t nNonce = 0;
+	int64_t nStart = GetTime();
 	while (true) {
 		if (ScanHash(pblock, nNonce, &hash))
 		{
@@ -391,10 +392,10 @@ void getGenesisBlock(CBlock *pblock)
 		    if (UintToArith256(hash) <= hashTarget)
 		    {
 				printf(" true\n"
-						"Congratulation! You found the genesis block.\n"
+						"Congratulation! You found the genesis block. total time: %lds\n"
 						"the nNonce: %u\n"
 						"genesis block hash: %s\n"
-						"genesis block merkle root: %s\n", nNonce, hash.ToString().c_str(), pblock->hashMerkleRoot.ToString().c_str());
+						"genesis block merkle root: %s\n", GetTime() - nStart, nNonce, hash.ToString().c_str(), pblock->hashMerkleRoot.ToString().c_str());
 				break;
 			}
 			else

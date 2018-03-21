@@ -52,8 +52,13 @@ static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesi
  */
 static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
 {
+<<<<<<< HEAD
     //const char* pszTimestamp = "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks"; // psz 表示以 0 结尾的字符串，p 表示指针，s 表示字符串，z 表示 0
     const char* pszTimestamp = "2018/02/29 24:00:00 全国残業"; // 文字版时间戳，附加信息
+=======
+    //const char* pszTimestamp = "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks";
+    const char* pszTimestamp = "Financial Times 2018/03/20 Facebook data storm wipes nearly $37bn off market value"; // 文字版时间戳，附加信息
+>>>>>>> 45763fade48eeeda43392ce269bfc7dc90c72397
     const CScript genesisOutputScript = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG; // pubkeyhash
     return CreateGenesisBlock(pszTimestamp, genesisOutputScript, nTime, nNonce, nBits, nVersion, genesisReward);
 }
@@ -110,15 +115,15 @@ public:
         nPruneAfterHeight = 100000;
 
         //genesis = CreateGenesisBlock(1231006505, 2083236893, 0x1d00ffff, 1, 50 * COIN); // 创世区块硬编位置
-        genesis = CreateGenesisBlock(1520306142, 404602852, 0x1d00ffff, 1, 50 * COIN);
+        genesis = CreateGenesisBlock(1521496800, 3304190909, 0x1d00ffff, 1, 50 * COIN);
 		//getGenesisBlock(&genesis); // 挖创世区块的代码
         consensus.hashGenesisBlock = genesis.GetHash();
-		//printf("hashGenesisBlock: %s\n", consensus.hashGenesisBlock.ToString().c_str());
-		//printf("genesis.hashMerkleRoot: %s\n", genesis.hashMerkleRoot.ToString().c_str());
+		//printf("main network hashGenesisBlock: %s\n", consensus.hashGenesisBlock.ToString().c_str());
+		//printf("main network genesis.hashMerkleRoot: %s\n", genesis.hashMerkleRoot.ToString().c_str());
         //assert(consensus.hashGenesisBlock == uint256S("0x000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"));
         //assert(genesis.hashMerkleRoot == uint256S("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"));
-        assert(consensus.hashGenesisBlock == uint256S("0x00000000d2feec4049fca2595bd6f04bf86988c4b4cc355f18625972a393b709"));
-        assert(genesis.hashMerkleRoot == uint256S("0x5e0a6e24146fd44d4d292702345430d0f9da69e4f2b0103b5c1cf7950e3bd75a"));
+        assert(consensus.hashGenesisBlock == uint256S("0x00000000b183b4db893e4dfc15bd22c5371080c13966e511751de4fe82c96384"));
+        assert(genesis.hashMerkleRoot == uint256S("0x4f2a288c72bed9ea981a47997d751d7a20464a14b39fd156415ee4a59dd8908a"));
 
         //vSeeds.push_back(CDNSSeedData("bitcoin.sipa.be", "seed.bitcoin.sipa.be")); // Pieter Wuille
         //vSeeds.push_back(CDNSSeedData("bluematt.me", "dnsseed.bluematt.me")); // Matt Corallo
@@ -143,11 +148,11 @@ public:
 
         checkpointData = (CCheckpointData) {
             boost::assign::map_list_of
-            ( 0, uint256S("0x00000000d2feec4049fca2595bd6f04bf86988c4b4cc355f18625972a393b709")),
-				1519978516, // * UNIX timestamp of last checkpoint block
+            ( 0, uint256S("0x00000000b183b4db893e4dfc15bd22c5371080c13966e511751de4fe82c96384")),
+				1521496800, // * UNIX timestamp of last checkpoint block
 				0,   // * total number of transactions between genesis and last checkpoint
 				     //   (the tx=... number in the SetBestChain debug.log lines)
-		        1    // * estimated number of transactions per day after checkpoint
+		        2    // * estimated number of transactions per day after checkpoint
 		};
         //checkpointData = (CCheckpointData) { // 检测点：区块号对应其哈希，区块生成后填入，用于验证当前链上的区块，检测当前链的完整性
         //    boost::assign::map_list_of
@@ -202,29 +207,31 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nStartTime = 1456790400; // March 1st, 2016
         consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nTimeout = 1493596800; // May 1st, 2017
 
-        pchMessageStart[0] = 0x0b;
-        pchMessageStart[1] = 0x11;
-        pchMessageStart[2] = 0x09;
-        pchMessageStart[3] = 0x07;
+        pchMessageStart[0] = 0xbc;//0b;
+        pchMessageStart[1] = 0xcd;//11;
+        pchMessageStart[2] = 0xde;//09;
+        pchMessageStart[3] = 0xef;//07;
         vAlertPubKey = ParseHex("04302390343f91cc401d56d68b123028bf52e5fca1939df127f63c6467cdf9c8e2c14b61104cf817d0b780da337893ecc4aaff1309e536162dabbdb45200ca2b0a");
         nDefaultPort = 18222;//18333;
         nMaxTipAge = 0x7fffffff; // 测试网离线时间超过 24h
         nPruneAfterHeight = 1000;
 
-        genesis = CreateGenesisBlock(1296688602, 414098458, 0x1d00ffff, 1, 50 * COIN);
+        //genesis = CreateGenesisBlock(1296688602, 414098458, 0x1d00ffff, 1, 50 * COIN);
+        genesis = CreateGenesisBlock(1521611815, 37853934, 0x1d00ffff, 1, 50 * COIN);
+		//getGenesisBlock(&genesis); // 挖创世区块的代码
         consensus.hashGenesisBlock = genesis.GetHash();
-		//printf("hashGenesisBlock: %s\n", consensus.hashGenesisBlock.ToString().c_str());
-		//printf("genesis.hashMerkleRoot: %s\n", genesis.hashMerkleRoot.ToString().c_str());
+		//printf("testnet hashGenesisBlock: %s\n", consensus.hashGenesisBlock.ToString().c_str());
+		//printf("testnet genesis.hashMerkleRoot: %s\n", genesis.hashMerkleRoot.ToString().c_str());
         //assert(consensus.hashGenesisBlock == uint256S("0x000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943"));
         //assert(genesis.hashMerkleRoot == uint256S("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"));
-        assert(consensus.hashGenesisBlock == uint256S("0x511a3525fe6e47093204b4e8d42127e060dd364372e86493bcedaddc7266dc1d"));
-        assert(genesis.hashMerkleRoot == uint256S("0x5e0a6e24146fd44d4d292702345430d0f9da69e4f2b0103b5c1cf7950e3bd75a"));
+        assert(consensus.hashGenesisBlock == uint256S("0x00000000ebb5be714214be9f3933e85f7264f7f386954517591c343eea4087dc"));
+        assert(genesis.hashMerkleRoot == uint256S("0x4f2a288c72bed9ea981a47997d751d7a20464a14b39fd156415ee4a59dd8908a"));
 
         vFixedSeeds.clear(); // 测试网中先清空 dns seed 再添加
         vSeeds.clear();
-        vSeeds.push_back(CDNSSeedData("bitcoin.petertodd.org", "testnet-seed.bitcoin.petertodd.org"));
-        vSeeds.push_back(CDNSSeedData("bluematt.me", "testnet-seed.bluematt.me"));
-        vSeeds.push_back(CDNSSeedData("bitcoin.schildbach.de", "testnet-seed.bitcoin.schildbach.de"));
+        //vSeeds.push_back(CDNSSeedData("bitcoin.petertodd.org", "testnet-seed.bitcoin.petertodd.org"));
+        //vSeeds.push_back(CDNSSeedData("bluematt.me", "testnet-seed.bluematt.me"));
+        //vSeeds.push_back(CDNSSeedData("bitcoin.schildbach.de", "testnet-seed.bitcoin.schildbach.de"));
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,111);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,196);
@@ -232,7 +239,7 @@ public:
         base58Prefixes[EXT_PUBLIC_KEY] = boost::assign::list_of(0x04)(0x35)(0x87)(0xCF).convert_to_container<std::vector<unsigned char> >();
         base58Prefixes[EXT_SECRET_KEY] = boost::assign::list_of(0x04)(0x35)(0x83)(0x94).convert_to_container<std::vector<unsigned char> >();
 
-        vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_test, pnSeed6_test + ARRAYLEN(pnSeed6_test));
+        //vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_test, pnSeed6_test + ARRAYLEN(pnSeed6_test));
 
         fMiningRequiresPeers = true;
         fDefaultConsistencyChecks = false;
@@ -247,6 +254,13 @@ public:
             1488,
             300
         };
+        //checkpointData = (CCheckpointData) {
+        //    boost::assign::map_list_of
+        //    ( 546, uint256S("000000002a936ca763904c3c35fce2f3556c559c0214345d31b1bcebf76acb70")),
+        //    1337966069,
+        //    1488,
+        //    300
+        //};
 
     }
 };
@@ -287,14 +301,16 @@ public:
         nDefaultPort = 18333;//18444;
         nPruneAfterHeight = 1000;
 
-        genesis = CreateGenesisBlock(1296688602, 2, 0x207fffff, 1, 50 * COIN);
+        //genesis = CreateGenesisBlock(1296688602, 2, 0x207fffff, 1, 50 * COIN);
+        genesis = CreateGenesisBlock(1521614475, 156402, 0x207fffff, 1, 50 * COIN);
+		//getGenesisBlock(&genesis); // 挖创世区块的代码
         consensus.hashGenesisBlock = genesis.GetHash();
-		//printf("hashGenesisBlock: %s\n", consensus.hashGenesisBlock.ToString().c_str());
-		//printf("genesis.hashMerkleRoot: %s\n", genesis.hashMerkleRoot.ToString().c_str());
+		//printf("regression test hashGenesisBlock: %s\n", consensus.hashGenesisBlock.ToString().c_str());
+		//printf("regression test genesis.hashMerkleRoot: %s\n", genesis.hashMerkleRoot.ToString().c_str());
         //assert(consensus.hashGenesisBlock == uint256S("0x0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206"));
         //assert(genesis.hashMerkleRoot == uint256S("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"));
-        assert(consensus.hashGenesisBlock == uint256S("0x4363624044710f624cc1fe4f17c4136b73c890369767cb8aa84b34b078371056"));
-        assert(genesis.hashMerkleRoot == uint256S("0x5e0a6e24146fd44d4d292702345430d0f9da69e4f2b0103b5c1cf7950e3bd75a"));
+        assert(consensus.hashGenesisBlock == uint256S("0x00007974ff4da740cf0a251c85891f5354671bc0525ece76cc52c60a09a37396"));
+        assert(genesis.hashMerkleRoot == uint256S("0x4f2a288c72bed9ea981a47997d751d7a20464a14b39fd156415ee4a59dd8908a"));
 
         vFixedSeeds.clear(); //! Regtest mode doesn't have any fixed seeds.
         vSeeds.clear();  //! Regtest mode doesn't have any DNS seeds.
@@ -307,11 +323,18 @@ public:
 
         checkpointData = (CCheckpointData){
             boost::assign::map_list_of
-            ( 0, uint256S("0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206")),
+            ( 0, uint256S("00007974ff4da740cf0a251c85891f5354671bc0525ece76cc52c60a09a37396")),
             0,
             0,
             0
         };
+        //checkpointData = (CCheckpointData){
+        //    boost::assign::map_list_of
+        //    ( 0, uint256S("0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206")),
+        //    0,
+        //    0,
+        //    0
+        //};
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,111);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,196);
         base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,239);
