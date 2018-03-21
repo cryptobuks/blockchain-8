@@ -124,10 +124,10 @@ bool CKey::Check(const unsigned char *vch) {
 }
 
 void CKey::MakeNewKey(bool fCompressedIn) {
-    RandAddSeedPerfmon();
+    RandAddSeedPerfmon(); // 添加随机数种子，用于增加生成随机数的不可预计性
     do {
-        GetRandBytes(vch, sizeof(vch));
-    } while (!Check(vch));
+        GetRandBytes(vch, sizeof(vch)); // 获取一个随机数，由于设定了种子，该随机数无法被预先计算
+    } while (!Check(vch)); // 椭圆曲线验证该随机数（密钥）是否满足要求
     fValid = true;
     fCompressed = fCompressedIn;
 }
@@ -155,12 +155,12 @@ CPrivKey CKey::GetPrivKey() const {
 
 CPubKey CKey::GetPubKey() const {
     assert(fValid);
-    secp256k1_pubkey pubkey;
+    secp256k1_pubkey pubkey; // 64 bytes
     size_t clen = 65;
-    CPubKey result;
-    int ret = secp256k1_ec_pubkey_create(secp256k1_context_sign, &pubkey, begin());
+    CPubKey result; // 65 bytes
+    int ret = secp256k1_ec_pubkey_create(secp256k1_context_sign, &pubkey, begin()); // 椭圆曲线加密，计算私钥对应的公钥
     assert(ret);
-    secp256k1_ec_pubkey_serialize(secp256k1_context_sign, (unsigned char*)result.begin(), &clen, &pubkey, fCompressed ? SECP256K1_EC_COMPRESSED : SECP256K1_EC_UNCOMPRESSED);
+    secp256k1_ec_pubkey_serialize(secp256k1_context_sign, (unsigned char*)result.begin(), &clen, &pubkey, fCompressed ? SECP256K1_EC_COMPRESSED : SECP256K1_EC_UNCOMPRESSED); // 椭圆曲线公钥序列化
     assert(result.size() == clen);
     assert(result.IsValid());
     return result;

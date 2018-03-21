@@ -35,7 +35,7 @@ static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesi
     genesis.nVersion = nVersion; // 区块版本
     genesis.vtx.push_back(txNew); // 创币交易（区块体，其余 6 项为区块头信息）
     genesis.hashPrevBlock.SetNull(); // 创世区块之前没有区块
-    genesis.hashMerkleRoot = BlockMerkleRoot(genesis); // 根据区块体中的交易生成默克树根
+    genesis.hashMerkleRoot = BlockMerkleRoot(genesis); // 默克树根（区块体/交易 的索引）
     return genesis;
 }
 

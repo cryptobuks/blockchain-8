@@ -138,9 +138,9 @@ UniValue getnewaddress(const UniValue& params, bool fHelp)
 
     // Generate a new key that is added to wallet
     CPubKey newKey;
-    if (!pwalletMain->GetKeyFromPool(newKey))
+    if (!pwalletMain->GetKeyFromPool(newKey)) // 获取一个公钥
         throw JSONRPCError(RPC_WALLET_KEYPOOL_RAN_OUT, "Error: Keypool ran out, please call keypoolrefill first");
-    CKeyID keyID = newKey.GetID();
+    CKeyID keyID = newKey.GetID(); // 对 65 bytes 的公钥调用 hash160
 
     pwalletMain->SetAddressBook(keyID, strAccount, "receive");
 

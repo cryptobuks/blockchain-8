@@ -106,7 +106,7 @@ public:
     bool SetPrivKey(const CPrivKey& vchPrivKey, bool fCompressed);
 
     //! Generate a new private key using a cryptographic PRNG.
-    void MakeNewKey(bool fCompressed);
+    void MakeNewKey(bool fCompressed); // 随机生成一个 256 位的私钥
 
     /**
      * Convert the private key to a CPrivKey (serialized OpenSSL private key data).
