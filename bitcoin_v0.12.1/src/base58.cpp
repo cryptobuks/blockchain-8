@@ -16,7 +16,7 @@
 #include <boost/variant/static_visitor.hpp>
 
 /** All alphanumeric characters except for "0", "I", "O", and "l" */
-static const char* pszBase58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+static const char* pszBase58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"; // 10 + 26 * 2 - 4 = 58
 
 bool DecodeBase58(const char* psz, std::vector<unsigned char>& vch)
 {
@@ -64,18 +64,18 @@ bool DecodeBase58(const char* psz, std::vector<unsigned char>& vch)
     return true;
 }
 
-std::string EncodeBase58(const unsigned char* pbegin, const unsigned char* pend)
+std::string EncodeBase58(const unsigned char* pbegin, const unsigned char* pend) // Base58 编码
 {
     // Skip & count leading zeroes.
-    int zeroes = 0;
+    int zeroes = 0; // 1.跳过并统计开头 0 的个数
     while (pbegin != pend && *pbegin == 0) {
         pbegin++;
         zeroes++;
     }
     // Allocate enough space in big-endian base58 representation.
-    std::vector<unsigned char> b58((pend - pbegin) * 138 / 100 + 1); // log(256) / log(58), rounded up.
+    std::vector<unsigned char> b58((pend - pbegin) * 138 / 100 + 1); // log(256) / log(58), rounded up. // 2.为大端 base58 表示，开辟足够的空间（34 或 35 bytes）
     // Process the bytes.
-    while (pbegin != pend) {
+    while (pbegin != pend) { // 3.256 进制转 58 进制
         int carry = *pbegin;
         // Apply "b58 = b58 * 256 + ch".
         for (std::vector<unsigned char>::reverse_iterator it = b58.rbegin(); it != b58.rend(); it++) {
@@ -88,13 +88,13 @@ std::string EncodeBase58(const unsigned char* pbegin, const unsigned char* pend)
     }
     // Skip leading zeroes in base58 result.
     std::vector<unsigned char>::iterator it = b58.begin();
-    while (it != b58.end() && *it == 0)
+    while (it != b58.end() && *it == 0) // 4.跳过开头的 0
         it++;
     // Translate the result into a string.
-    std::string str;
+    std::string str; // 5.转换结果为字符串
     str.reserve(zeroes + (b58.end() - it));
-    str.assign(zeroes, '1');
-    while (it != b58.end())
+    str.assign(zeroes, '1'); // 在字符串前面的位置指派 zeroes 个字符 1
+    while (it != b58.end()) // Base58 转换
         str += pszBase58[*(it++)];
     return str;
 }
@@ -113,9 +113,9 @@ std::string EncodeBase58Check(const std::vector<unsigned char>& vchIn)
 {
     // add 4-byte hash check to the end
     std::vector<unsigned char> vch(vchIn);
-    uint256 hash = Hash(vch.begin(), vch.end());
-    vch.insert(vch.end(), (unsigned char*)&hash, (unsigned char*)&hash + 4);
-    return EncodeBase58(vch);
+    uint256 hash = Hash(vch.begin(), vch.end()); // 2 次 sha256 计算校验和
+    vch.insert(vch.end(), (unsigned char*)&hash, (unsigned char*)&hash + 4); // 将校验和添加到末尾
+    return EncodeBase58(vch); // 计算 Base58 得到地址
 }
 
 bool DecodeBase58Check(const char* psz, std::vector<unsigned char>& vchRet)
@@ -184,8 +184,8 @@ bool CBase58Data::SetString(const std::string& str)
 std::string CBase58Data::ToString() const
 {
     std::vector<unsigned char> vch = vchVersion;
-    vch.insert(vch.end(), vchData.begin(), vchData.end());
-    return EncodeBase58Check(vch);
+    vch.insert(vch.end(), vchData.begin(), vchData.end()); // 附加公钥地址前缀到前面
+    return EncodeBase58Check(vch); // 添加校验和的前 4 bytes 到末尾，并计算 Base58 得到地址
 }
 
 int CBase58Data::CompareTo(const CBase58Data& b58) const
@@ -220,7 +220,7 @@ public:
 
 bool CBitcoinAddress::Set(const CKeyID& id)
 {
-    SetData(Params().Base58Prefix(CChainParams::PUBKEY_ADDRESS), &id, 20);
+    SetData(Params().Base58Prefix(CChainParams::PUBKEY_ADDRESS), &id, 20); // 附加一个字节的地址前缀
     return true;
 }
 

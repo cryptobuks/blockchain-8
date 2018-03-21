@@ -72,11 +72,11 @@ class CBase58Data
 {
 protected:
     //! the version byte(s)
-    std::vector<unsigned char> vchVersion;
+    std::vector<unsigned char> vchVersion; // 对于公钥地址，对应公钥地址前缀
 
     //! the actually encoded data
     typedef std::vector<unsigned char, zero_after_free_allocator<unsigned char> > vector_uchar;
-    vector_uchar vchData;
+    vector_uchar vchData; // 真正要编码的数据
 
     CBase58Data();
     void SetData(const std::vector<unsigned char> &vchVersionIn, const void* pdata, size_t nSize);
@@ -85,7 +85,7 @@ protected:
 public:
     bool SetString(const char* psz, unsigned int nVersionBytes = 1);
     bool SetString(const std::string& str);
-    std::string ToString() const;
+    std::string ToString() const; // 为要编码的数据附加前缀，通过该值计算两次 sha256 后取 4 bytes 的前缀附加在该值后面，再进行 Base58 编码得到公钥地址
     int CompareTo(const CBase58Data& b58) const;
 
     bool operator==(const CBase58Data& b58) const { return CompareTo(b58) == 0; }
