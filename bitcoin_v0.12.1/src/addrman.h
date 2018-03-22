@@ -169,7 +169,7 @@ public:
 /** 
  * Stochastical (IP) address manager 
  */
-class CAddrMan
+class CAddrMan // 随机（IP）地址管理器
 {
 private:
     //! critical section to protect the inner data structures
