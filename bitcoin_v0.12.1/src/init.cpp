@@ -785,7 +785,7 @@ void InitLogging()
  */
 bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) //3.11
 {
-    // ********************************************************* Step 1: setup
+    // ********************************************************* Step 1: setup // 安装网络环境，挂接事件处理器
 #ifdef _MSC_VER
     // Turn off Microsoft heap dump noise
     _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
@@ -841,7 +841,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) //3.11
     signal(SIGPIPE, SIG_IGN);
 #endif
 
-    // ********************************************************* Step 2: parameter interactions
+    // ********************************************************* Step 2: parameter interactions // 参数交互设置，如区块裁剪 prune 与交易索引 txindex 的冲突检测、文件描述符限制的检查
     const CChainParams& chainparams = Params(); // 获取当前的链参数
 
     // also see: InitParameterInteraction()
@@ -872,7 +872,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) //3.11
     if (nMaxConnections < nUserMaxConnections)
         InitWarning(strprintf(_("Reducing -maxconnections from %d to %d, because of system limitations."), nUserMaxConnections, nMaxConnections));
 
-    // ********************************************************* Step 3: parameter-to-internal-flags
+    // ********************************************************* Step 3: parameter-to-internal-flags // 参数转换为内部变量，把外部参数的设置转化为程序内部的状态
 
     fDebug = !mapMultiArgs["-debug"].empty();
     // Special-case: if -debug=0/-nodebug is set, turn off debugging messages
@@ -1037,7 +1037,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) //3.11
         fEnableReplacement = (std::find(vstrReplacementModes.begin(), vstrReplacementModes.end(), "fee") != vstrReplacementModes.end());
     }
 
-    // ********************************************************* Step 4: application initialization: dir lock, daemonize, pidfile, debug log
+    // ********************************************************* Step 4: application initialization: dir lock, daemonize, pidfile, debug log // 初始化 ECC，目录锁检查（保证只有一个 bitcoind 运行），pid 文件，debug 日志
 
     // Initialize elliptic curve code
     ECC_Start(); // 椭圆曲线编码启动
@@ -1110,7 +1110,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) //3.11
 
     int64_t nStart;
 
-    // ********************************************************* Step 5: verify wallet database integrity
+    // ********************************************************* Step 5: verify wallet database integrity // 若启用钱包功能，则验证钱包数据库的完整性
 #ifdef ENABLE_WALLET
     if (!fDisableWallet) { // 禁止钱包标志，默认关闭
         LogPrintf("Using wallet %s\n", strWalletFile); // 记录钱包文件名（指定/默认）
@@ -1129,7 +1129,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) //3.11
 
     } // (!fDisableWallet)
 #endif // ENABLE_WALLET
-    // ********************************************************* Step 6: network initialization
+    // ********************************************************* Step 6: network initialization // 网络初始化
 
     RegisterNodeSignals(GetNodeSignals());
 
@@ -1259,7 +1259,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) //3.11
         CNode::SetMaxOutboundTarget(GetArg("-maxuploadtarget", DEFAULT_MAX_UPLOAD_TARGET)*1024*1024);
     }
 
-    // ********************************************************* Step 7: load block chain
+    // ********************************************************* Step 7: load block chain // 加载区块链数据，区块数据目录 blocks
 
     fReindex = GetBoolArg("-reindex", false); // 再索引标志，默认关闭
 
@@ -1430,7 +1430,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) //3.11
         mempool.ReadFeeEstimates(est_filein);
     fFeeEstimatesInitialized = true;
 
-    // ********************************************************* Step 8: load wallet
+    // ********************************************************* Step 8: load wallet // 若启用钱包功能，则加载钱包
 #ifdef ENABLE_WALLET
     if (fDisableWallet) {
         pwalletMain = NULL;
@@ -1583,11 +1583,11 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) //3.11
     LogPrintf("No wallet support compiled in!\n");
 #endif // !ENABLE_WALLET
 
-    // ********************************************************* Step 9: data directory maintenance
+    // ********************************************************* Step 9: data directory maintenance // 若是裁剪模式，则进行 blockstore 的裁剪
 
     // if pruning, unset the service bit and perform the initial blockstore prune
     // after any wallet rescanning has taken place.
-    if (fPruneMode) {
+    if (fPruneMode) { // 裁剪标志，默认关闭
         LogPrintf("Unsetting NODE_NETWORK on prune mode\n");
         nLocalServices &= ~NODE_NETWORK;
         if (!fReindex) {
@@ -1596,7 +1596,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) //3.11
         }
     }
 
-    // ********************************************************* Step 10: import blocks
+    // ********************************************************* Step 10: import blocks // 导入区块数据
 
     if (mapArgs.count("-blocknotify"))
         uiInterface.NotifyBlockTip.connect(BlockNotifyCallback);
@@ -1620,7 +1620,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) //3.11
             MilliSleep(10);
     }
 
-    // ********************************************************* Step 11: start node
+    // ********************************************************* Step 11: start node // 启动节点服务，监听网络 P2P 请求，挖矿线程
 
     if (!CheckDiskSpace()) // 检测硬盘空间，用于接收新区块
         return false;
@@ -1660,7 +1660,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) //3.11
     // Generate coins in the background
     GenerateBitcoins(GetBoolArg("-gen", DEFAULT_GENERATE), GetArg("-genproclimit", DEFAULT_GENERATE_THREADS), chainparams); // 创建挖矿线程，默认关闭，线程数默认为 1
 
-    // ********************************************************* Step 12: finished
+    // ********************************************************* Step 12: finished // 完成
 
     SetRPCWarmupFinished();
     uiInterface.InitMessage(_("Done loading"));
