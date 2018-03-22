@@ -67,13 +67,13 @@ bool DecodeBase58(const char* psz, std::vector<unsigned char>& vch)
 std::string EncodeBase58(const unsigned char* pbegin, const unsigned char* pend) // Base58 编码
 {
     // Skip & count leading zeroes.
-    int zeroes = 0; // 1.跳过并统计开头 0 的个数
+    int zeroes = 0; // 1.跳过并统计开头 0 的个数，最多为 1 byte 的 0x00
     while (pbegin != pend && *pbegin == 0) {
         pbegin++;
         zeroes++;
     }
     // Allocate enough space in big-endian base58 representation.
-    std::vector<unsigned char> b58((pend - pbegin) * 138 / 100 + 1); // log(256) / log(58), rounded up. // 2.为大端 base58 表示，开辟足够的空间（34 或 35 bytes）
+    std::vector<unsigned char> b58((pend - pbegin) * 138 / 100 + 1); // log(256) / log(58), rounded up. // 2.为大端 base58 表示，开辟足够的空间（34 或 35 bytes），向上取整
     // Process the bytes.
     while (pbegin != pend) { // 3.256 进制转 58 进制
         int carry = *pbegin;
@@ -92,11 +92,11 @@ std::string EncodeBase58(const unsigned char* pbegin, const unsigned char* pend)
         it++;
     // Translate the result into a string.
     std::string str; // 5.转换结果为字符串
-    str.reserve(zeroes + (b58.end() - it));
+    str.reserve(zeroes + (b58.end() - it)); // 1 + 33 or 0 + 34 = 34
     str.assign(zeroes, '1'); // 在字符串前面的位置指派 zeroes 个字符 1
     while (it != b58.end()) // Base58 转换
-        str += pszBase58[*(it++)];
-    return str;
+        str += pszBase58[*(it++)]; // append *it then ++it
+    return str; // 前缀为 0x00 不参与 Base58 运算，地址长度固定为 34 bytes 且前缀位 '1'，其他不为 0x00 的前缀，均参与 Base58 运算，地址长度变换范围 33 - 35 bytes
 }
 
 std::string EncodeBase58(const std::vector<unsigned char>& vch)
