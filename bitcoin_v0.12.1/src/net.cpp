@@ -457,12 +457,12 @@ void CNode::PushVersion()
     CAddress addrYou = (addr.IsRoutable() && !IsProxy(addr) ? addr : CAddress(CService("0.0.0.0",0)));
     CAddress addrMe = GetLocalAddress(&addr);
     GetRandBytes((unsigned char*)&nLocalHostNonce, sizeof(nLocalHostNonce));
-    if (fLogIPs)
+    if (fLogIPs) // 记录对方 IP 地址标志，默认关闭 
         LogPrint("net", "send version message: version %d, blocks=%d, us=%s, them=%s, peer=%d\n", PROTOCOL_VERSION, nBestHeight, addrMe.ToString(), addrYou.ToString(), id);
     else
         LogPrint("net", "send version message: version %d, blocks=%d, us=%s, peer=%d\n", PROTOCOL_VERSION, nBestHeight, addrMe.ToString(), id);
     PushMessage(NetMsgType::VERSION, PROTOCOL_VERSION, nLocalServices, nTime, addrYou, addrMe,
-                nLocalHostNonce, strSubVersion, nBestHeight, !GetBoolArg("-blocksonly", DEFAULT_BLOCKSONLY));
+                nLocalHostNonce, strSubVersion, nBestHeight, !GetBoolArg("-blocksonly", DEFAULT_BLOCKSONLY)); // 给对方推送版本信息
 }
 
 
@@ -1713,7 +1713,7 @@ void ThreadMessageHandler()
     boost::unique_lock<boost::mutex> lock(condition_mutex);
 
     SetThreadPriority(THREAD_PRIORITY_BELOW_NORMAL);
-    while (true)
+    while (true) // 循环接收并处理消息，然后发送消息
     {
         vector<CNode*> vNodesCopy;
         {
@@ -1736,7 +1736,7 @@ void ThreadMessageHandler()
                 TRY_LOCK(pnode->cs_vRecvMsg, lockRecv);
                 if (lockRecv)
                 {
-                    if (!g_signals.ProcessMessages(pnode))
+                    if (!g_signals.ProcessMessages(pnode)) // 比特币协议核心处理的入口，解析消息头，然后分发到 ProcessMessage 中处理消息
                         pnode->CloseSocketDisconnect();
 
                     if (pnode->nSendSize < SendBufferSize())
@@ -1754,7 +1754,7 @@ void ThreadMessageHandler()
             {
                 TRY_LOCK(pnode->cs_vSend, lockSend);
                 if (lockSend)
-                    g_signals.SendMessages(pnode);
+                    g_signals.SendMessages(pnode); // 发送消息，内部调用 PushMessage 进行数据打包
             }
             boost::this_thread::interruption_point();
         }
@@ -1931,7 +1931,7 @@ void StartNode(boost::thread_group& threadGroup, CScheduler& scheduler)
     int64_t nStart = GetTimeMillis();
     {
         CAddrDB adb;
-        if (!adb.Read(addrman))
+        if (!adb.Read(addrman)) // 从 peers.dat 中加载地址到内存
             LogPrintf("Invalid or missing peers.dat; recreating\n");
     }
 
@@ -1970,7 +1970,7 @@ void StartNode(boost::thread_group& threadGroup, CScheduler& scheduler)
         threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "dnsseed", &ThreadDNSAddressSeed)); // 从 DNS seed 中解析 IP 地址，并加入 IP 地址管理器 CAddrMan
 
     // Map ports with UPnP
-    MapPort(GetBoolArg("-upnp", DEFAULT_UPNP));
+    MapPort(GetBoolArg("-upnp", DEFAULT_UPNP)); // 端口映射，默认关闭
 
     // Send and receive from sockets, accept connections
     threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "net", &ThreadSocketHandler)); // 负责监听端口来接收其他节点的传入连接，断开无用节点，节点消息处理
@@ -1982,10 +1982,10 @@ void StartNode(boost::thread_group& threadGroup, CScheduler& scheduler)
     threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "opencon", &ThreadOpenConnections)); // 负责连接其他节点的 IP，包含通过 -connect 参数设置的连接，和通过 DNS seed 解析出的地址管理器中的 IP 地址
 
     // Process messages
-    threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "msghand", &ThreadMessageHandler));
+    threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "msghand", &ThreadMessageHandler)); // 调用 ProcessMessages 处理接收到的消息（用信号建立联系）
 
     // Dump network addresses
-    scheduler.scheduleEvery(&DumpData, DUMP_ADDRESSES_INTERVAL);
+    scheduler.scheduleEvery(&DumpData, DUMP_ADDRESSES_INTERVAL); // 每 15 分钟本地化伙伴 IP 地址到 peers.dat
 }
 
 bool StopNode()
@@ -2383,7 +2383,7 @@ CNode::CNode(SOCKET hSocketIn, const CAddress& addrIn, const std::string& addrNa
 
     {
         LOCK(cs_nLastNodeId);
-        id = nLastNodeId++;
+        id = nLastNodeId++; // int 型全局变量，用于记录最新连入节点的 id
     }
 
     if (fLogIPs)
@@ -2393,7 +2393,7 @@ CNode::CNode(SOCKET hSocketIn, const CAddress& addrIn, const std::string& addrNa
 
     // Be shy and don't send version until we hear
     if (hSocket != INVALID_SOCKET && !fInbound)
-        PushVersion();
+        PushVersion(); // 建立连接后，首先发送版本信息，用于提示连接成功的伙伴节点的信息
 
     GetNodeSignals().InitializeNode(GetId(), this);
 }

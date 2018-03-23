@@ -5494,12 +5494,12 @@ bool ProcessMessages(CNode* pfrom)
     //    LogPrintf("%s(%u messages)\n", __func__, pfrom->vRecvMsg.size());
 
     //
-    // Message format
-    //  (4) message start
-    //  (12) command
-    //  (4) size
-    //  (4) checksum
-    //  (x) data
+    // Message format // 24 + x bytes
+    //  (4) message start // 消息头，又称魔数，用于区分网络类型
+    //  (12) command // 消息类型，命令，不足后补'\0'
+    //  (4) size // 数据长度，限制 MAX_PROTOCOL_MESSAGE_LENGTH = 2MB
+    //  (4) checksum  // 校验和,SHA256(SHA256(data))的前 4 个字节，对于 VERACK、GETADDR 和 SEND-HEADERS 这种无 data 的消息，则固定为 0x5df6e0e2 (SHA256(SHA256(<empty string>)))
+    //  (x) data // 数据，注：比特币消息报文中，大多数整数都是使用的小端编码，只有 IP 地址和端口号使用大端编码
     //
     bool fOk = true;
 

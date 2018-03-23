@@ -765,12 +765,12 @@ void RelayTransaction(const CTransaction& tx);
 void RelayTransaction(const CTransaction& tx, const CDataStream& ss);
 
 /** Access to the (IP) address database (peers.dat) */
-class CAddrDB
+class CAddrDB // IP 地址数据库（用于保存 peers.dat 中记录的 IP）
 {
 private:
-    boost::filesystem::path pathAddr;
+    boost::filesystem::path pathAddr; // 保存 peers.dat 的相对路径
 public:
-    CAddrDB();
+    CAddrDB(); // 路径拼接，数据目录 + peers.dat
     bool Write(const CAddrMan& addr);
     bool Read(CAddrMan& addr);
 };
