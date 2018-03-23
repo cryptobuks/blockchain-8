@@ -52,17 +52,17 @@ public:
 public:
     enum {
         COMMAND_SIZE = 12,
-        MESSAGE_SIZE_SIZE = sizeof(int),
-        CHECKSUM_SIZE = sizeof(int),
+        MESSAGE_SIZE_SIZE = sizeof(int), // 4
+        CHECKSUM_SIZE = sizeof(int), // 4
 
-        MESSAGE_SIZE_OFFSET = MESSAGE_START_SIZE + COMMAND_SIZE,
-        CHECKSUM_OFFSET = MESSAGE_SIZE_OFFSET + MESSAGE_SIZE_SIZE,
-        HEADER_SIZE = MESSAGE_START_SIZE + COMMAND_SIZE + MESSAGE_SIZE_SIZE + CHECKSUM_SIZE
+        MESSAGE_SIZE_OFFSET = MESSAGE_START_SIZE + COMMAND_SIZE, // 4 + 12 = 16
+        CHECKSUM_OFFSET = MESSAGE_SIZE_OFFSET + MESSAGE_SIZE_SIZE, // 16 + 4 = 20
+        HEADER_SIZE = MESSAGE_START_SIZE + COMMAND_SIZE + MESSAGE_SIZE_SIZE + CHECKSUM_SIZE // 4 + 12 + 4 + 4 = 24
     };
-    char pchMessageStart[MESSAGE_START_SIZE];
-    char pchCommand[COMMAND_SIZE];
-    unsigned int nMessageSize;
-    unsigned int nChecksum;
+    char pchMessageStart[MESSAGE_START_SIZE]; // 魔数
+    char pchCommand[COMMAND_SIZE]; // 命令
+    unsigned int nMessageSize; // 数据（消息体）大小
+    unsigned int nChecksum; // 校验和
 };
 
 /**

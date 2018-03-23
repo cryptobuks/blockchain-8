@@ -748,24 +748,24 @@ int CNetMessage::readData(const char *pch, unsigned int nBytes)
 
 
 // requires LOCK(cs_vSend)
-void SocketSendData(CNode *pnode)
+void SocketSendData(CNode *pnode) // 通过套接字发送消息数据
 {
     std::deque<CSerializeData>::iterator it = pnode->vSendMsg.begin();
 
     while (it != pnode->vSendMsg.end()) {
         const CSerializeData &data = *it;
         assert(data.size() > pnode->nSendOffset);
-        int nBytes = send(pnode->hSocket, &data[pnode->nSendOffset], data.size() - pnode->nSendOffset, MSG_NOSIGNAL | MSG_DONTWAIT);
+        int nBytes = send(pnode->hSocket, &data[pnode->nSendOffset], data.size() - pnode->nSendOffset, MSG_NOSIGNAL | MSG_DONTWAIT); // 这里就是熟悉的 send 函数了
         if (nBytes > 0) {
-            pnode->nLastSend = GetTime();
-            pnode->nSendBytes += nBytes;
-            pnode->nSendOffset += nBytes;
-            pnode->RecordBytesSent(nBytes);
-            if (pnode->nSendOffset == data.size()) {
-                pnode->nSendOffset = 0;
-                pnode->nSendSize -= data.size();
+            pnode->nLastSend = GetTime(); // 最新一次发送的时间
+            pnode->nSendBytes += nBytes; // 当前发送的总字节
+            pnode->nSendOffset += nBytes; // 当前发送数据的偏移量
+            pnode->RecordBytesSent(nBytes); // 记录发送的总字节数
+            if (pnode->nSendOffset == data.size()) { // 若发送偏移量等于发送一个消息的大小
+                pnode->nSendOffset = 0; // 发送偏移量置 0
+                pnode->nSendSize -= data.size(); // 计算发送消息队列中剩余要发送的数据大小
                 it++;
-            } else {
+            } else { // 若未发送整个消息，停止发送更多
                 // could not send full message; stop sending more
                 break;
             }
@@ -784,11 +784,11 @@ void SocketSendData(CNode *pnode)
         }
     }
 
-    if (it == pnode->vSendMsg.end()) {
+    if (it == pnode->vSendMsg.end()) { // 验证发送成功的情况是否完全发送
         assert(pnode->nSendOffset == 0);
         assert(pnode->nSendSize == 0);
     }
-    pnode->vSendMsg.erase(pnode->vSendMsg.begin(), it);
+    pnode->vSendMsg.erase(pnode->vSendMsg.begin(), it); // 清空发送消息队列
 }
 
 static list<CNode*> vNodesDisconnected;
@@ -2446,7 +2446,7 @@ void CNode::BeginMessage(const char* pszCommand) EXCLUSIVE_LOCK_FUNCTION(cs_vSen
 {
     ENTER_CRITICAL_SECTION(cs_vSend);
     assert(ssSend.size() == 0);
-    ssSend << CMessageHeader(Params().MessageStart(), pszCommand, 0);
+    ssSend << CMessageHeader(Params().MessageStart(), pszCommand, 0); // 初始化消息头
     LogPrint("net", "sending: %s ", SanitizeString(pszCommand));
 }
 
@@ -2479,25 +2479,25 @@ void CNode::EndMessage() UNLOCK_FUNCTION(cs_vSend)
         return;
     }
     // Set the size
-    unsigned int nSize = ssSend.size() - CMessageHeader::HEADER_SIZE;
+    unsigned int nSize = ssSend.size() - CMessageHeader::HEADER_SIZE; // 消息总大小 - 消息头大小（24 bytes）
     WriteLE32((uint8_t*)&ssSend[CMessageHeader::MESSAGE_SIZE_OFFSET], nSize);
 
     // Set the checksum
-    uint256 hash = Hash(ssSend.begin() + CMessageHeader::HEADER_SIZE, ssSend.end());
+    uint256 hash = Hash(ssSend.begin() + CMessageHeader::HEADER_SIZE, ssSend.end()); // 消息体（数据）哈希
     unsigned int nChecksum = 0;
-    memcpy(&nChecksum, &hash, sizeof(nChecksum));
-    assert(ssSend.size () >= CMessageHeader::CHECKSUM_OFFSET + sizeof(nChecksum));
+    memcpy(&nChecksum, &hash, sizeof(nChecksum)); // 取上步哈希的前 4 bytes 作为校验和
+    assert(ssSend.size () >= CMessageHeader::CHECKSUM_OFFSET + sizeof(nChecksum)); // 保证消息体有数据，而非空消息（仅消息头）
     memcpy((char*)&ssSend[CMessageHeader::CHECKSUM_OFFSET], &nChecksum, sizeof(nChecksum));
 
     LogPrint("net", "(%d bytes) peer=%d\n", nSize, id);
 
     std::deque<CSerializeData>::iterator it = vSendMsg.insert(vSendMsg.end(), CSerializeData());
-    ssSend.GetAndClear(*it);
+    ssSend.GetAndClear(*it); // 把消息插入发送消息队列 vSendMsg 并清空消息
     nSendSize += (*it).size();
 
     // If write queue empty, attempt "optimistic write"
     if (it == vSendMsg.begin())
-        SocketSendData(this);
+        SocketSendData(this); // 遍历发送消息队列 vSendMsg 发送数据
 
     LEAVE_CRITICAL_SECTION(cs_vSend);
 }

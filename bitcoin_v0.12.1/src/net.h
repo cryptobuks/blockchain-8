@@ -680,9 +680,9 @@ public:
     {
         try
         {
-            BeginMessage(pszCommand);
-            ssSend << a1 << a2 << a3 << a4 << a5 << a6 << a7 << a8 << a9;
-            EndMessage();
+            BeginMessage(pszCommand); // 初始化消息头（共 24 bytes）
+            ssSend << a1 << a2 << a3 << a4 << a5 << a6 << a7 << a8 << a9; // 消息体（x bytes）
+            EndMessage(); // 填充消息数据大小和校验和，把消息插入发送消息队列 vSendMsg，然后调用 SocketSendData 发送消息
         }
         catch (...)
         {

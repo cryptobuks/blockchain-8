@@ -5494,7 +5494,7 @@ bool ProcessMessages(CNode* pfrom)
     //    LogPrintf("%s(%u messages)\n", __func__, pfrom->vRecvMsg.size());
 
     //
-    // Message format // 24 + x bytes
+    // Message format // 24 + x bytes 对应消息头 + 消息体（数据）
     //  (4) message start // 消息头，又称魔数，用于区分网络类型
     //  (12) command // 消息类型，命令，不足后补'\0'
     //  (4) size // 数据长度，限制 MAX_PROTOCOL_MESSAGE_LENGTH = 2MB
