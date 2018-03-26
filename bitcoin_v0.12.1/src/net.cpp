@@ -1418,17 +1418,17 @@ void ThreadDNSAddressSeed()
     // goal: only query DNS seeds if address need is acute
     if ((addrman.size() > 0) &&
         (!GetBoolArg("-forcednsseed", DEFAULT_FORCEDNSSEED))) {
-        MilliSleep(11 * 1000);
+        MilliSleep(11 * 1000); // 先睡 11 s，给充足的时间建立连接
 
         LOCK(cs_vNodes);
-        if (vNodes.size() >= 2) {
+        if (vNodes.size() >= 2) { // 若连接数为 2 个以上（包含 2 个），则证明 P2P 连接可用，直接跳过 DNS 种子解析
             LogPrintf("P2P peers available. Skipped DNS seeding.\n");
             return;
         }
     }
 
     const vector<CDNSSeedData> &vSeeds = Params().DNSSeeds();
-    int found = 0;
+    int found = 0; // 记录解析出的 IP 数目
 
     LogPrintf("Loading addresses from DNS seeds (could take a while)\n");
 
@@ -1436,20 +1436,20 @@ void ThreadDNSAddressSeed()
         if (HaveNameProxy()) {
             AddOneShot(seed.host);
         } else {
-            vector<CNetAddr> vIPs;
-            vector<CAddress> vAdd;
-            if (LookupHost(seed.host.c_str(), vIPs))
+            vector<CNetAddr> vIPs; // IP
+            vector<CAddress> vAdd; // IP + PORT
+            if (LookupHost(seed.host.c_str(), vIPs)) // DNS 解析
             {
                 BOOST_FOREACH(const CNetAddr& ip, vIPs)
                 {
                     int nOneDay = 24*3600;
-                    CAddress addr = CAddress(CService(ip, Params().GetDefaultPort()));
-                    addr.nTime = GetTime() - 3*nOneDay - GetRand(4*nOneDay); // use a random age between 3 and 7 days old
+                    CAddress addr = CAddress(CService(ip, Params().GetDefaultPort())); // IP + nDefaultPort 配对
+                    addr.nTime = GetTime() - 3*nOneDay - GetRand(4*nOneDay); // use a random age between 3 and 7 days old // 使用一个随机的前 3 至 7 天的时间，意味不明
                     vAdd.push_back(addr);
                     found++;
                 }
             }
-            addrman.Add(vAdd, CNetAddr(seed.name, true));
+            addrman.Add(vAdd, CNetAddr(seed.name, true)); // 添加该地址到 IP 地址管理器
         }
     }
 
@@ -1931,7 +1931,7 @@ void StartNode(boost::thread_group& threadGroup, CScheduler& scheduler)
     int64_t nStart = GetTimeMillis();
     {
         CAddrDB adb;
-        if (!adb.Read(addrman)) // 从 peers.dat 中加载地址到内存
+        if (!adb.Read(addrman)) // 从 peers.dat 中加载地址到内存中的 IP 地址管理器 CAddrMan
             LogPrintf("Invalid or missing peers.dat; recreating\n");
     }
 

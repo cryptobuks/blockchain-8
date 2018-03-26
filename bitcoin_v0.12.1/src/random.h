@@ -20,7 +20,7 @@ void RandAddSeedPerfmon();
  * Functions to gather random data via the OpenSSL PRNG
  */
 void GetRandBytes(unsigned char* buf, int num);
-uint64_t GetRand(uint64_t nMax);
+uint64_t GetRand(uint64_t nMax); // 获取一个小于 nMax 的随机正数
 int GetRandInt(int nMax);
 uint256 GetRandHash();
 

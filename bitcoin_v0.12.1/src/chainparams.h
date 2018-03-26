@@ -14,7 +14,7 @@
 #include <vector>
 
 struct CDNSSeedData {
-    std::string name, host;
+    std::string name, host; // ”Ú√˚£¨IP µÿ÷∑
     CDNSSeedData(const std::string &strName, const std::string &strHost) : name(strName), host(strHost) {}
 };
 
