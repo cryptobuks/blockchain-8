@@ -4539,10 +4539,10 @@ void static ProcessGetData(CNode* pfrom, const Consensus::Params& consensusParam
 
 bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, int64_t nTimeReceived)
 {
-    const CChainParams& chainparams = Params();
-    RandAddSeedPerfmon();
-    LogPrint("net", "received: %s (%u bytes) peer=%d\n", SanitizeString(strCommand), vRecv.size(), pfrom->id);
-    if (mapArgs.count("-dropmessagestest") && GetRand(atoi(mapArgs["-dropmessagestest"])) == 0)
+    const CChainParams& chainparams = Params(); // 获取链参数
+    RandAddSeedPerfmon(); // 设置随机数种子
+    LogPrint("net", "received: %s (%u bytes) peer=%d\n", SanitizeString(strCommand), vRecv.size(), pfrom->id); // 日志记录命令（序列化字符串，防止字符串格式攻击）、接收数据大小、对方 id
+    if (mapArgs.count("-dropmessagestest") && GetRand(atoi(mapArgs["-dropmessagestest"])) == 0) // 丢弃消息测试标志，随机丢弃每 n 个网络消息中的一个
     {
         LogPrintf("dropmessagestest DROPPING RECV MESSAGE\n");
         return true;
@@ -4564,12 +4564,12 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
     }
 
 
-    if (strCommand == NetMsgType::VERSION)
+    if (strCommand == NetMsgType::VERSION) // 版本消息，每建立一条连接便会先（只）发送一条该消息
     {
         // Each connection can only send one version message
-        if (pfrom->nVersion != 0)
+        if (pfrom->nVersion != 0) // 若版本号不为 0，则说明第二次收到该版本信息
         {
-            pfrom->PushMessage(NetMsgType::REJECT, strCommand, REJECT_DUPLICATE, string("Duplicate version message"));
+            pfrom->PushMessage(NetMsgType::REJECT, strCommand, REJECT_DUPLICATE, string("Duplicate version message")); // 重复发送版本消息，回复 REJECT 消息
             Misbehaving(pfrom->GetId(), 1);
             return false;
         }
@@ -4578,13 +4578,13 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         CAddress addrMe;
         CAddress addrFrom;
         uint64_t nNonce = 1;
-        vRecv >> pfrom->nVersion >> pfrom->nServices >> nTime >> addrMe;
-        if (pfrom->nVersion < MIN_PEER_PROTO_VERSION)
+        vRecv >> pfrom->nVersion >> pfrom->nServices >> nTime >> addrMe; // 按序接收至接收者地址信息
+        if (pfrom->nVersion < MIN_PEER_PROTO_VERSION) // 若协议版本比 MIN_PEER_PROTO_VERSION 低，则发送相应提示信息并断开连接
         {
             // disconnect from peers older than this proto version
             LogPrintf("peer=%d using obsolete version %i; disconnecting\n", pfrom->id, pfrom->nVersion);
             pfrom->PushMessage(NetMsgType::REJECT, strCommand, REJECT_OBSOLETE,
-                               strprintf("Version must be %d or greater", MIN_PEER_PROTO_VERSION));
+                               strprintf("Version must be %d or greater", MIN_PEER_PROTO_VERSION)); // 协议版本号过低，回复 REJECT 消息
             pfrom->fDisconnect = true;
             return false;
         }
@@ -4592,20 +4592,20 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         if (pfrom->nVersion == 10300)
             pfrom->nVersion = 300;
         if (!vRecv.empty())
-            vRecv >> addrFrom >> nNonce;
+            vRecv >> addrFrom >> nNonce; // 接收发送者地址信息和节点唯一随机 id
         if (!vRecv.empty()) {
-            vRecv >> LIMITED_STRING(pfrom->strSubVer, MAX_SUBVERSION_LENGTH);
+            vRecv >> LIMITED_STRING(pfrom->strSubVer, MAX_SUBVERSION_LENGTH); // 接收自版本信息
             pfrom->cleanSubVer = SanitizeString(pfrom->strSubVer);
         }
         if (!vRecv.empty())
-            vRecv >> pfrom->nStartingHeight;
+            vRecv >> pfrom->nStartingHeight; // 接收发送节点拥有的最新块高度
         if (!vRecv.empty())
-            vRecv >> pfrom->fRelayTxes; // set to true after we get the first filter* message
+            vRecv >> pfrom->fRelayTxes; // set to true after we get the first filter* message // 设置是否转发交易条目
         else
             pfrom->fRelayTxes = true;
 
         // Disconnect if we connected to ourself
-        if (nNonce == nLocalHostNonce && nNonce > 1)
+        if (nNonce == nLocalHostNonce && nNonce > 1) // 若连接到自身就断开
         {
             LogPrintf("connected to self at %s, disconnecting\n", pfrom->addr.ToString());
             pfrom->fDisconnect = true;
@@ -4620,7 +4620,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
         // Be shy and don't send version until we hear
         if (pfrom->fInbound)
-            pfrom->PushVersion();
+            pfrom->PushVersion(); // 发送版本信息
 
         pfrom->fClient = !(pfrom->nServices & NODE_NETWORK);
 
@@ -4628,19 +4628,19 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         UpdatePreferredDownload(pfrom, State(pfrom->GetId()));
 
         // Change version
-        pfrom->PushMessage(NetMsgType::VERACK);
-        pfrom->ssSend.SetVersion(min(pfrom->nVersion, PROTOCOL_VERSION));
+        pfrom->PushMessage(NetMsgType::VERACK); // 发送版本确认信息
+        pfrom->ssSend.SetVersion(min(pfrom->nVersion, PROTOCOL_VERSION)); // 保证协议版本至少为 70012
 
         if (!pfrom->fInbound)
         {
             // Advertise our address
-            if (fListen && !IsInitialBlockDownload())
+            if (fListen && !IsInitialBlockDownload()) // 若自己时监听节点
             {
                 CAddress addr = GetLocalAddress(&pfrom->addr);
                 if (addr.IsRoutable())
                 {
                     LogPrintf("ProcessMessages: advertizing address %s\n", addr.ToString());
-                    pfrom->PushAddress(addr);
+                    pfrom->PushAddress(addr); // 回复 IP 地址信息和端口号
                 } else if (IsPeerAddrLocalGood(pfrom)) {
                     addr.SetIP(pfrom->addrLocal);
                     LogPrintf("ProcessMessages: advertizing address %s\n", addr.ToString());
@@ -4649,9 +4649,9 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             }
 
             // Get recent addresses
-            if (pfrom->fOneShot || pfrom->nVersion >= CADDR_TIME_VERSION || addrman.size() < 1000)
+            if (pfrom->fOneShot || pfrom->nVersion >= CADDR_TIME_VERSION || addrman.size() < 1000) // 若对方为 fOneShot，或协议版本大于 31402，或本地地址库存小于 1000
             {
-                pfrom->PushMessage(NetMsgType::GETADDR);
+                pfrom->PushMessage(NetMsgType::GETADDR); // 回复 GETADDR 消息
                 pfrom->fGetAddr = true;
             }
             addrman.Good(pfrom->addr);
@@ -4666,7 +4666,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         // Relay alerts
         {
             LOCK(cs_mapAlerts);
-            BOOST_FOREACH(PAIRTYPE(const uint256, CAlert)& item, mapAlerts)
+            BOOST_FOREACH(PAIRTYPE(const uint256, CAlert)& item, mapAlerts) // 若本地接收过告警消息，则转发 ALERT 消息
                 item.second.RelayTo(pfrom);
         }
 
@@ -4682,12 +4682,12 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
                   remoteAddr);
 
         int64_t nTimeOffset = nTime - GetTime();
-        pfrom->nTimeOffset = nTimeOffset;
-        AddTimeData(pfrom->addr, nTimeOffset);
+        pfrom->nTimeOffset = nTimeOffset; // 时间偏移量，即消息发送时到接收后的时间差
+        AddTimeData(pfrom->addr, nTimeOffset); // 这里标志这一条连接的真正建立
     }
 
 
-    else if (pfrom->nVersion == 0)
+    else if (pfrom->nVersion == 0) // 在其他任何命令执行之前必须有版本信息
     {
         // Must have a version message before anything else
         Misbehaving(pfrom->GetId(), 1);
@@ -4695,35 +4695,35 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
     }
 
 
-    else if (strCommand == NetMsgType::VERACK)
+    else if (strCommand == NetMsgType::VERACK) // 版本确认消息，用于确认版本消息
     {
         pfrom->SetRecvVersion(min(pfrom->nVersion, PROTOCOL_VERSION));
 
         // Mark this node as currently connected, so we update its timestamp later.
         if (pfrom->fNetworkNode) {
             LOCK(cs_main);
-            State(pfrom->GetId())->fCurrentlyConnected = true;
+            State(pfrom->GetId())->fCurrentlyConnected = true; // 标记此节点已连接
         }
 
-        if (pfrom->nVersion >= SENDHEADERS_VERSION) {
+        if (pfrom->nVersion >= SENDHEADERS_VERSION) { // 若协议版本大于等于 70012
             // Tell our peer we prefer to receive headers rather than inv's
             // We send this to non-NODE NETWORK peers as well, because even
             // non-NODE NETWORK peers can announce blocks (such as pruning
             // nodes)
-            pfrom->PushMessage(NetMsgType::SENDHEADERS);
+            pfrom->PushMessage(NetMsgType::SENDHEADERS); // 回复 SENDHEADERS 消息，标识节点使用头优先模式来同步区块
         }
     }
 
 
-    else if (strCommand == NetMsgType::ADDR)
+    else if (strCommand == NetMsgType::ADDR) // 地址消息，转发节点地址列表
     {
         vector<CAddress> vAddr;
-        vRecv >> vAddr;
+        vRecv >> vAddr; // 地址合集
 
         // Don't want addr from older versions unless seeding
-        if (pfrom->nVersion < CADDR_TIME_VERSION && addrman.size() > 1000)
+        if (pfrom->nVersion < CADDR_TIME_VERSION && addrman.size() > 1000) // 协议版本过早且本地连接库存大于 1000 条
             return true;
-        if (vAddr.size() > 1000)
+        if (vAddr.size() > 1000) // 地址合集不能超过 1000 条
         {
             Misbehaving(pfrom->GetId(), 20);
             return error("message addr size() = %u", vAddr.size());
@@ -4771,7 +4771,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
                 }
             }
             // Do not store addresses outside our network
-            if (fReachable)
+            if (fReachable) // 不存储我们连不上的地址
                 vAddrOk.push_back(addr);
         }
         addrman.Add(vAddrOk, pfrom->addr, 2 * 60 * 60);
@@ -4781,10 +4781,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             pfrom->fDisconnect = true;
     }
 
-    else if (strCommand == NetMsgType::SENDHEADERS)
+    else if (strCommand == NetMsgType::SENDHEADERS) // 头优先消息，用于区块同步
     {
         LOCK(cs_main);
-        State(pfrom->GetId())->fPreferHeaders = true;
+        State(pfrom->GetId())->fPreferHeaders = true; // 设置头优先模式
     }
 
 
@@ -5252,12 +5252,12 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
     // to users' AddrMan and later request them by sending getaddr messages.
     // Making nodes which are behind NAT and can only make outgoing connections ignore
     // the getaddr message mitigates the attack.
-    else if ((strCommand == NetMsgType::GETADDR) && (pfrom->fInbound))
+    else if ((strCommand == NetMsgType::GETADDR) && (pfrom->fInbound)) // 获取地址消息
     {
         pfrom->vAddrToSend.clear();
         vector<CAddress> vAddr = addrman.GetAddr();
         BOOST_FOREACH(const CAddress &addr, vAddr)
-            pfrom->PushAddress(addr);
+            pfrom->PushAddress(addr); // 回复本地节点的地址列表信息
     }
 
 
@@ -5293,9 +5293,9 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
     }
 
 
-    else if (strCommand == NetMsgType::PING)
+    else if (strCommand == NetMsgType::PING) // 类似于心跳机制，收到 ping 后，回复 pong
     {
-        if (pfrom->nVersion > BIP0031_VERSION)
+        if (pfrom->nVersion > BIP0031_VERSION) // BIP0031 之后的版本可用
         {
             uint64_t nonce = 0;
             vRecv >> nonce;
@@ -5477,7 +5477,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
     else
     {
-        // Ignore unknown commands for extensibility
+        // Ignore unknown commands for extensibility // 忽略未知命令为了可扩展性
         LogPrint("net", "Unknown command \"%s\" from peer=%d\n", SanitizeString(strCommand), pfrom->id);
     }
 
@@ -5538,22 +5538,22 @@ bool ProcessMessages(CNode* pfrom)
         }
 
         // Read header
-        CMessageHeader& hdr = msg.hdr;
-        if (!hdr.IsValid(chainparams.MessageStart()))
+        CMessageHeader& hdr = msg.hdr; // 读消息头
+        if (!hdr.IsValid(chainparams.MessageStart())) // 再次检查消息头魔数是否一致
         {
             LogPrintf("PROCESSMESSAGE: ERRORS IN HEADER %s peer=%d\n", SanitizeString(hdr.GetCommand()), pfrom->id);
             continue;
         }
-        string strCommand = hdr.GetCommand();
+        string strCommand = hdr.GetCommand(); // 获取命令
 
         // Message size
-        unsigned int nMessageSize = hdr.nMessageSize;
+        unsigned int nMessageSize = hdr.nMessageSize; // 消息体数据大小
 
         // Checksum
-        CDataStream& vRecv = msg.vRecv;
-        uint256 hash = Hash(vRecv.begin(), vRecv.begin() + nMessageSize);
-        unsigned int nChecksum = ReadLE32((unsigned char*)&hash);
-        if (nChecksum != hdr.nChecksum)
+        CDataStream& vRecv = msg.vRecv; // 消息体数据
+        uint256 hash = Hash(vRecv.begin(), vRecv.begin() + nMessageSize); // 计算消息体哈希
+        unsigned int nChecksum = ReadLE32((unsigned char*)&hash); // 计算校验和
+        if (nChecksum != hdr.nChecksum) // 通过校验和进行数据的一致性检查
         {
             LogPrintf("%s(%s, %u bytes): CHECKSUM ERROR nChecksum=%08x hdr.nChecksum=%08x\n", __func__,
                SanitizeString(strCommand), nMessageSize, nChecksum, hdr.nChecksum);
@@ -5564,7 +5564,7 @@ bool ProcessMessages(CNode* pfrom)
         bool fRet = false;
         try
         {
-            fRet = ProcessMessage(pfrom, strCommand, vRecv, msg.nTime);
+            fRet = ProcessMessage(pfrom, strCommand, vRecv, msg.nTime); // 根据命令进行响应
             boost::this_thread::interruption_point();
         }
         catch (const std::ios_base::failure& e)
@@ -5613,7 +5613,7 @@ bool SendMessages(CNode* pto)
     const Consensus::Params& consensusParams = Params().GetConsensus();
     {
         // Don't send anything until we get its version message
-        if (pto->nVersion == 0)
+        if (pto->nVersion == 0) // 确保连接建立完毕，且版本号非 0
             return true;
 
         //
@@ -5624,14 +5624,14 @@ bool SendMessages(CNode* pto)
             // RPC ping request by user
             pingSend = true;
         }
-        if (pto->nPingNonceSent == 0 && pto->nPingUsecStart + PING_INTERVAL * 1000000 < GetTimeMicros()) {
+        if (pto->nPingNonceSent == 0 && pto->nPingUsecStart + PING_INTERVAL * 1000000 < GetTimeMicros()) { // ping 自动发送，用于延迟（2 分钟）刺探和保活
             // Ping automatically sent as a latency probe & keepalive.
             pingSend = true;
         }
         if (pingSend) {
             uint64_t nonce = 0;
             while (nonce == 0) {
-                GetRandBytes((unsigned char*)&nonce, sizeof(nonce));
+                GetRandBytes((unsigned char*)&nonce, sizeof(nonce)); // 生成一个随机数
             }
             pto->fPingQueued = false;
             pto->nPingUsecStart = GetTimeMicros();
