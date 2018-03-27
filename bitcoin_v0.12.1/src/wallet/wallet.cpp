@@ -1230,7 +1230,7 @@ int CWallet::ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate)
 void CWallet::ReacceptWalletTransactions()
 {
     // If transactions aren't being broadcasted, don't let them into local mempool either
-    if (!fBroadcastTransactions)
+    if (!fBroadcastTransactions) // 广播交易标志必须开启
         return;
     LOCK2(cs_main, cs_wallet);
     std::map<int64_t, CWalletTx*> mapSorted;
@@ -1240,12 +1240,12 @@ void CWallet::ReacceptWalletTransactions()
     {
         const uint256& wtxid = item.first;
         CWalletTx& wtx = item.second;
-        assert(wtx.GetHash() == wtxid);
+        assert(wtx.GetHash() == wtxid); // 验证交易与其哈希 id 的对应关系是否一致
 
-        int nDepth = wtx.GetDepthInMainChain();
+        int nDepth = wtx.GetDepthInMainChain(); // 获取交易在主链中的深度
 
-        if (!wtx.IsCoinBase() && (nDepth == 0 && !wtx.isAbandoned())) {
-            mapSorted.insert(std::make_pair(wtx.nOrderPos, &wtx));
+        if (!wtx.IsCoinBase() && (nDepth == 0 && !wtx.isAbandoned())) { // 该交易不能时 coinbase 、该交易深度为 0（表示该交易还未被接受）且该交易未被抛弃
+            mapSorted.insert(std::make_pair(wtx.nOrderPos, &wtx)); // 加入暂存池
         }
     }
 
@@ -1255,7 +1255,7 @@ void CWallet::ReacceptWalletTransactions()
         CWalletTx& wtx = *(item.second);
 
         LOCK(mempool.cs);
-        wtx.AcceptToMemoryPool(false);
+        wtx.AcceptToMemoryPool(false); // 把交易放入内存池
     }
 }
 
@@ -3008,21 +3008,21 @@ int CMerkleTx::SetMerkleBranch(const CBlock& block)
 
 int CMerkleTx::GetDepthInMainChain(const CBlockIndex* &pindexRet) const
 {
-    if (hashUnset())
+    if (hashUnset()) // 判断该区块的有效性
         return 0;
 
     AssertLockHeld(cs_main);
 
     // Find the block it claims to be in
-    BlockMap::iterator mi = mapBlockIndex.find(hashBlock);
-    if (mi == mapBlockIndex.end())
+    BlockMap::iterator mi = mapBlockIndex.find(hashBlock); // 根据 hashBlock 在区块索引列表中找区块
+    if (mi == mapBlockIndex.end()) // 若没找到，则返回 0
         return 0;
     CBlockIndex* pindex = (*mi).second;
-    if (!pindex || !chainActive.Contains(pindex))
+    if (!pindex || !chainActive.Contains(pindex)) // 根据区块索引判断该块是否在主链上，若不在，则返回 0
         return 0;
 
     pindexRet = pindex;
-    return ((nIndex == -1) ? (-1) : 1) * (chainActive.Height() - pindex->nHeight + 1);
+    return ((nIndex == -1) ? (-1) : 1) * (chainActive.Height() - pindex->nHeight + 1); // 返回深度，链尖的深度为 1
 }
 
 int CMerkleTx::GetBlocksToMaturity() const

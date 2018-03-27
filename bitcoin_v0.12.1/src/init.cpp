@@ -939,7 +939,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) //3.11
     bool fDisableWallet = GetBoolArg("-disablewallet", false);
 #endif
 
-    nConnectTimeout = GetArg("-timeout", DEFAULT_CONNECT_TIMEOUT);
+    nConnectTimeout = GetArg("-timeout", DEFAULT_CONNECT_TIMEOUT); // 连接超时，默认 5000
     if (nConnectTimeout <= 0)
         nConnectTimeout = DEFAULT_CONNECT_TIMEOUT;
 
@@ -1020,7 +1020,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) //3.11
     fAcceptDatacarrier = GetBoolArg("-datacarrier", DEFAULT_ACCEPT_DATACARRIER);
     nMaxDatacarrierBytes = GetArg("-datacarriersize", nMaxDatacarrierBytes);
 
-    fAlerts = GetBoolArg("-alerts", DEFAULT_ALERTS);
+    fAlerts = GetBoolArg("-alerts", DEFAULT_ALERTS); // 转发选项，默认关闭
 
     // Option to startup with mocktime set (used for regression testing):
     SetMockTime(GetArg("-mocktime", 0)); // SetMockTime(0) is a no-op
@@ -1078,7 +1078,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) //3.11
 #ifdef ENABLE_WALLET
     LogPrintf("Using BerkeleyDB version %s\n", DbEnv::version(0, 0, 0));
 #endif
-    if (!fLogTimestamps)
+    if (!fLogTimestamps) // 时间戳标志，默认开启
         LogPrintf("Startup time: %s\n", DateTimeStrFormat("%Y-%m-%d %H:%M:%S", GetTime()));
     LogPrintf("Default data directory %s\n", GetDefaultDataDir().string());
     LogPrintf("Using data directory %s\n", strDataDir);
@@ -1101,7 +1101,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) //3.11
      * that the server is there and will be ready later).  Warmup mode will
      * be disabled when initialisation is finished.
      */
-    if (fServer)
+    if (fServer) // 启动 HTTP、RPC 相关服务
     {
         uiInterface.InitMessage.connect(SetRPCWarmupStatus);
         if (!AppInitServers(threadGroup))
@@ -1663,15 +1663,15 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) //3.11
     // ********************************************************* Step 12: finished // 完成
 
     SetRPCWarmupFinished();
-    uiInterface.InitMessage(_("Done loading"));
+    uiInterface.InitMessage(_("Done loading")); // 提示加载完成信息
 
 #ifdef ENABLE_WALLET
     if (pwalletMain) {
         // Add wallet transactions that aren't already in a block to mapTransactions
-        pwalletMain->ReacceptWalletTransactions();
+        pwalletMain->ReacceptWalletTransactions(); // 重新接收钱包交易，把钱包交易中的交易添加到内存池中
 
         // Run a thread to flush wallet periodically
-        threadGroup.create_thread(boost::bind(&ThreadFlushWalletDB, boost::ref(pwalletMain->strWalletFile)));
+        threadGroup.create_thread(boost::bind(&ThreadFlushWalletDB, boost::ref(pwalletMain->strWalletFile))); // 定期刷新钱包线程
     }
 #endif
 

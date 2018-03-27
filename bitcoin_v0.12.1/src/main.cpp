@@ -1014,7 +1014,7 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState &state, const C
         return false;
 
     // Coinbase is only valid in a block, not as a loose transaction
-    if (tx.IsCoinBase())
+    if (tx.IsCoinBase()) // 筛选创币交易
         return state.DoS(100, false, REJECT_INVALID, "coinbase");
 
     // Rather not work on nonstandard transactions (unless -testnet/-regtest)
@@ -4569,7 +4569,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         // Each connection can only send one version message
         if (pfrom->nVersion != 0) // 若版本号不为 0，则说明第二次收到该版本信息
         {
-            pfrom->PushMessage(NetMsgType::REJECT, strCommand, REJECT_DUPLICATE, string("Duplicate version message")); // 重复发送版本消息，回复 REJECT 消息
+            pfrom->PushMessage(NetMsgType::REJECT, strCommand, REJECT_DUPLICATE, string("Duplicate version message")); // 回复 REJECT 消息，表明重复发送版本消息
             Misbehaving(pfrom->GetId(), 1);
             return false;
         }
@@ -4718,12 +4718,12 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
     else if (strCommand == NetMsgType::ADDR) // 地址消息，转发节点地址列表
     {
         vector<CAddress> vAddr;
-        vRecv >> vAddr; // 地址合集
+        vRecv >> vAddr; // 接收地址列表
 
         // Don't want addr from older versions unless seeding
         if (pfrom->nVersion < CADDR_TIME_VERSION && addrman.size() > 1000) // 协议版本过早且本地连接库存大于 1000 条
             return true;
-        if (vAddr.size() > 1000) // 地址合集不能超过 1000 条
+        if (vAddr.size() > 1000) // 地址列表条目最大限制为 1000 条
         {
             Misbehaving(pfrom->GetId(), 20);
             return error("message addr size() = %u", vAddr.size());
@@ -4788,11 +4788,11 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
     }
 
 
-    else if (strCommand == NetMsgType::INV)
+    else if (strCommand == NetMsgType::INV) // 库存消息，用于发送本节点的交易和区块列表
     {
         vector<CInv> vInv;
-        vRecv >> vInv;
-        if (vInv.size() > MAX_INV_SZ)
+        vRecv >> vInv; // 接收库存（包含交易、区块列表）
+        if (vInv.size() > MAX_INV_SZ) // 库存条目最大 50000 条
         {
             Misbehaving(pfrom->GetId(), 20);
             return error("message inv size() = %u", vInv.size());
@@ -4863,7 +4863,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
     }
 
 
-    else if (strCommand == NetMsgType::GETDATA)
+    else if (strCommand == NetMsgType::GETDATA) // 获取数据消息，用于收到 INV 消息后请求自己不存在的 tx 或 block
     {
         vector<CInv> vInv;
         vRecv >> vInv;
@@ -5298,7 +5298,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         if (pfrom->nVersion > BIP0031_VERSION) // BIP0031 之后的版本可用
         {
             uint64_t nonce = 0;
-            vRecv >> nonce;
+            vRecv >> nonce; // 接收 ping 方发送的随机数
             // Echo the message back with the nonce. This allows for two useful features:
             //
             // 1) A remote node can quickly check if the connection is operational
@@ -5310,27 +5310,27 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             // it, if the remote node sends a ping once per second and this node takes 5
             // seconds to respond to each, the 5th ping the remote sends would appear to
             // return very quickly.
-            pfrom->PushMessage(NetMsgType::PONG, nonce);
+            pfrom->PushMessage(NetMsgType::PONG, nonce); // 发送包含该随机数的 pong 消息，用于验证，类似于回显
         }
     }
 
 
-    else if (strCommand == NetMsgType::PONG)
+    else if (strCommand == NetMsgType::PONG) // pong 消息，用于回复 ping 消息
     {
         int64_t pingUsecEnd = nTimeReceived;
         uint64_t nonce = 0;
-        size_t nAvail = vRecv.in_avail();
+        size_t nAvail = vRecv.in_avail(); // 获取接收消息体数据的大小
         bool bPingFinished = false;
         std::string sProblem;
 
         if (nAvail >= sizeof(nonce)) {
-            vRecv >> nonce;
+            vRecv >> nonce; // 获取回复的随机数
 
             // Only process pong message if there is an outstanding ping (old ping without nonce should never pong)
             if (pfrom->nPingNonceSent != 0) {
-                if (nonce == pfrom->nPingNonceSent) {
+                if (nonce == pfrom->nPingNonceSent) { // 比较发送过去的随机数和接收到回复的随机数
                     // Matching pong received, this ping is no longer outstanding
-                    bPingFinished = true;
+                    bPingFinished = true; // ping 成功
                     int64_t pingUsecTime = pingUsecEnd - pfrom->nPingUsecStart;
                     if (pingUsecTime > 0) {
                         // Successful ping time measurement, replace previous
@@ -5340,7 +5340,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
                         // This should never happen
                         sProblem = "Timing mishap";
                     }
-                } else {
+                } else { // 随机数不匹配
                     // Nonce mismatches are normal when pings are overlapping
                     sProblem = "Nonce mismatch";
                     if (nonce == 0) {
@@ -5367,12 +5367,12 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
                 nAvail);
         }
         if (bPingFinished) {
-            pfrom->nPingNonceSent = 0;
+            pfrom->nPingNonceSent = 0; // ping 成功后，发送随机数置 0
         }
     }
 
 
-    else if (fAlerts && strCommand == NetMsgType::ALERT)
+    else if (fAlerts && strCommand == NetMsgType::ALERT) // 改变消息，用于节点间发送通知
     {
         CAlert alert;
         vRecv >> alert;
@@ -5387,7 +5387,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
                 {
                     LOCK(cs_vNodes);
                     BOOST_FOREACH(CNode* pnode, vNodes)
-                        alert.RelayTo(pnode);
+                        alert.RelayTo(pnode); // 传播消息到每个与之相连的节点
                 }
             }
             else {
@@ -5403,7 +5403,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
     }
 
 
-    else if (strCommand == NetMsgType::FILTERLOAD)
+    else if (strCommand == NetMsgType::FILTERLOAD) // Bloom Filter
     {
         CBloomFilter filter;
         vRecv >> filter;
@@ -5422,7 +5422,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
     }
 
 
-    else if (strCommand == NetMsgType::FILTERADD)
+    else if (strCommand == NetMsgType::FILTERADD) // Bloom Filter
     {
         vector<unsigned char> vData;
         vRecv >> vData;
@@ -5442,7 +5442,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
     }
 
 
-    else if (strCommand == NetMsgType::FILTERCLEAR)
+    else if (strCommand == NetMsgType::FILTERCLEAR) // Bloom Filter
     {
         LOCK(pfrom->cs_filter);
         delete pfrom->pfilter;
@@ -5451,9 +5451,9 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
     }
 
 
-    else if (strCommand == NetMsgType::REJECT)
+    else if (strCommand == NetMsgType::REJECT) // 拒绝消息，用于告知对方发送的消息被拒	
     {
-        if (fDebug) {
+        if (fDebug) { // debug 模式下可用
             try {
                 string strMsg; unsigned char ccode; string strReason;
                 vRecv >> LIMITED_STRING(strMsg, CMessageHeader::COMMAND_SIZE) >> ccode >> LIMITED_STRING(strReason, MAX_REJECT_MESSAGE_LENGTH);
@@ -5477,7 +5477,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
     else
     {
-        // Ignore unknown commands for extensibility // 忽略未知命令为了可扩展性
+        // Ignore unknown commands for extensibility // 忽略未知命令，为了可扩展性
         LogPrint("net", "Unknown command \"%s\" from peer=%d\n", SanitizeString(strCommand), pfrom->id);
     }
 

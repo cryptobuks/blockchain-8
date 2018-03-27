@@ -804,19 +804,19 @@ DBErrors CWalletDB::ZapWalletTx(CWallet* pwallet, vector<CWalletTx>& vWtx)
 void ThreadFlushWalletDB(const string& strFile)
 {
     // Make this thread recognisable as the wallet flushing thread
-    RenameThread("bitcoin-wallet");
+    RenameThread("bitcoin-wallet"); // 重命名线程
 
     static bool fOneThread;
-    if (fOneThread)
+    if (fOneThread) // 该线程只能创建一次
         return;
     fOneThread = true;
-    if (!GetBoolArg("-flushwallet", DEFAULT_FLUSHWALLET))
+    if (!GetBoolArg("-flushwallet", DEFAULT_FLUSHWALLET)) // 刷新钱包标志，默认打开
         return;
 
     unsigned int nLastSeen = nWalletDBUpdated;
     unsigned int nLastFlushed = nWalletDBUpdated;
     int64_t nLastWalletUpdate = GetTime();
-    while (true)
+    while (true) // 每 500 毫秒刷新一次
     {
         MilliSleep(500);
 
@@ -826,13 +826,13 @@ void ThreadFlushWalletDB(const string& strFile)
             nLastWalletUpdate = GetTime();
         }
 
-        if (nLastFlushed != nWalletDBUpdated && GetTime() - nLastWalletUpdate >= 2)
+        if (nLastFlushed != nWalletDBUpdated && GetTime() - nLastWalletUpdate >= 2) // 更新的时间间隔大于等于 2 秒
         {
             TRY_LOCK(bitdb.cs_db,lockDb);
             if (lockDb)
             {
                 // Don't do this if any databases are in use
-                int nRefCount = 0;
+                int nRefCount = 0; // 计算钱包数据库文件的引用计数
                 map<string, int>::iterator mi = bitdb.mapFileUseCount.begin();
                 while (mi != bitdb.mapFileUseCount.end())
                 {
@@ -840,7 +840,7 @@ void ThreadFlushWalletDB(const string& strFile)
                     mi++;
                 }
 
-                if (nRefCount == 0)
+                if (nRefCount == 0) // 当引用计数为 0 时，刷新钱包数据
                 {
                     boost::this_thread::interruption_point();
                     map<string, int>::iterator mi = bitdb.mapFileUseCount.find(strFile);
@@ -851,8 +851,8 @@ void ThreadFlushWalletDB(const string& strFile)
                         int64_t nStart = GetTimeMillis();
 
                         // Flush wallet.dat so it's self contained
-                        bitdb.CloseDb(strFile);
-                        bitdb.CheckpointLSN(strFile);
+                        bitdb.CloseDb(strFile); // 在这里刷新，通过关闭数据库文件
+                        bitdb.CheckpointLSN(strFile); // 重置检查点
 
                         bitdb.mapFileUseCount.erase(mi++);
                         LogPrint("db", "Flushed wallet.dat %dms\n", GetTimeMillis() - nStart);
