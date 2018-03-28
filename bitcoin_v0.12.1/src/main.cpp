@@ -3654,10 +3654,10 @@ void FindFilesToPrune(std::set<int>& setFilesToPrune, uint64_t nPruneAfterHeight
 
 bool CheckDiskSpace(uint64_t nAdditionalBytes)
 {
-    uint64_t nFreeBytesAvailable = boost::filesystem::space(GetDataDir()).available; // ??????????????????????????λ B
+    uint64_t nFreeBytesAvailable = boost::filesystem::space(GetDataDir()).available; // 获取数据目录所在磁盘的剩余（可用）空间的大小，单位 Byte
 
     // Check for nMinDiskSpace bytes (currently 50MB)
-    if (nFreeBytesAvailable < nMinDiskSpace + nAdditionalBytes) // ????????????? 50MB
+    if (nFreeBytesAvailable < nMinDiskSpace + nAdditionalBytes) // 磁盘剩余空间最小为 50MB
         return AbortNode("Disk space is low!", _("Error: Disk space is low!"));
 
     return true;

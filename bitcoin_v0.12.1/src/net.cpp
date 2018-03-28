@@ -83,7 +83,7 @@ static CNode* pnodeLocalHost = NULL;
 uint64_t nLocalHostNonce = 0;
 static std::vector<ListenSocket> vhListenSocket;
 CAddrMan addrman;
-int nMaxConnections = DEFAULT_MAX_PEER_CONNECTIONS;
+int nMaxConnections = DEFAULT_MAX_PEER_CONNECTIONS; // 125
 bool fAddressesInitialized = false;
 std::string strSubVersion;
 
@@ -1035,35 +1035,35 @@ void ThreadSocketHandler()
             BOOST_FOREACH(CNode* pnode, vNodesCopy)
             {
                 if (pnode->fDisconnect ||
-                    (pnode->GetRefCount() <= 0 && pnode->vRecvMsg.empty() && pnode->nSendSize == 0 && pnode->ssSend.empty()))
+                    (pnode->GetRefCount() <= 0 && pnode->vRecvMsg.empty() && pnode->nSendSize == 0 && pnode->ssSend.empty())) // 若一个节点的引用计数为 0，且不再接收和发送数据，则视为无用节点
                 {
                     // remove from vNodes
-                    vNodes.erase(remove(vNodes.begin(), vNodes.end(), pnode), vNodes.end());
+                    vNodes.erase(remove(vNodes.begin(), vNodes.end(), pnode), vNodes.end()); // 从节点列表中删除
 
                     // release outbound grant (if any)
                     pnode->grantOutbound.Release();
 
                     // close socket and cleanup
-                    pnode->CloseSocketDisconnect();
+                    pnode->CloseSocketDisconnect(); // 关闭套接字并清理
 
                     // hold in disconnected pool until all refs are released
                     if (pnode->fNetworkNode || pnode->fInbound)
-                        pnode->Release();
-                    vNodesDisconnected.push_back(pnode);
+                        pnode->Release(); // LRUCache 引用计数减 1
+                    vNodesDisconnected.push_back(pnode); // 放入断开连接节点列表
                 }
             }
         }
         {
             // Delete disconnected nodes
             list<CNode*> vNodesDisconnectedCopy = vNodesDisconnected;
-            BOOST_FOREACH(CNode* pnode, vNodesDisconnectedCopy)
+            BOOST_FOREACH(CNode* pnode, vNodesDisconnectedCopy) // 遍历断开连接节点列表
             {
                 // wait until threads are done using it
-                if (pnode->GetRefCount() <= 0)
+                if (pnode->GetRefCount() <= 0) // 当前节点的引用计数小于等于 0
                 {
                     bool fDelete = false;
                     {
-                        TRY_LOCK(pnode->cs_vSend, lockSend);
+                        TRY_LOCK(pnode->cs_vSend, lockSend); // 防止其他线程同时访问该节点，这里锁定了信号量
                         if (lockSend)
                         {
                             TRY_LOCK(pnode->cs_vRecvMsg, lockRecv);
@@ -1077,7 +1077,7 @@ void ThreadSocketHandler()
                     }
                     if (fDelete)
                     {
-                        vNodesDisconnected.remove(pnode);
+                        vNodesDisconnected.remove(pnode); // 从断开连接节点列表删除
                         delete pnode;
                     }
                 }
@@ -1298,7 +1298,7 @@ void ThreadSocketHandler()
 #ifdef USE_UPNP
 void ThreadMapPort()
 {
-    std::string port = strprintf("%u", GetListenPort());
+    std::string port = strprintf("%u", GetListenPort()); // 获取当前监听的端口号
     const char * multicastif = 0;
     const char * minissdpdpath = 0;
     struct UPNPDev * devlist = 0;
@@ -1306,7 +1306,7 @@ void ThreadMapPort()
 
 #ifndef UPNPDISCOVER_SUCCESS
     /* miniupnpc 1.5 */
-    devlist = upnpDiscover(2000, multicastif, minissdpdpath, 0);
+    devlist = upnpDiscover(2000, multicastif, minissdpdpath, 0); // 搜索局域网中所有的 UPNP 设备
 #elif MINIUPNPC_API_VERSION < 14
     /* miniupnpc 1.6 */
     int error = 0;
@@ -1321,12 +1321,12 @@ void ThreadMapPort()
     struct IGDdatas data;
     int r;
 
-    r = UPNP_GetValidIGD(devlist, &urls, &data, lanaddr, sizeof(lanaddr));
+    r = UPNP_GetValidIGD(devlist, &urls, &data, lanaddr, sizeof(lanaddr)); // 在 UPNP 列表中查找有效的 IGD 设备
     if (r == 1)
     {
         if (fDiscover) {
-            char externalIPAddress[40];
-            r = UPNP_GetExternalIPAddress(urls.controlURL, data.first.servicetype, externalIPAddress);
+            char externalIPAddress[40]; // 存放外网 IP 地址
+            r = UPNP_GetExternalIPAddress(urls.controlURL, data.first.servicetype, externalIPAddress); // 根据指定的 IGD 设备和路径，查询出外网 IP 地址
             if(r != UPNPCOMMAND_SUCCESS)
                 LogPrintf("UPnP: GetExternalIPAddress() returned %d\n", r);
             else
@@ -1334,7 +1334,7 @@ void ThreadMapPort()
                 if(externalIPAddress[0])
                 {
                     LogPrintf("UPnP: ExternalIPAddress = %s\n", externalIPAddress);
-                    AddLocal(CNetAddr(externalIPAddress), LOCAL_UPNP);
+                    AddLocal(CNetAddr(externalIPAddress), LOCAL_UPNP); // 记录 IP 地址和其类型
                 }
                 else
                     LogPrintf("UPnP: GetExternalIPAddress failed.\n");
@@ -1348,7 +1348,7 @@ void ThreadMapPort()
 #ifndef UPNPDISCOVER_SUCCESS
                 /* miniupnpc 1.5 */
                 r = UPNP_AddPortMapping(urls.controlURL, data.first.servicetype,
-                                    port.c_str(), port.c_str(), lanaddr, strDesc.c_str(), "TCP", 0);
+                                    port.c_str(), port.c_str(), lanaddr, strDesc.c_str(), "TCP", 0); // 将内外网 IP、PORT 在路由器上做映射
 #else
                 /* miniupnpc 1.6 */
                 r = UPNP_AddPortMapping(urls.controlURL, data.first.servicetype,
@@ -1384,15 +1384,15 @@ void MapPort(bool fUseUPnP)
 {
     static boost::thread* upnp_thread = NULL;
 
-    if (fUseUPnP)
+    if (fUseUPnP) // 使用端口映射标志，默认关闭
     {
         if (upnp_thread) {
             upnp_thread->interrupt();
             upnp_thread->join();
             delete upnp_thread;
         }
-        upnp_thread = new boost::thread(boost::bind(&TraceThread<void (*)()>, "upnp", &ThreadMapPort));
-    }
+        upnp_thread = new boost::thread(boost::bind(&TraceThread<void (*)()>, "upnp", &ThreadMapPort)); // 创建端口映射线程
+    } // 不使用端口映射，若端口映射线程存在，则中断并清理该线程
     else if (upnp_thread) {
         upnp_thread->interrupt();
         upnp_thread->join();
@@ -1427,7 +1427,7 @@ void ThreadDNSAddressSeed()
         }
     }
 
-    const vector<CDNSSeedData> &vSeeds = Params().DNSSeeds();
+    const vector<CDNSSeedData> &vSeeds = Params().DNSSeeds(); // 获取本机网络中 DNS seed 的链参数
     int found = 0; // 记录解析出的 IP 数目
 
     LogPrintf("Loading addresses from DNS seeds (could take a while)\n");
@@ -1438,7 +1438,7 @@ void ThreadDNSAddressSeed()
         } else {
             vector<CNetAddr> vIPs; // IP
             vector<CAddress> vAdd; // IP + PORT
-            if (LookupHost(seed.host.c_str(), vIPs)) // DNS 解析
+            if (LookupHost(seed.host.c_str(), vIPs)) // DNS 解析，根据域名获取 IP 地址列表
             {
                 BOOST_FOREACH(const CNetAddr& ip, vIPs)
                 {
@@ -1875,16 +1875,16 @@ bool BindListenPort(const CService &addrBind, string& strError, bool fWhiteliste
 
 void static Discover(boost::thread_group& threadGroup)
 {
-    if (!fDiscover)
+    if (!fDiscover) // 网络发现标志，默认打开
         return;
 
-#ifdef WIN32
+#ifdef WIN32 // windows 下根据主机名获取本地 IP 地址
     // Get local host IP
     char pszHostName[256] = "";
-    if (gethostname(pszHostName, sizeof(pszHostName)) != SOCKET_ERROR)
+    if (gethostname(pszHostName, sizeof(pszHostName)) != SOCKET_ERROR) // 获取本地主机名
     {
         vector<CNetAddr> vaddr;
-        if (LookupHost(pszHostName, vaddr))
+        if (LookupHost(pszHostName, vaddr)) // 通过主机名发现本地 IP 地址
         {
             BOOST_FOREACH (const CNetAddr &addr, vaddr)
             {
@@ -1893,10 +1893,10 @@ void static Discover(boost::thread_group& threadGroup)
             }
         }
     }
-#else
+#else // 非 windows 操作系统获取本地 IP 地址
     // Get local host ip
     struct ifaddrs* myaddrs;
-    if (getifaddrs(&myaddrs) == 0)
+    if (getifaddrs(&myaddrs) == 0) // 获取本机 IP 地址（获取一个描述本机 IP 地址的结构体链表）
     {
         for (struct ifaddrs* ifa = myaddrs; ifa != NULL; ifa = ifa->ifa_next)
         {
@@ -1904,14 +1904,14 @@ void static Discover(boost::thread_group& threadGroup)
             if ((ifa->ifa_flags & IFF_UP) == 0) continue;
             if (strcmp(ifa->ifa_name, "lo") == 0) continue;
             if (strcmp(ifa->ifa_name, "lo0") == 0) continue;
-            if (ifa->ifa_addr->sa_family == AF_INET)
+            if (ifa->ifa_addr->sa_family == AF_INET) // IPv4
             {
                 struct sockaddr_in* s4 = (struct sockaddr_in*)(ifa->ifa_addr);
                 CNetAddr addr(s4->sin_addr);
                 if (AddLocal(addr, LOCAL_IF))
                     LogPrintf("%s: IPv4 %s: %s\n", __func__, ifa->ifa_name, addr.ToString());
             }
-            else if (ifa->ifa_addr->sa_family == AF_INET6)
+            else if (ifa->ifa_addr->sa_family == AF_INET6) // IPv6
             {
                 struct sockaddr_in6* s6 = (struct sockaddr_in6*)(ifa->ifa_addr);
                 CNetAddr addr(s6->sin6_addr);
@@ -1938,7 +1938,7 @@ void StartNode(boost::thread_group& threadGroup, CScheduler& scheduler)
     //try to read stored banlist
     CBanDB bandb;
     banmap_t banmap;
-    if (!bandb.Read(banmap))
+    if (!bandb.Read(banmap)) // 从 banlist.dat 中加载黑名单（禁用列表）
         LogPrintf("Invalid or missing banlist.dat; recreating\n");
 
     CNode::SetBanned(banmap); //thread save setter
@@ -1951,14 +1951,14 @@ void StartNode(boost::thread_group& threadGroup, CScheduler& scheduler)
 
     if (semOutbound == NULL) {
         // initialize semaphore
-        int nMaxOutbound = min(MAX_OUTBOUND_CONNECTIONS, nMaxConnections);
+        int nMaxOutbound = min(MAX_OUTBOUND_CONNECTIONS, nMaxConnections); // 初始化连接信号量，最多 8 个
         semOutbound = new CSemaphore(nMaxOutbound);
     }
 
     if (pnodeLocalHost == NULL)
-        pnodeLocalHost = new CNode(INVALID_SOCKET, CAddress(CService("127.0.0.1", 0), nLocalServices));
+        pnodeLocalHost = new CNode(INVALID_SOCKET, CAddress(CService("127.0.0.1", 0), nLocalServices)); // 节点实例化
 
-    Discover(threadGroup); // 获取本地主机 IP
+    Discover(threadGroup); // 发现并保存本地 IP 地址
 
     //
     // Start threads

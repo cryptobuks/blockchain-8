@@ -1622,13 +1622,13 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) //3.11
 
     // ********************************************************* Step 11: start node // 启动节点服务，监听网络 P2P 请求，挖矿线程
 
-    if (!CheckDiskSpace()) // 检测硬盘空间，用于接收新区块
+    if (!CheckDiskSpace()) // 检测硬剩余盘空间是否充足（最少 50MB），用于接收并存储新区块
         return false;
 
     if (!strErrors.str().empty()) // 检查错误信息
         return InitError(strErrors.str());
 
-    RandAddSeedPerfmon(); // Linux 上可忽略
+    RandAddSeedPerfmon(); // 用于给钱包生成随机私钥种子
 
     //// debug print
     LogPrintf("mapBlockIndex.size() = %u\n",   mapBlockIndex.size());

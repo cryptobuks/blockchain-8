@@ -13,7 +13,7 @@
 /**
  * Seed OpenSSL PRNG with additional entropy data
  */
-void RandAddSeed();
+void RandAddSeed(); // 生成随机数的种子
 void RandAddSeedPerfmon();
 
 /**

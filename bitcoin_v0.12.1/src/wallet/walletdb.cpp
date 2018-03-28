@@ -851,7 +851,7 @@ void ThreadFlushWalletDB(const string& strFile)
                         int64_t nStart = GetTimeMillis();
 
                         // Flush wallet.dat so it's self contained
-                        bitdb.CloseDb(strFile); // 在这里刷新，通过关闭数据库文件
+                        bitdb.CloseDb(strFile); // 在这里刷新，通过关闭数据库文件，实现数据本地化
                         bitdb.CheckpointLSN(strFile); // 重置检查点
 
                         bitdb.mapFileUseCount.erase(mi++);

@@ -770,7 +770,7 @@ class CAddrDB // IP 地址数据库（用于保存 peers.dat 中记录的 IP）
 private:
     boost::filesystem::path pathAddr; // 保存 peers.dat 的相对路径
 public:
-    CAddrDB(); // 路径拼接，数据目录 + peers.dat
+    CAddrDB(); // 路径拼接，数据目录 + "peers.dat"
     bool Write(const CAddrMan& addr);
     bool Read(CAddrMan& addr);
 };
@@ -781,7 +781,7 @@ class CBanDB
 private:
     boost::filesystem::path pathBanlist;
 public:
-    CBanDB();
+    CBanDB(); // 路径拼接，数据目录 + "banlist.dat"
     bool Write(const banmap_t& banSet);
     bool Read(banmap_t& banSet);
 };
