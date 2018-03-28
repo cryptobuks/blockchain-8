@@ -1430,9 +1430,9 @@ bool CloseSocket(SOCKET& hSocket)
 #ifdef WIN32
     int ret = closesocket(hSocket);
 #else
-    int ret = close(hSocket);
+    int ret = close(hSocket); // 关闭套接字
 #endif
-    hSocket = INVALID_SOCKET;
+    hSocket = INVALID_SOCKET; // 设置无效套接字
     return ret != SOCKET_ERROR;
 }
 

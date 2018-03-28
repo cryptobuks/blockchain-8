@@ -87,7 +87,7 @@ int nMaxConnections = DEFAULT_MAX_PEER_CONNECTIONS; // 125
 bool fAddressesInitialized = false;
 std::string strSubVersion;
 
-vector<CNode*> vNodes;
+vector<CNode*> vNodes; // 成功建立连接的节点列表
 CCriticalSection cs_vNodes;
 map<CInv, CDataStream> mapRelay;
 deque<pair<int64_t, CInv> > vRelayExpiration;
@@ -440,13 +440,13 @@ void CNode::CloseSocketDisconnect()
     if (hSocket != INVALID_SOCKET)
     {
         LogPrint("net", "disconnecting peer=%d\n", id);
-        CloseSocket(hSocket);
+        CloseSocket(hSocket); // 关闭套接字并设置其为无效
     }
 
     // in case this fails, we'll empty the recv buffer when the CNode is deleted
     TRY_LOCK(cs_vRecvMsg, lockRecv);
     if (lockRecv)
-        vRecvMsg.clear();
+        vRecvMsg.clear(); // 清空接收消息队列
 }
 
 void CNode::PushVersion()
@@ -660,13 +660,13 @@ bool CNode::ReceiveMsgBytes(const char *pch, unsigned int nBytes)
 
         // get current incomplete message, or create a new one
         if (vRecvMsg.empty() ||
-            vRecvMsg.back().complete())
-            vRecvMsg.push_back(CNetMessage(Params().MessageStart(), SER_NETWORK, nRecvVersion));
+            vRecvMsg.back().complete()) // 接收消息队列为空
+            vRecvMsg.push_back(CNetMessage(Params().MessageStart(), SER_NETWORK, nRecvVersion)); // 构造网络消息头
 
         CNetMessage& msg = vRecvMsg.back();
 
         // absorb network data
-        int handled;
+        int handled; // 记录真正读入的字节数
         if (!msg.in_data)
             handled = msg.readHeader(pch, nBytes);
         else
@@ -675,7 +675,7 @@ bool CNode::ReceiveMsgBytes(const char *pch, unsigned int nBytes)
         if (handled < 0)
                 return false;
 
-        if (msg.in_data && msg.hdr.nMessageSize > MAX_PROTOCOL_MESSAGE_LENGTH) {
+        if (msg.in_data && msg.hdr.nMessageSize > MAX_PROTOCOL_MESSAGE_LENGTH) { // 读数据 且 消息体大小不能超过 2M
             LogPrint("net", "Oversized message from peer=%i, disconnecting\n", GetId());
             return false;
         }
@@ -684,8 +684,8 @@ bool CNode::ReceiveMsgBytes(const char *pch, unsigned int nBytes)
         nBytes -= handled;
 
         if (msg.complete()) {
-            msg.nTime = GetTimeMicros();
-            messageHandlerCondition.notify_one();
+            msg.nTime = GetTimeMicros(); // 消息接收完毕，记录当前的时间
+            messageHandlerCondition.notify_one(); // 激活消息条件变量
         }
     }
 
@@ -950,13 +950,13 @@ static bool AttemptToEvictConnection(bool fPreferNewConnection) {
 static void AcceptConnection(const ListenSocket& hListenSocket) {
     struct sockaddr_storage sockaddr;
     socklen_t len = sizeof(sockaddr);
-    SOCKET hSocket = accept(hListenSocket.socket, (struct sockaddr*)&sockaddr, &len);
+    SOCKET hSocket = accept(hListenSocket.socket, (struct sockaddr*)&sockaddr, &len); // 在这里真正的建立连接
     CAddress addr;
     int nInbound = 0;
-    int nMaxInbound = nMaxConnections - MAX_OUTBOUND_CONNECTIONS;
+    int nMaxInbound = nMaxConnections - MAX_OUTBOUND_CONNECTIONS; // 最大连入数 125 - 8 = 117
 
-    if (hSocket != INVALID_SOCKET)
-        if (!addr.SetSockAddr((const struct sockaddr*)&sockaddr))
+    if (hSocket != INVALID_SOCKET) // 若该套接字有效
+        if (!addr.SetSockAddr((const struct sockaddr*)&sockaddr)) // 记录连入节点的 IP 地址和端口号
             LogPrintf("Warning: Unknown socket family\n");
 
     bool whitelisted = hListenSocket.whitelisted || CNode::IsWhitelistedRange(addr);
@@ -964,10 +964,10 @@ static void AcceptConnection(const ListenSocket& hListenSocket) {
         LOCK(cs_vNodes);
         BOOST_FOREACH(CNode* pnode, vNodes)
             if (pnode->fInbound)
-                nInbound++;
+                nInbound++; // 记录连入节点的数量
     }
 
-    if (hSocket == INVALID_SOCKET)
+    if (hSocket == INVALID_SOCKET) // 套接字必须有效
     {
         int nErr = WSAGetLastError();
         if (nErr != WSAEWOULDBLOCK)
@@ -975,7 +975,7 @@ static void AcceptConnection(const ListenSocket& hListenSocket) {
         return;
     }
 
-    if (!IsSelectableSocket(hSocket))
+    if (!IsSelectableSocket(hSocket)) // 验证该套接字是否满足描述符限制，非 windows 环境下小于 1024
     {
         LogPrintf("connection from %s dropped: non-selectable socket\n", addr.ToString());
         CloseSocket(hSocket);
@@ -988,17 +988,17 @@ static void AcceptConnection(const ListenSocket& hListenSocket) {
 #ifdef WIN32
     setsockopt(hSocket, IPPROTO_TCP, TCP_NODELAY, (const char*)&set, sizeof(int));
 #else
-    setsockopt(hSocket, IPPROTO_TCP, TCP_NODELAY, (void*)&set, sizeof(int));
+    setsockopt(hSocket, IPPROTO_TCP, TCP_NODELAY, (void*)&set, sizeof(int)); // TCP_NODELAY 设置为 1 来禁用  socket 创建时默认使用的 Nagle 算法，加快了交互（响应）速度，但可能导致 TCP 碎片增多
 #endif
 
-    if (CNode::IsBanned(addr) && !whitelisted)
+    if (CNode::IsBanned(addr) && !whitelisted) // 属于禁止列表 且 不属于白名单
     {
         LogPrintf("connection from %s dropped (banned)\n", addr.ToString());
         CloseSocket(hSocket);
         return;
     }
 
-    if (nInbound >= nMaxInbound)
+    if (nInbound >= nMaxInbound) // 连入数超过最大连入限制
     {
         if (!AttemptToEvictConnection(whitelisted)) {
             // No connection to evict, disconnect the new connection
@@ -1008,7 +1008,7 @@ static void AcceptConnection(const ListenSocket& hListenSocket) {
         }
     }
 
-    CNode* pnode = new CNode(hSocket, addr, "", true);
+    CNode* pnode = new CNode(hSocket, addr, "", true); // 创建一个连接节点实例
     pnode->AddRef();
     pnode->fWhitelisted = whitelisted;
 
@@ -1016,7 +1016,7 @@ static void AcceptConnection(const ListenSocket& hListenSocket) {
 
     {
         LOCK(cs_vNodes);
-        vNodes.push_back(pnode);
+        vNodes.push_back(pnode); // 加入连接节点列表
     }
 }
 
@@ -1026,7 +1026,7 @@ void ThreadSocketHandler()
     while (true)
     {
         //
-        // Disconnect nodes
+        // Disconnect nodes // 1.删除断开连接和未使用的节点
         //
         {
             LOCK(cs_vNodes);
@@ -1085,27 +1085,27 @@ void ThreadSocketHandler()
         }
         if(vNodes.size() != nPrevNodeCount) {
             nPrevNodeCount = vNodes.size();
-            uiInterface.NotifyNumConnectionsChanged(nPrevNodeCount);
+            uiInterface.NotifyNumConnectionsChanged(nPrevNodeCount); // 通知当前连接的节点数
         }
 
         //
-        // Find which sockets have data to receive
+        // Find which sockets have data to receive // 2.查找接收数据的套接字
         //
         struct timeval timeout;
         timeout.tv_sec  = 0;
-        timeout.tv_usec = 50000; // frequency to poll pnode->vSend
+        timeout.tv_usec = 50000; // frequency to poll pnode->vSend // 设置 select 超时等待 50ms
 
-        fd_set fdsetRecv;
-        fd_set fdsetSend;
-        fd_set fdsetError;
+        fd_set fdsetRecv; // 接收文件描述符集（包含监听的套接字）
+        fd_set fdsetSend; // 发送文件描述符集
+        fd_set fdsetError; // 错误文件描述符集
         FD_ZERO(&fdsetRecv);
         FD_ZERO(&fdsetSend);
         FD_ZERO(&fdsetError);
-        SOCKET hSocketMax = 0;
+        SOCKET hSocketMax = 0; // 记录监控 select 监控描述符的个数
         bool have_fds = false;
 
         BOOST_FOREACH(const ListenSocket& hListenSocket, vhListenSocket) {
-            FD_SET(hListenSocket.socket, &fdsetRecv);
+            FD_SET(hListenSocket.socket, &fdsetRecv); // 添加所有监听的套接字到接收文件描述符集
             hSocketMax = max(hSocketMax, hListenSocket.socket);
             have_fds = true;
         }
@@ -1116,7 +1116,7 @@ void ThreadSocketHandler()
             {
                 if (pnode->hSocket == INVALID_SOCKET)
                     continue;
-                FD_SET(pnode->hSocket, &fdsetError);
+                FD_SET(pnode->hSocket, &fdsetError); // 添加所有建立连接的套接字到错误文件描述符集
                 hSocketMax = max(hSocketMax, pnode->hSocket);
                 have_fds = true;
 
@@ -1137,8 +1137,8 @@ void ThreadSocketHandler()
                 // * We process a message in the buffer (message handler thread).
                 {
                     TRY_LOCK(pnode->cs_vSend, lockSend);
-                    if (lockSend && !pnode->vSendMsg.empty()) {
-                        FD_SET(pnode->hSocket, &fdsetSend);
+                    if (lockSend && !pnode->vSendMsg.empty()) { // 若当前节点的发送消息队列非空
+                        FD_SET(pnode->hSocket, &fdsetSend); // 把当前节点对应的套接字添加到发送文件描述符集
                         continue;
                     }
                 }
@@ -1146,28 +1146,28 @@ void ThreadSocketHandler()
                     TRY_LOCK(pnode->cs_vRecvMsg, lockRecv);
                     if (lockRecv && (
                         pnode->vRecvMsg.empty() || !pnode->vRecvMsg.front().complete() ||
-                        pnode->GetTotalRecvSize() <= ReceiveFloodSize()))
-                        FD_SET(pnode->hSocket, &fdsetRecv);
+                        pnode->GetTotalRecvSize() <= ReceiveFloodSize())) // 若当前节点的接收消息队列为空 或 队列中第一个消息不完整（为接收完） 或 接收消息的总大小小于等于接收缓冲区的最大限制
+                        FD_SET(pnode->hSocket, &fdsetRecv); // 把当前节点对应的套接字添加到接收文件描述符集
                 }
             }
         }
 
         int nSelect = select(have_fds ? hSocketMax + 1 : 0,
-                             &fdsetRecv, &fdsetSend, &fdsetError, &timeout);
+                             &fdsetRecv, &fdsetSend, &fdsetError, &timeout); // 选用 select 而不是 epoll 的原因：平台限制，epoll 为 Linux 下独有
         boost::this_thread::interruption_point();
 
-        if (nSelect == SOCKET_ERROR)
+        if (nSelect == SOCKET_ERROR) // select 错误
         {
             if (have_fds)
             {
                 int nErr = WSAGetLastError();
                 LogPrintf("socket select error %s\n", NetworkErrorString(nErr));
                 for (unsigned int i = 0; i <= hSocketMax; i++)
-                    FD_SET(i, &fdsetRecv);
+                    FD_SET(i, &fdsetRecv); // 依次把所有文件描述符加入接收文件描述符集
             }
-            FD_ZERO(&fdsetSend);
-            FD_ZERO(&fdsetError);
-            MilliSleep(timeout.tv_usec/1000);
+            FD_ZERO(&fdsetSend); // 清空发送文件描述符集
+            FD_ZERO(&fdsetError); // 清空错误文件描述符集
+            MilliSleep(timeout.tv_usec/1000); // 小睡 50ms
         }
 
         //
@@ -1175,9 +1175,9 @@ void ThreadSocketHandler()
         //
         BOOST_FOREACH(const ListenSocket& hListenSocket, vhListenSocket)
         {
-            if (hListenSocket.socket != INVALID_SOCKET && FD_ISSET(hListenSocket.socket, &fdsetRecv))
+            if (hListenSocket.socket != INVALID_SOCKET && FD_ISSET(hListenSocket.socket, &fdsetRecv)) // 监听套接字有效 且 被激活通知
             {
-                AcceptConnection(hListenSocket);
+                AcceptConnection(hListenSocket); // 接收一条连接请求，并加入链接节点列表
             }
         }
 
@@ -1187,9 +1187,9 @@ void ThreadSocketHandler()
         vector<CNode*> vNodesCopy;
         {
             LOCK(cs_vNodes);
-            vNodesCopy = vNodes;
+            vNodesCopy = vNodes; // 复制一份
             BOOST_FOREACH(CNode* pnode, vNodesCopy)
-                pnode->AddRef();
+                pnode->AddRef(); // 同时增加对应的引用计数
         }
         BOOST_FOREACH(CNode* pnode, vNodesCopy)
         {
@@ -1198,33 +1198,33 @@ void ThreadSocketHandler()
             //
             // Receive
             //
-            if (pnode->hSocket == INVALID_SOCKET)
+            if (pnode->hSocket == INVALID_SOCKET) // 验证节点套接字是否有效
                 continue;
-            if (FD_ISSET(pnode->hSocket, &fdsetRecv) || FD_ISSET(pnode->hSocket, &fdsetError))
+            if (FD_ISSET(pnode->hSocket, &fdsetRecv) || FD_ISSET(pnode->hSocket, &fdsetError)) // 套接字属于接收或错误文件描述符集
             {
                 TRY_LOCK(pnode->cs_vRecvMsg, lockRecv);
                 if (lockRecv)
                 {
                     {
                         // typical socket buffer is 8K-64K
-                        char pchBuf[0x10000];
-                        int nBytes = recv(pnode->hSocket, pchBuf, sizeof(pchBuf), MSG_DONTWAIT);
-                        if (nBytes > 0)
+                        char pchBuf[0x10000]; // 64K
+                        int nBytes = recv(pnode->hSocket, pchBuf, sizeof(pchBuf), MSG_DONTWAIT); // 在这里调用 recv 接收数据
+                        if (nBytes > 0) // 接收成功
                         {
-                            if (!pnode->ReceiveMsgBytes(pchBuf, nBytes))
-                                pnode->CloseSocketDisconnect();
-                            pnode->nLastRecv = GetTime();
-                            pnode->nRecvBytes += nBytes;
-                            pnode->RecordBytesRecv(nBytes);
+                            if (!pnode->ReceiveMsgBytes(pchBuf, nBytes)) // 把接收到的数据打包放入接收消息队列
+                                pnode->CloseSocketDisconnect(); // 关闭套接字并设置其为无效，同时清空接收消息队列
+                            pnode->nLastRecv = GetTime(); // 获取接收完毕的时间
+                            pnode->nRecvBytes += nBytes; // 计算接收到的总字节数（套接字）
+                            pnode->RecordBytesRecv(nBytes); // 计算接收到的总字节数（网络总用量）
                         }
-                        else if (nBytes == 0)
+                        else if (nBytes == 0) // 对端断开
                         {
                             // socket closed gracefully
                             if (!pnode->fDisconnect)
                                 LogPrint("net", "socket closed\n");
                             pnode->CloseSocketDisconnect();
                         }
-                        else if (nBytes < 0)
+                        else if (nBytes < 0) // 接收失败
                         {
                             // error
                             int nErr = WSAGetLastError();
@@ -1248,7 +1248,7 @@ void ThreadSocketHandler()
             {
                 TRY_LOCK(pnode->cs_vSend, lockSend);
                 if (lockSend)
-                    SocketSendData(pnode);
+                    SocketSendData(pnode); // 通过套接字发送数据
             }
 
             //
@@ -1281,7 +1281,7 @@ void ThreadSocketHandler()
         }
         {
             LOCK(cs_vNodes);
-            BOOST_FOREACH(CNode* pnode, vNodesCopy)
+            BOOST_FOREACH(CNode* pnode, vNodesCopy) // 依次释放连接节点列表副本中条目
                 pnode->Release();
         }
     }
@@ -2335,8 +2335,8 @@ bool CAddrDB::Read(CAddrMan& addr)
     return true;
 }
 
-unsigned int ReceiveFloodSize() { return 1000*GetArg("-maxreceivebuffer", DEFAULT_MAXRECEIVEBUFFER); }
-unsigned int SendBufferSize() { return 1000*GetArg("-maxsendbuffer", DEFAULT_MAXSENDBUFFER); }
+unsigned int ReceiveFloodSize() { return 1000*GetArg("-maxreceivebuffer", DEFAULT_MAXRECEIVEBUFFER); } // 返回接收缓冲区的最大限制，默认 5,000,000
+unsigned int SendBufferSize() { return 1000*GetArg("-maxsendbuffer", DEFAULT_MAXSENDBUFFER); } // 返回发送收缓冲区的最大限制，默认 1,000,000
 
 CNode::CNode(SOCKET hSocketIn, const CAddress& addrIn, const std::string& addrNameIn, bool fInboundIn) :
     ssSend(SER_NETWORK, INIT_PROTO_VERSION),
