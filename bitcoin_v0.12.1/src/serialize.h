@@ -22,7 +22,7 @@
 
 #include "prevector.h"
 
-static const unsigned int MAX_SIZE = 0x02000000;
+static const unsigned int MAX_SIZE = 0x02000000; // pow(2, 25) / pow(2, 20) = pow(2, 5) == 32MB
 
 /**
  * Used to bypass the rule against non-const reference to temporary

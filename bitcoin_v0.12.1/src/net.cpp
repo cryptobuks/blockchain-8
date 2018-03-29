@@ -661,14 +661,14 @@ bool CNode::ReceiveMsgBytes(const char *pch, unsigned int nBytes)
         // get current incomplete message, or create a new one
         if (vRecvMsg.empty() ||
             vRecvMsg.back().complete()) // 接收消息队列为空
-            vRecvMsg.push_back(CNetMessage(Params().MessageStart(), SER_NETWORK, nRecvVersion)); // 构造网络消息头
+            vRecvMsg.push_back(CNetMessage(Params().MessageStart(), SER_NETWORK, nRecvVersion)); // 构造网络消息头（不完整的，只有魔数）
 
         CNetMessage& msg = vRecvMsg.back();
 
         // absorb network data
         int handled; // 记录真正读入的字节数
-        if (!msg.in_data)
-            handled = msg.readHeader(pch, nBytes);
+        if (!msg.in_data) // 默认为 false
+            handled = msg.readHeader(pch, nBytes); // 读头（构造消息头）
         else
             handled = msg.readData(pch, nBytes);
 
@@ -680,8 +680,8 @@ bool CNode::ReceiveMsgBytes(const char *pch, unsigned int nBytes)
             return false;
         }
 
-        pch += handled;
-        nBytes -= handled;
+        pch += handled; // 记录当前读到的位置
+        nBytes -= handled; // 记录当前要的数据的总字节数
 
         if (msg.complete()) {
             msg.nTime = GetTimeMicros(); // 消息接收完毕，记录当前的时间
@@ -698,29 +698,29 @@ int CNetMessage::readHeader(const char *pch, unsigned int nBytes)
     unsigned int nRemaining = 24 - nHdrPos;
     unsigned int nCopy = std::min(nRemaining, nBytes);
 
-    memcpy(&hdrbuf[nHdrPos], pch, nCopy);
+    memcpy(&hdrbuf[nHdrPos], pch, nCopy); // 复制魔数以外的数据到 头临时缓冲区
     nHdrPos += nCopy;
 
     // if header incomplete, exit
-    if (nHdrPos < 24)
+    if (nHdrPos < 24) // 完整的头大小为 24 bytes
         return nCopy;
 
     // deserialize to CMessageHeader
     try {
-        hdrbuf >> hdr;
+        hdrbuf >> hdr; // 解序列化缓冲区中的数据到消息头
     }
     catch (const std::exception&) {
         return -1;
     }
 
     // reject messages larger than MAX_SIZE
-    if (hdr.nMessageSize > MAX_SIZE)
+    if (hdr.nMessageSize > MAX_SIZE) // 消息体（数据）大小不能超过 32MB
             return -1;
 
     // switch state to reading message data
-    in_data = true;
+    in_data = true; // 切换状态为读消息体数据
 
-    return nCopy;
+    return nCopy; // 返回读入消息头的字节数
 }
 
 int CNetMessage::readData(const char *pch, unsigned int nBytes)
@@ -1171,7 +1171,7 @@ void ThreadSocketHandler()
         }
 
         //
-        // Accept new connections
+        // Accept new connections // 3.接收新连接
         //
         BOOST_FOREACH(const ListenSocket& hListenSocket, vhListenSocket)
         {
@@ -1182,7 +1182,7 @@ void ThreadSocketHandler()
         }
 
         //
-        // Service each socket
+        // Service each socket // 4.服务每个套接字（包含接收、发送和未活动检查）
         //
         vector<CNode*> vNodesCopy;
         {
@@ -1196,7 +1196,7 @@ void ThreadSocketHandler()
             boost::this_thread::interruption_point();
 
             //
-            // Receive
+            // Receive // 4.1.接收数据
             //
             if (pnode->hSocket == INVALID_SOCKET) // 验证节点套接字是否有效
                 continue;
@@ -1207,8 +1207,8 @@ void ThreadSocketHandler()
                 {
                     {
                         // typical socket buffer is 8K-64K
-                        char pchBuf[0x10000]; // 64K
-                        int nBytes = recv(pnode->hSocket, pchBuf, sizeof(pchBuf), MSG_DONTWAIT); // 在这里调用 recv 接收数据
+                        char pchBuf[0x10000]; // pow(2, 16) == 64K
+                        int nBytes = recv(pnode->hSocket, pchBuf, sizeof(pchBuf), MSG_DONTWAIT); // 在这里调用 recv 接收数据（注：recv 只是用来从内核缓冲区复制数据到用户缓冲区，真正完成数据接收的是 TCP/IP 协议）
                         if (nBytes > 0) // 接收成功
                         {
                             if (!pnode->ReceiveMsgBytes(pchBuf, nBytes)) // 把接收到的数据打包放入接收消息队列
@@ -1240,7 +1240,7 @@ void ThreadSocketHandler()
             }
 
             //
-            // Send
+            // Send // 4.2.发送数据
             //
             if (pnode->hSocket == INVALID_SOCKET)
                 continue;
@@ -1252,27 +1252,27 @@ void ThreadSocketHandler()
             }
 
             //
-            // Inactivity checking
+            // Inactivity checking // 4.3.不活动检查（即长时间没有数据交换就断开）
             //
             int64_t nTime = GetTime();
-            if (nTime - pnode->nTimeConnected > 60)
+            if (nTime - pnode->nTimeConnected > 60) // 建立连接的 60s 后
             {
-                if (pnode->nLastRecv == 0 || pnode->nLastSend == 0)
+                if (pnode->nLastRecv == 0 || pnode->nLastSend == 0) // 没有接收也没有发送
                 {
                     LogPrint("net", "socket no message in first 60 seconds, %d %d from %d\n", pnode->nLastRecv != 0, pnode->nLastSend != 0, pnode->id);
                     pnode->fDisconnect = true;
                 }
-                else if (nTime - pnode->nLastSend > TIMEOUT_INTERVAL)
+                else if (nTime - pnode->nLastSend > TIMEOUT_INTERVAL) // socket 发送时间间隔不能超过 20min
                 {
                     LogPrintf("socket sending timeout: %is\n", nTime - pnode->nLastSend);
                     pnode->fDisconnect = true;
                 }
-                else if (nTime - pnode->nLastRecv > (pnode->nVersion > BIP0031_VERSION ? TIMEOUT_INTERVAL : 90*60))
+                else if (nTime - pnode->nLastRecv > (pnode->nVersion > BIP0031_VERSION ? TIMEOUT_INTERVAL : 90*60)) // socket 接收时间间隔不能超过 20min 或 90min
                 {
                     LogPrintf("socket receive timeout: %is\n", nTime - pnode->nLastRecv);
                     pnode->fDisconnect = true;
                 }
-                else if (pnode->nPingNonceSent && pnode->nPingUsecStart + TIMEOUT_INTERVAL * 1000000 < GetTimeMicros())
+                else if (pnode->nPingNonceSent && pnode->nPingUsecStart + TIMEOUT_INTERVAL * 1000000 < GetTimeMicros()) // ping 超时 20min
                 {
                     LogPrintf("ping timeout: %fs\n", 0.000001 * (GetTimeMicros() - pnode->nPingUsecStart));
                     pnode->fDisconnect = true;

@@ -216,10 +216,10 @@ public:
 
     CDataStream hdrbuf;             // partially received header
     CMessageHeader hdr;             // complete header
-    unsigned int nHdrPos;
+    unsigned int nHdrPos; // 记录消息头当前数据的位置
 
     CDataStream vRecv;              // received message data
-    unsigned int nDataPos;
+    unsigned int nDataPos; // 记录消息体当前数据的位置
 
     int64_t nTime;                  // time (in microseconds) of message receipt.
 
@@ -231,7 +231,7 @@ public:
         nTime = 0;
     }
 
-    bool complete() const
+    bool complete() const // 检查整条消息是否完整
     {
         if (!in_data)
             return false;
