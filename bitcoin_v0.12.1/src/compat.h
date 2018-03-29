@@ -79,7 +79,7 @@ typedef u_int SOCKET;
 #endif
 
 #ifndef WIN32
-// PRIO_MAX is not defined on Solaris
+// PRIO_MAX is not defined on Solaris // 数置越大，优先级越低
 #ifndef PRIO_MAX
 #define PRIO_MAX 20
 #endif

@@ -1973,7 +1973,7 @@ void StartNode(boost::thread_group& threadGroup, CScheduler& scheduler)
     MapPort(GetBoolArg("-upnp", DEFAULT_UPNP)); // 端口映射，默认关闭
 
     // Send and receive from sockets, accept connections
-    threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "net", &ThreadSocketHandler)); // 负责监听端口来接收其他节点的传入连接，断开无用节点，节点消息处理
+    threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "net", &ThreadSocketHandler)); // 负责监听端口来接收其他节点的传入连接，断开无用节点，节点消息处理（接收、发送数据，对于长时间不活动的节点进行断开标记）
 
     // Initiate outbound connections from -addnode
     threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "addcon", &ThreadOpenAddedConnections)); // 负责初始化通过 -addnode 参数设置的传出连接

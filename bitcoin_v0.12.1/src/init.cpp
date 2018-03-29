@@ -1657,8 +1657,8 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) //3.11
     //scheduler.scheduleEvery(f, nPowTargetSpacing);
     // --- end disabled ---
 
-    // Generate coins in the background
-    GenerateBitcoins(GetBoolArg("-gen", DEFAULT_GENERATE), GetArg("-genproclimit", DEFAULT_GENERATE_THREADS), chainparams); // 创建挖矿线程，默认关闭，线程数默认为 1
+    // Generate coins in the background // 挖矿作用：产生比特币，记录交易
+    GenerateBitcoins(GetBoolArg("-gen", DEFAULT_GENERATE), GetArg("-genproclimit", DEFAULT_GENERATE_THREADS), chainparams); // 创建挖矿线程，默认关闭，线程数默认为 1（0 表示禁止挖矿，-1 表示 CPU 核数）
 
     // ********************************************************* Step 12: finished // 完成
 

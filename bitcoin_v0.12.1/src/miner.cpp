@@ -80,19 +80,19 @@ CBlockTemplate* CreateNewBlock(const CChainParams& chainparams, const CScript& s
     CBlock *pblock = &pblocktemplate->block; // pointer for convenience
 
     // Create coinbase tx
-    CMutableTransaction txNew;
+    CMutableTransaction txNew; // 创币交易
     txNew.vin.resize(1);
-    txNew.vin[0].prevout.SetNull();
+    txNew.vin[0].prevout.SetNull(); // 输入为空
     txNew.vout.resize(1);
-    txNew.vout[0].scriptPubKey = scriptPubKeyIn;
+    txNew.vout[0].scriptPubKey = scriptPubKeyIn; // 输出脚本
 
     // Add dummy coinbase tx as first transaction
-    pblock->vtx.push_back(CTransaction());
+    pblock->vtx.push_back(CTransaction()); // 创建家的创币交易作为第一笔交易
     pblocktemplate->vTxFees.push_back(-1); // updated at end
     pblocktemplate->vTxSigOps.push_back(-1); // updated at end
 
     // Largest block you're willing to create:
-    unsigned int nBlockMaxSize = GetArg("-blockmaxsize", DEFAULT_BLOCK_MAX_SIZE);
+    unsigned int nBlockMaxSize = GetArg("-blockmaxsize", DEFAULT_BLOCK_MAX_SIZE); // 你希望创建的最大区块大小，默认 750,000（不到 1M）
     // Limit to between 1K and MAX_BLOCK_SIZE-1K for sanity:
     nBlockMaxSize = std::max((unsigned int)1000, std::min((unsigned int)(MAX_BLOCK_SIZE-1000), nBlockMaxSize));
 
@@ -409,13 +409,13 @@ void getGenesisBlock(CBlock *pblock)
 void static BitcoinMiner(const CChainParams& chainparams)
 {
     LogPrintf("BitcoinMiner started\n");
-    SetThreadPriority(THREAD_PRIORITY_LOWEST);
-    RenameThread("bitcoin-miner");
+    SetThreadPriority(THREAD_PRIORITY_LOWEST); // 设置线程优先级，在 compat.h 中
+    RenameThread("bitcoin-miner"); // 重命名矿工线程
 
-    unsigned int nExtraNonce = 0;
+    unsigned int nExtraNonce = 0; // Nonce: Number used once/Number once 表示该随机数只用一次
 
     boost::shared_ptr<CReserveScript> coinbaseScript;
-    GetMainSignals().ScriptForMining(coinbaseScript);
+    GetMainSignals().ScriptForMining(coinbaseScript); // 创币交易脚本
 
     try {
         // Throw an error if no script was provided.  This can happen
@@ -424,19 +424,19 @@ void static BitcoinMiner(const CChainParams& chainparams)
         if (!coinbaseScript || coinbaseScript->reserveScript.empty())
             throw std::runtime_error("No coinbase script available (mining requires a wallet)");
 
-        while (true) {
-            if (chainparams.MiningRequiresPeers()) {
+        while (true) { // 循环挖矿
+            if (chainparams.MiningRequiresPeers()) { // 区分主网、公测网和回归测试网（该网可以单机挖矿）
                 // Busy-wait for the network to come online so we don't waste time mining
                 // on an obsolete chain. In regtest mode we expect to fly solo.
                 do {
                     bool fvNodesEmpty;
                     {
                         LOCK(cs_vNodes);
-                        fvNodesEmpty = vNodes.empty();
+                        fvNodesEmpty = vNodes.empty(); // 建立连接的节点列表是否为空
                     }
                     LogPrintf("fvNodesEmpty: %d\n", fvNodesEmpty);
                     LogPrintf("IsInitialBlockDownload(): %d\n", IsInitialBlockDownload());
-                    if (!fvNodesEmpty && !IsInitialBlockDownload())
+                    if (!fvNodesEmpty && !IsInitialBlockDownload()) // 必须建立一条连接（即不能单机挖矿） 且 完成初始化块下载
                         break;
                     MilliSleep(1000);
                 } while (true);
@@ -445,10 +445,10 @@ void static BitcoinMiner(const CChainParams& chainparams)
             //
             // Create new block
             //
-            unsigned int nTransactionsUpdatedLast = mempool.GetTransactionsUpdated();
-            CBlockIndex* pindexPrev = chainActive.Tip();
+            unsigned int nTransactionsUpdatedLast = mempool.GetTransactionsUpdated(); // 获取内存池中交易更新的数量
+            CBlockIndex* pindexPrev = chainActive.Tip(); // 获取链尖区块（即最后一块）作为新建区块的父区块
 
-            auto_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock(chainparams, coinbaseScript->reserveScript));
+            auto_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock(chainparams, coinbaseScript->reserveScript)); // 新建区块
             if (!pblocktemplate.get())
             {
                 LogPrintf("Error in BitcoinMiner: Keypool ran out, please call keypoolrefill before restarting the mining thread\n");
@@ -467,7 +467,7 @@ void static BitcoinMiner(const CChainParams& chainparams)
             arith_uint256 hashTarget = arith_uint256().SetCompact(pblock->nBits);
             uint256 hash;
             uint32_t nNonce = 0;
-            while (true) {
+            while (true) { // 挖一个块
                 // Check if something found
                 if (ScanHash(pblock, nNonce, &hash)) // 挖矿，hash 最后 16 位为 0 则满足条件
                 {
@@ -531,22 +531,22 @@ void static BitcoinMiner(const CChainParams& chainparams)
 
 void GenerateBitcoins(bool fGenerate, int nThreads, const CChainParams& chainparams)
 {
-    static boost::thread_group* minerThreads = NULL;
+    static boost::thread_group* minerThreads = NULL; // 矿工线程组指针
 
-    if (nThreads < 0)
-        nThreads = GetNumCores();
+    if (nThreads < 0) // 若设置线程数小于 0
+        nThreads = GetNumCores(); // 获取 CPU 核数作为挖矿线程数
 
-    if (minerThreads != NULL)
+    if (minerThreads != NULL) // 保证线程组指针为空，若当前已经有挖矿线程，则停止当前线程
     {
         minerThreads->interrupt_all();
         delete minerThreads;
         minerThreads = NULL;
     }
 
-    if (nThreads == 0 || !fGenerate)
+    if (nThreads == 0 || !fGenerate) // 验证参数（线程数和挖矿标志）
         return;
 
-    minerThreads = new boost::thread_group();
-    for (int i = 0; i < nThreads; i++)
+    minerThreads = new boost::thread_group(); // 创建空的矿工线程组
+    for (int i = 0; i < nThreads; i++) // 创建指定线程数 nThreads 个挖矿工线程 BitcoinMiner
         minerThreads->create_thread(boost::bind(&BitcoinMiner, boost::cref(chainparams)));
 }
