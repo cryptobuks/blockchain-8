@@ -118,7 +118,7 @@ CBlockTemplate* CreateNewBlock(const CChainParams& chainparams, const CScript& s
     double actualPriority = -1;
 
     std::priority_queue<CTxMemPool::txiter, std::vector<CTxMemPool::txiter>, ScoreCompare> clearedTxs;
-    bool fPrintPriority = GetBoolArg("-printpriority", DEFAULT_PRINTPRIORITY);
+    bool fPrintPriority = GetBoolArg("-printpriority", DEFAULT_PRINTPRIORITY); // 打印优先级标志，默认关闭
     uint64_t nBlockSize = 1000;
     uint64_t nBlockTx = 0;
     unsigned int nBlockSigOps = 100;
@@ -301,20 +301,20 @@ CBlockTemplate* CreateNewBlock(const CChainParams& chainparams, const CScript& s
 void IncrementExtraNonce(CBlock* pblock, const CBlockIndex* pindexPrev, unsigned int& nExtraNonce)
 {
     // Update nExtraNonce
-    static uint256 hashPrevBlock;
+    static uint256 hashPrevBlock; // 保证只初始化一次
     if (hashPrevBlock != pblock->hashPrevBlock)
     {
         nExtraNonce = 0;
         hashPrevBlock = pblock->hashPrevBlock;
     }
-    ++nExtraNonce;
+    ++nExtraNonce; // 随机数加 1
     unsigned int nHeight = pindexPrev->nHeight+1; // Height first in coinbase required for block.version=2
-    CMutableTransaction txCoinbase(pblock->vtx[0]);
-    txCoinbase.vin[0].scriptSig = (CScript() << nHeight << CScriptNum(nExtraNonce)) + COINBASE_FLAGS;
+    CMutableTransaction txCoinbase(pblock->vtx[0]); // 创建一笔可变的创币交易
+    txCoinbase.vin[0].scriptSig = (CScript() << nHeight << CScriptNum(nExtraNonce)) + COINBASE_FLAGS; // 构建交易输入签名脚本
     assert(txCoinbase.vin[0].scriptSig.size() <= 100);
 
-    pblock->vtx[0] = txCoinbase;
-    pblock->hashMerkleRoot = BlockMerkleRoot(*pblock);
+    pblock->vtx[0] = txCoinbase; // 把创币交易加入交易列表
+    pblock->hashMerkleRoot = BlockMerkleRoot(*pblock); // 计算交易列表的默尔克树根哈希，即创币交易的 id
 }
 
 //////////////////////////////////////////////////////////////////////////////

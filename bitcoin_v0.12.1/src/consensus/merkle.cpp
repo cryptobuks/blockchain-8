@@ -39,9 +39,9 @@
 */
 
 /* This implements a constant-space merkle root/path calculator, limited to 2^32 leaves. */
-static void MerkleComputation(const std::vector<uint256>& leaves, uint256* proot, bool* pmutated, uint32_t branchpos, std::vector<uint256>* pbranch) {
-    if (pbranch) pbranch->clear();
-    if (leaves.size() == 0) {
+static void MerkleComputation(const std::vector<uint256>& leaves, uint256* proot, bool* pmutated, uint32_t branchpos, std::vector<uint256>* pbranch) { // 限制交易数 2^32
+    if (pbranch) pbranch->clear(); // NULL
+    if (leaves.size() == 0) { // 至少一笔交易（创币交易）
         if (pmutated) *pmutated = false;
         if (proot) *proot = uint256();
         return;
@@ -153,12 +153,12 @@ uint256 ComputeMerkleRootFromBranch(const uint256& leaf, const std::vector<uint2
 
 uint256 BlockMerkleRoot(const CBlock& block, bool* mutated)
 {
-    std::vector<uint256> leaves;
+    std::vector<uint256> leaves; // 叶子合集（交易列表中的所有交易作为默尔克树的叶子）
     leaves.resize(block.vtx.size());
     for (size_t s = 0; s < block.vtx.size(); s++) {
-        leaves[s] = block.vtx[s].GetHash();
+        leaves[s] = block.vtx[s].GetHash(); // 存放所有交易的哈希
     }
-    return ComputeMerkleRoot(leaves, mutated);
+    return ComputeMerkleRoot(leaves, mutated); // 计算默尔克树根哈希
 }
 
 std::vector<uint256> BlockMerkleBranch(const CBlock& block, uint32_t position)

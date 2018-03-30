@@ -29,9 +29,9 @@
 template<unsigned int N, typename T, typename Size = uint32_t, typename Diff = int32_t>
 class prevector {
 public:
-    typedef Size size_type;
-    typedef Diff difference_type;
-    typedef T value_type;
+    typedef Size size_type; // uint32_t
+    typedef Diff difference_type; // uint32_t
+    typedef T value_type; // unsigned char
     typedef value_type& reference;
     typedef const value_type& const_reference;
     typedef value_type* pointer;

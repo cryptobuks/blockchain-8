@@ -198,7 +198,7 @@ struct CMutableTransaction;
 /** The basic transaction that is broadcasted on the network and contained in
  * blocks.  A transaction can contain multiple inputs and outputs.
  */
-class CTransaction
+class CTransaction // 该交易为不易变版本，一经生成不能改变
 {
 private:
     /** Memory only. */
@@ -284,7 +284,7 @@ public:
 };
 
 /** A mutable version of CTransaction. */
-struct CMutableTransaction
+struct CMutableTransaction // 易变版本交易，即生成后可更改
 {
     int32_t nVersion;
     std::vector<CTxIn> vin;
