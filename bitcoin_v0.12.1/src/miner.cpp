@@ -74,36 +74,36 @@ int64_t UpdateTime(CBlockHeader* pblock, const Consensus::Params& consensusParam
 CBlockTemplate* CreateNewBlock(const CChainParams& chainparams, const CScript& scriptPubKeyIn)
 {
     // Create new block
-    auto_ptr<CBlockTemplate> pblocktemplate(new CBlockTemplate());
+    auto_ptr<CBlockTemplate> pblocktemplate(new CBlockTemplate()); // 创建一个新的区块模板（包含交易手续费和交易签名操作）
     if(!pblocktemplate.get())
         return NULL;
     CBlock *pblock = &pblocktemplate->block; // pointer for convenience
 
     // Create coinbase tx
-    CMutableTransaction txNew; // 创币交易
+    CMutableTransaction txNew; // 创建创币交易对象
     txNew.vin.resize(1);
     txNew.vin[0].prevout.SetNull(); // 输入为空
     txNew.vout.resize(1);
-    txNew.vout[0].scriptPubKey = scriptPubKeyIn; // 输出脚本
+    txNew.vout[0].scriptPubKey = scriptPubKeyIn; // 输出公钥脚本
 
     // Add dummy coinbase tx as first transaction
-    pblock->vtx.push_back(CTransaction()); // 创建家的创币交易作为第一笔交易
-    pblocktemplate->vTxFees.push_back(-1); // updated at end
-    pblocktemplate->vTxSigOps.push_back(-1); // updated at end
+    pblock->vtx.push_back(CTransaction()); // 添加假的创币交易作为第一笔交易到交易列表中
+    pblocktemplate->vTxFees.push_back(-1); // updated at end // 无交易手续费
+    pblocktemplate->vTxSigOps.push_back(-1); // updated at end // 无交易签名操作
 
     // Largest block you're willing to create:
     unsigned int nBlockMaxSize = GetArg("-blockmaxsize", DEFAULT_BLOCK_MAX_SIZE); // 你希望创建的最大区块大小，默认 750,000（不到 1M）
     // Limit to between 1K and MAX_BLOCK_SIZE-1K for sanity:
-    nBlockMaxSize = std::max((unsigned int)1000, std::min((unsigned int)(MAX_BLOCK_SIZE-1000), nBlockMaxSize));
+    nBlockMaxSize = std::max((unsigned int)1000, std::min((unsigned int)(MAX_BLOCK_SIZE-1000), nBlockMaxSize)); // 获取真正区块大小的最大限制
 
     // How much of the block should be dedicated to high-priority transactions,
     // included regardless of the fees they pay
-    unsigned int nBlockPrioritySize = GetArg("-blockprioritysize", DEFAULT_BLOCK_PRIORITY_SIZE);
-    nBlockPrioritySize = std::min(nBlockMaxSize, nBlockPrioritySize);
+    unsigned int nBlockPrioritySize = GetArg("-blockprioritysize", DEFAULT_BLOCK_PRIORITY_SIZE); // 默认区块优先级大小，默认为 0
+    nBlockPrioritySize = std::min(nBlockMaxSize, nBlockPrioritySize); // 用于包含高优先级的交易
 
     // Minimum block size you want to create; block will be filled with free transactions
     // until there are no more or the block reaches this size:
-    unsigned int nBlockMinSize = GetArg("-blockminsize", DEFAULT_BLOCK_MIN_SIZE);
+    unsigned int nBlockMinSize = GetArg("-blockminsize", DEFAULT_BLOCK_MIN_SIZE); // 默认区块大小最小限制，默认为 0
     nBlockMinSize = std::min(nBlockMaxSize, nBlockMinSize);
 
     // Collect memory pool transactions into the block
@@ -242,7 +242,7 @@ CBlockTemplate* CreateNewBlock(const CChainParams& chainparams, const CScript& s
             nBlockSigOps += nTxSigOps;
             nFees += nTxFees;
 
-            if (fPrintPriority)
+            if (fPrintPriority) // 打印优先级
             {
                 double dPriority = iter->GetPriority(nHeight);
                 CAmount dummy;
@@ -277,17 +277,17 @@ CBlockTemplate* CreateNewBlock(const CChainParams& chainparams, const CScript& s
         LogPrintf("CreateNewBlock(): total size %u txs: %u fees: %ld sigops %d\n", nBlockSize, nBlockTx, nFees, nBlockSigOps);
 
         // Compute final coinbase transaction.
-        txNew.vout[0].nValue = nFees + GetBlockSubsidy(nHeight, chainparams.GetConsensus());
-        txNew.vin[0].scriptSig = CScript() << nHeight << OP_0;
-        pblock->vtx[0] = txNew;
-        pblocktemplate->vTxFees[0] = -nFees;
+        txNew.vout[0].nValue = nFees + GetBlockSubsidy(nHeight, chainparams.GetConsensus()); // 计算创币交易输出值（区块奖励），通过当前区块高度和共识
+        txNew.vin[0].scriptSig = CScript() << nHeight << OP_0; // 导入该交易输入的签名脚本，新区快的高度，OP_0 表示一个字节空串被推入栈
+        pblock->vtx[0] = txNew; // 放入创币交易
+        pblocktemplate->vTxFees[0] = -nFees; // 计算交易手续费，为 0
 
         // Fill in header
-        pblock->hashPrevBlock  = pindexPrev->GetBlockHash();
-        UpdateTime(pblock, chainparams.GetConsensus(), pindexPrev);
-        pblock->nBits          = GetNextWorkRequired(pindexPrev, pblock, chainparams.GetConsensus());
-        pblock->nNonce         = 0;
-        pblocktemplate->vTxSigOps[0] = GetLegacySigOpCount(pblock->vtx[0]);
+        pblock->hashPrevBlock  = pindexPrev->GetBlockHash(); // 获取父区块哈希
+        UpdateTime(pblock, chainparams.GetConsensus(), pindexPrev); 
+        pblock->nBits          = GetNextWorkRequired(pindexPrev, pblock, chainparams.GetConsensus()); // 获取难度对应值
+        pblock->nNonce         = 0; // 随机数置 0，即从 0 开始找块
+        pblocktemplate->vTxSigOps[0] = GetLegacySigOpCount(pblock->vtx[0]); // 获取创币交易签名操作数
 
         CValidationState state;
         if (!TestBlockValidity(state, chainparams, *pblock, pindexPrev, false, false)) {
@@ -421,7 +421,7 @@ void static BitcoinMiner(const CChainParams& chainparams)
         // Throw an error if no script was provided.  This can happen
         // due to some internal error but also if the keypool is empty.
         // In the latter case, already the pointer is NULL.
-        if (!coinbaseScript || coinbaseScript->reserveScript.empty())
+        if (!coinbaseScript || coinbaseScript->reserveScript.empty()) // 需要创币脚本，且挖矿必须有一个钱包
             throw std::runtime_error("No coinbase script available (mining requires a wallet)");
 
         while (true) { // 循环挖矿

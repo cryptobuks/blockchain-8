@@ -347,7 +347,7 @@ public:
 /** An in-memory indexed chain of blocks. */
 class CChain {
 private:
-    std::vector<CBlockIndex*> vChain;
+    std::vector<CBlockIndex*> vChain; // 内存中区块的索引集
 
 public:
     /** Returns the index entry for the genesis block of this chain, or NULL if none. */

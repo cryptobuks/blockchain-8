@@ -41,8 +41,8 @@ std::vector<unsigned char> ToByteVector(const T& in)
 enum opcodetype
 {
     // push value
-    OP_0 = 0x00,
-    OP_FALSE = OP_0,
+    OP_0 = 0x00, // 表示一个字节空串被推入栈
+    OP_FALSE = OP_0, // 非 no-op 无操作
     OP_PUSHDATA1 = 0x4c,
     OP_PUSHDATA2 = 0x4d,
     OP_PUSHDATA4 = 0x4e,
@@ -67,7 +67,7 @@ enum opcodetype
     OP_16 = 0x60,
 
     // control
-    OP_NOP = 0x61,
+    OP_NOP = 0x61, // 无操作
     OP_VER = 0x62,
     OP_IF = 0x63,
     OP_NOTIF = 0x64,

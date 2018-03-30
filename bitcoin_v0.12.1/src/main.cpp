@@ -1574,7 +1574,7 @@ CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams) /
     CAmount nSubsidy = 50 * COIN; // CAmount 是 int64_t 类型
     // Subsidy is cut in half every 210,000 blocks which will occur approximately every 4 years. // 区块奖励每 210,000 块进行减半，大概每 4 年发生一次。
     nSubsidy >>= halvings; // 右移减半
-    return nSubsidy;
+    return nSubsidy; // 返回当前区块奖励
 }
 
 bool IsInitialBlockDownload()

@@ -28,8 +28,8 @@ static const bool DEFAULT_PRINTPRIORITY = false;
 struct CBlockTemplate
 {
     CBlock block;
-    std::vector<CAmount> vTxFees;
-    std::vector<int64_t> vTxSigOps;
+    std::vector<CAmount> vTxFees; // 交易手续费
+    std::vector<int64_t> vTxSigOps; // 交易签名操作
 };
 
 /** Run the miner threads */

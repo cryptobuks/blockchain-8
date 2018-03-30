@@ -17,7 +17,7 @@
  * in the block is a special one that creates a new coin owned by the creator
  * of the block.
  */
-class CBlockHeader
+class CBlockHeader // 区块头部分（包含区块版本、前一个区块的哈希、默尔克树根哈希、创建区块的时间、难度对应值和随机数）共 80 bytes
 {
 public:
     // header // Size: 80 Bytes
@@ -26,7 +26,7 @@ public:
     uint256 hashMerkleRoot; // 32 Bytes
     uint32_t nTime; // 4 Bytes
     uint32_t nBits; // 4 Bytes
-    uint32_t nNonce; // 4 Bytes
+    uint32_t nNonce; // 4 Bytes,Number used once/Number once
 
     CBlockHeader()
     {
@@ -74,7 +74,7 @@ class CBlock : public CBlockHeader
 {
 public:
     // network and disk
-    std::vector<CTransaction> vtx;
+    std::vector<CTransaction> vtx; // 区块体部分（交易合集，至少有一笔，即创币交易）
 
     // memory only
     mutable bool fChecked;
@@ -125,7 +125,7 @@ public:
  * other node doesn't have the same branch, it can find a recent common trunk.
  * The further back it is, the further before the fork it may be.
  */
-struct CBlockLocator
+struct CBlockLocator // 可能与分叉有关
 {
     std::vector<uint256> vHave;
 
