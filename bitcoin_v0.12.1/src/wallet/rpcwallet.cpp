@@ -106,12 +106,12 @@ string AccountFromValue(const UniValue& value)
     return strAccount;
 }
 
-UniValue getnewaddress(const UniValue& params, bool fHelp)
+UniValue getnewaddress(const UniValue& params, bool fHelp) // 在指定账户下新建一个地址，若不指定账户，默认添加到""空账户下
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保钱包可用
         return NullUniValue;
     
-    if (fHelp || params.size() > 1)
+    if (fHelp || params.size() > 1) // 参数个数为 0 或 1，即要么使用默认账户，要么指定账户
         throw runtime_error(
             "getnewaddress ( \"account\" )\n"
             "\nReturns a new Bitcoin address for receiving payments.\n"
@@ -130,7 +130,7 @@ UniValue getnewaddress(const UniValue& params, bool fHelp)
 
     // Parse the account first so we don't generate a key if there's an error
     string strAccount;
-    if (params.size() > 0)
+    if (params.size() > 0) // 加参数的情况（账户）
         strAccount = AccountFromValue(params[0]);
 
     if (!pwalletMain->IsLocked())
@@ -144,7 +144,7 @@ UniValue getnewaddress(const UniValue& params, bool fHelp)
 
     pwalletMain->SetAddressBook(keyID, strAccount, "receive");
 
-    return CBitcoinAddress(keyID).ToString();
+    return CBitcoinAddress(keyID).ToString(); // 160 位的公钥转化为公钥地址：Base58(1 + 20 + 4 bytes)
 }
 
 

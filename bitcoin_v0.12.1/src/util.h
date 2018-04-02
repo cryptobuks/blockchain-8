@@ -67,7 +67,7 @@ inline std::string _(const char* psz)
 }
 
 void SetupEnvironment(); // 根据地理位置设置编码格式
-bool SetupNetworking();
+bool SetupNetworking(); // 初始化 windows 下的 socket
 
 /** Return true if log accepts specified category */
 bool LogAcceptCategory(const char* category);

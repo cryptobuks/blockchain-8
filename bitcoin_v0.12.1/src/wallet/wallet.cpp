@@ -2479,7 +2479,7 @@ bool CWallet::TopUpKeyPool(unsigned int kpSize)
         if (kpSize > 0)
             nTargetSize = kpSize;
         else
-            nTargetSize = max(GetArg("-keypool", DEFAULT_KEYPOOL_SIZE), (int64_t) 0);
+            nTargetSize = max(GetArg("-keypool", DEFAULT_KEYPOOL_SIZE), (int64_t) 0); // 钥匙池大小，默认 100
 
         while (setKeyPool.size() < (nTargetSize + 1))
         {
@@ -2553,7 +2553,7 @@ bool CWallet::GetKeyFromPool(CPubKey& result)
         if (nIndex == -1) // -1 表示当前 keypool 为空
         {
             if (IsLocked()) return false;
-            result = GenerateNewKey();
+            result = GenerateNewKey(); // 创建新的私钥，并用椭圆曲线加密生成对应的公钥
             return true;
         }
         KeepKey(nIndex);

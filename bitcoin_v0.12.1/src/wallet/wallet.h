@@ -108,7 +108,7 @@ class CAddressBookData
 {
 public:
     std::string name;
-    std::string purpose;
+    std::string purpose; // ”√Õæ
 
     CAddressBookData()
     {

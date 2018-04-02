@@ -783,19 +783,19 @@ void InitLogging()
 /** Initialize bitcoin.
  *  @pre Parameters should be parsed and config file should be read.
  */
-bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // 3.11.≥Ã–Ú≥ı ºªØ£¨π≤ 12 ≤Ω
+bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.11.≥Ã–Ú≥ı ºªØ£¨π≤ 12 ≤Ω
 {
     // ********************************************************* Step 1: setup // ∞≤◊∞Õ¯¬Áª∑æ≥£¨π“Ω” ¬º˛¥¶¿Ì∆˜
-#ifdef _MSC_VER
+#ifdef _MSC_VER // …Ë÷√ log µƒ ‰≥ˆº∂±Œ¥ WARNING ∫Õ log µƒ ‰≥ˆŒƒº˛
     // Turn off Microsoft heap dump noise
     _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
     _CrtSetReportFile(_CRT_WARN, CreateFileA("NUL", GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, 0));
 #endif
-#if _MSC_VER >= 1400
+#if _MSC_VER >= 1400 // ¥¶¿Ì÷–∂œœ˚œ¢
     // Disable confusing "helpful" text message on abort, Ctrl-C
     _set_abort_behavior(0, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);
 #endif
-#ifdef WIN32
+#ifdef WIN32 // …Ë÷√ socket ¡¨Ω”
     // Enable Data Execution Prevention (DEP)
     // Minimum supported OS versions: WinXP SP3, WinVista >= SP1, Win Server 2008
     // A failure is non-critical and needs no further attention!
@@ -809,10 +809,10 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // 3.11.≥
     if (setProcDEPPol != NULL) setProcDEPPol(PROCESS_DEP_ENABLE);
 #endif
 
-    if (!SetupNetworking())
+    if (!SetupNetworking()) // …Ë÷√ windows œ¬µƒ socket
         return InitError("Initializing networking failed");
 
-#ifndef WIN32
+#ifndef WIN32 // ¥¶¿Ì–≈∫≈
     if (GetBoolArg("-sysperms", false)) {
 #ifdef ENABLE_WALLET
         if (!GetBoolArg("-disablewallet", false))
@@ -872,7 +872,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // 3.11.≥
     if (nMaxConnections < nUserMaxConnections)
         InitWarning(strprintf(_("Reducing -maxconnections from %d to %d, because of system limitations."), nUserMaxConnections, nMaxConnections));
 
-    // ********************************************************* Step 3: parameter-to-internal-flags // ≤Œ ˝◊™ªªŒ™ƒ⁄≤ø±‰¡ø£¨∞—Õ‚≤ø≤Œ ˝µƒ…Ë÷√◊™ªØŒ™≥Ã–Úƒ⁄≤øµƒ◊¥Ã¨
+    // ********************************************************* Step 3: parameter-to-internal-flags // ≤Œ ˝◊™ªªŒ™ƒ⁄≤ø±‰¡ø£¨∞—Õ‚≤ø≤Œ ˝µƒ…Ë÷√◊™ªØŒ™≥Ã–Úƒ⁄≤øµƒ◊¥Ã¨£®bool –Õ≤Œ ˝£¨ø™πÿ¿‡—°œÓ£©
 
     fDebug = !mapMultiArgs["-debug"].empty();
     // Special-case: if -debug=0/-nodebug is set, turn off debugging messages
@@ -1264,7 +1264,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // 3.11.≥
     fReindex = GetBoolArg("-reindex", false); // ‘ŸÀ˜“˝±Í÷æ£¨ƒ¨»œπÿ±’
 
     // Upgrading to 0.8; hard-link the old blknnnn.dat files into /blocks/
-    boost::filesystem::path blocksDir = GetDataDir() / "blocks";
+    boost::filesystem::path blocksDir = GetDataDir() / "blocks"; // ºÊ»›¿œ∞Êµƒ«¯øÈ∏Ò Ω£¨«¯øÈŒƒº˛¿©»›
     if (!boost::filesystem::exists(blocksDir))
     {
         boost::filesystem::create_directories(blocksDir);
