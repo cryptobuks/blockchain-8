@@ -344,7 +344,7 @@ static void InterpretNegativeSetting(std::string& strKey, std::string& strValue)
 
 void ParseParameters(int argc, const char* const argv[])
 {
-    mapArgs.clear();
+    mapArgs.clear(); // 清空 2 个保存参数（命令行和配置文件）的容器
     mapMultiArgs.clear();
 
     for (int i = 1; i < argc; i++)
@@ -505,7 +505,7 @@ const boost::filesystem::path &GetDataDir(bool fNetSpecific)
             return path;
         }
     } else {
-        path = GetDefaultDataDir();
+        path = GetDefaultDataDir(); // 获取在不同操作系统下的默认数据目录的路径
     }
     if (fNetSpecific)
         path /= BaseParams().DataDir();
@@ -533,8 +533,8 @@ boost::filesystem::path GetConfigFile()
 void ReadConfigFile(map<string, string>& mapSettingsRet,
                     map<string, vector<string> >& mapMultiSettingsRet)
 {
-    boost::filesystem::ifstream streamConfig(GetConfigFile());
-    if (!streamConfig.good())
+    boost::filesystem::ifstream streamConfig(GetConfigFile()); // 打开配置文件
+    if (!streamConfig.good()) // 允许初次运行没有配置文件
         return; // No bitcoin.conf file is OK
 
     set<string> setOptions;

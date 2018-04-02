@@ -66,7 +66,7 @@ inline std::string _(const char* psz)
     return rv ? (*rv) : psz;
 }
 
-void SetupEnvironment();
+void SetupEnvironment(); // 根据地理位置设置编码格式
 bool SetupNetworking();
 
 /** Return true if log accepts specified category */

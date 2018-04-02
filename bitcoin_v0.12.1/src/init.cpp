@@ -783,7 +783,7 @@ void InitLogging()
 /** Initialize bitcoin.
  *  @pre Parameters should be parsed and config file should be read.
  */
-bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) //3.11
+bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // 3.11.程序初始化，共 12 步
 {
     // ********************************************************* Step 1: setup // 安装网络环境，挂接事件处理器
 #ifdef _MSC_VER

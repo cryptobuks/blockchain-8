@@ -378,7 +378,7 @@ static bool ProcessBlockFound(const CBlock* pblock, const CChainParams& chainpar
     return true;
 }
 
-void getGenesisBlock(CBlock *pblock)
+void getGenesisBlock(CBlock *pblock) // 获取创世区块的基本信息（nNonce,hash,merkleroot）
 {
 	arith_uint256 hashTarget = arith_uint256().SetCompact(pblock->nBits);
 	printf("hashTarget: %s\n", hashTarget.ToString().c_str());
@@ -438,7 +438,7 @@ void static BitcoinMiner(const CChainParams& chainparams)
                     LogPrintf("IsInitialBlockDownload(): %d\n", IsInitialBlockDownload());
                     if (!fvNodesEmpty && !IsInitialBlockDownload()) // 必须建立一条连接（即不能单机挖矿） 且 完成初始化块下载
                         break;
-                    MilliSleep(1000);
+                    MilliSleep(1000); // 睡 1s
                 } while (true);
             }
 
@@ -448,25 +448,25 @@ void static BitcoinMiner(const CChainParams& chainparams)
             unsigned int nTransactionsUpdatedLast = mempool.GetTransactionsUpdated(); // 获取内存池中交易更新的数量
             CBlockIndex* pindexPrev = chainActive.Tip(); // 获取链尖区块（即最后一块）作为新建区块的父区块
 
-            auto_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock(chainparams, coinbaseScript->reserveScript)); // 新建区块
+            auto_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock(chainparams, coinbaseScript->reserveScript)); // 新建区块[pending]
             if (!pblocktemplate.get())
             {
                 LogPrintf("Error in BitcoinMiner: Keypool ran out, please call keypoolrefill before restarting the mining thread\n");
                 return;
             }
             CBlock *pblock = &pblocktemplate->block;
-            IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
+            IncrementExtraNonce(pblock, pindexPrev, nExtraNonce); // 改变创币交易的输入脚本，并计算创世区块的默尔克数根哈希
 
             LogPrintf("Running BitcoinMiner with %u transactions in block (%u bytes)\n", pblock->vtx.size(),
                 ::GetSerializeSize(*pblock, SER_NETWORK, PROTOCOL_VERSION));
 
             //
-            // Search
+            // Search // 挖矿核心
             //
             int64_t nStart = GetTime();
-            arith_uint256 hashTarget = arith_uint256().SetCompact(pblock->nBits);
-            uint256 hash;
-            uint32_t nNonce = 0;
+            arith_uint256 hashTarget = arith_uint256().SetCompact(pblock->nBits); // 设置挖当前块的难度目标值
+            uint256 hash; // 保存当前块的哈希
+            uint32_t nNonce = 0; // 随机数初始化置 0
             while (true) { // 挖一个块
                 // Check if something found
                 if (ScanHash(pblock, nNonce, &hash)) // 挖矿，hash 最后 16 位为 0 则满足条件
