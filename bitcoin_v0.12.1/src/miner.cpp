@@ -378,7 +378,7 @@ static bool ProcessBlockFound(const CBlock* pblock, const CChainParams& chainpar
     return true;
 }
 
-void getGenesisBlock(CBlock *pblock) // 获取创世区块的基本信息（nNonce,hash,merkleroot）
+void getGenesisBlock(CBlock *pblock) // 获取创世区块的基本信息（nNonce, hash, merkleroot）
 {
 	arith_uint256 hashTarget = arith_uint256().SetCompact(pblock->nBits);
 	printf("hashTarget: %s\n", hashTarget.ToString().c_str());

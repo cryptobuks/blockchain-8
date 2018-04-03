@@ -85,7 +85,7 @@ public:
 
     bool push_back(const UniValue& val);
     bool push_back(const std::string& val_) {
-        UniValue tmpVal(VSTR, val_);
+        UniValue tmpVal(VSTR, val_); // string ¿‡–Õ
         return push_back(tmpVal);
     }
     bool push_back(const char *val_) {

@@ -62,13 +62,13 @@ public:
 
 };
 
-static bool AppInitRPC(int argc, char* argv[])
+static bool AppInitRPC(int argc, char* argv[]) // 2.0.应用程序初始化远程过程调用
 {
     //
     // Parameters
     //
-    ParseParameters(argc, argv);
-    if (argc<2 || mapArgs.count("-?") || mapArgs.count("-h") || mapArgs.count("-help") || mapArgs.count("-version")) {
+    ParseParameters(argc, argv); // 2.1.解析参数
+    if (argc<2 || mapArgs.count("-?") || mapArgs.count("-h") || mapArgs.count("-help") || mapArgs.count("-version")) { // 2.2.帮助和版本信息
         std::string strUsage = _("Bitcoin Core RPC client version") + " " + FormatFullVersion() + "\n";
         if (!mapArgs.count("-version")) {
             strUsage += "\n" + _("Usage:") + "\n" +
@@ -82,19 +82,19 @@ static bool AppInitRPC(int argc, char* argv[])
         fprintf(stdout, "%s", strUsage.c_str());
         return false;
     }
-    if (!boost::filesystem::is_directory(GetDataDir(false))) {
+    if (!boost::filesystem::is_directory(GetDataDir(false))) { // 2.3.检查数据目录
         fprintf(stderr, "Error: Specified data directory \"%s\" does not exist.\n", mapArgs["-datadir"].c_str());
         return false;
     }
     try {
-        ReadConfigFile(mapArgs, mapMultiArgs);
+        ReadConfigFile(mapArgs, mapMultiArgs); // 2.4.读配置文件
     } catch (const std::exception& e) {
         fprintf(stderr,"Error reading configuration file: %s\n", e.what());
         return false;
     }
     // Check for -testnet or -regtest parameter (BaseParams() calls are only valid after this clause)
     try {
-        SelectBaseParams(ChainNameFromCommandLine());
+        SelectBaseParams(ChainNameFromCommandLine()); // 2.5.根据链名选择链基础参数
     } catch (const std::exception& e) {
         fprintf(stderr, "Error: %s\n", e.what());
         return false;
@@ -218,24 +218,24 @@ UniValue CallRPC(const string& strMethod, const UniValue& params)
     return reply;
 }
 
-int CommandLineRPC(int argc, char *argv[])
+int CommandLineRPC(int argc, char *argv[]) // 3.0.命令行远程过程调用
 {
     string strPrint;
     int nRet = 0;
     try {
         // Skip switches
-        while (argc > 1 && IsSwitchChar(argv[1][0])) {
+        while (argc > 1 && IsSwitchChar(argv[1][0])) { // 跳过带有 '-' 或 '/' 前缀的参数
             argc--;
             argv++;
         }
 
         // Method
-        if (argc < 2)
-            throw runtime_error("too few parameters");
-        string strMethod = argv[1];
+        if (argc < 2) // 没有加命令行参数
+            throw runtime_error("too few parameters"); // 抛出异常
+        string strMethod = argv[1]; // 方法名
 
         // Parameters default to strings
-        std::vector<std::string> strParams(&argv[2], &argv[argc]);
+        std::vector<std::string> strParams(&argv[2], &argv[argc]); // 方法对应的参数（第一个，最后一个）
         UniValue params = RPCConvertValues(strMethod, strParams);
 
         // Execute and handle connection failures with -rpcwait
@@ -302,16 +302,16 @@ int CommandLineRPC(int argc, char *argv[])
     return nRet;
 }
 
-int main(int argc, char* argv[])
+int main(int argc, char* argv[]) // 0.获取命令参数
 {
-    SetupEnvironment();
-    if (!SetupNetworking()) {
+    SetupEnvironment(); // 1.设置运行环境
+    if (!SetupNetworking()) { // windows 下设置网络
         fprintf(stderr, "Error: Initializing networking failed\n");
         exit(1);
     }
 
     try {
-        if(!AppInitRPC(argc, argv))
+        if(!AppInitRPC(argc, argv)) // 2.应用程序初始化远程过程调用（参数、帮助、数据目录、配置文件、RPC 端口）
             return EXIT_FAILURE;
     }
     catch (const std::exception& e) {
@@ -324,7 +324,7 @@ int main(int argc, char* argv[])
 
     int ret = EXIT_FAILURE;
     try {
-        ret = CommandLineRPC(argc, argv);
+        ret = CommandLineRPC(argc, argv); // 3.命令行远程过程调用
     }
     catch (const std::exception& e) {
         PrintExceptionContinue(&e, "CommandLineRPC()");

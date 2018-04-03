@@ -259,7 +259,7 @@ const UniValue& UniValue::operator[](unsigned int index) const
     if (index >= values.size())
         return NullUniValue;
 
-    return values.at(index);
+    return values.at(index); // 返回指向位置 index 的引用
 }
 
 const char *uvTypeName(UniValue::VType t)

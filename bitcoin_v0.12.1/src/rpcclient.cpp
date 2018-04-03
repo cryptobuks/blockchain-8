@@ -128,34 +128,34 @@ CRPCConvertTable::CRPCConvertTable()
     }
 }
 
-static CRPCConvertTable rpcCvtTable;
+static CRPCConvertTable rpcCvtTable; // 初始化（注册）
 
 /** Non-RFC4627 JSON parser, accepts internal values (such as numbers, true, false, null)
  * as well as objects and arrays.
  */
 UniValue ParseNonRFCJSONValue(const std::string& strVal)
 {
-    UniValue jVal;
+    UniValue jVal; // 类型为空
     if (!jVal.read(std::string("[")+strVal+std::string("]")) ||
         !jVal.isArray() || jVal.size()!=1)
         throw runtime_error(string("Error parsing JSON:")+strVal);
-    return jVal[0];
+    return jVal[0]; // 返回 jVal.values[0] 的引用
 }
 
 /** Convert strings to command-specific RPC representation */
 UniValue RPCConvertValues(const std::string &strMethod, const std::vector<std::string> &strParams)
 {
-    UniValue params(UniValue::VARR);
+    UniValue params(UniValue::VARR); // 类型为队列 Array
 
     for (unsigned int idx = 0; idx < strParams.size(); idx++) {
-        const std::string& strVal = strParams[idx];
+        const std::string& strVal = strParams[idx]; // 获取方法的参数
 
         if (!rpcCvtTable.convert(strMethod, idx)) {
             // insert string value directly
-            params.push_back(strVal);
+            params.push_back(strVal); // 直接插入字符串值
         } else {
             // parse string as JSON, insert bool/number/object/etc. value
-            params.push_back(ParseNonRFCJSONValue(strVal));
+            params.push_back(ParseNonRFCJSONValue(strVal)); // 解析 Json 格式字符串，插入 布尔/数字/对象/等 类型的值
         }
     }
 
