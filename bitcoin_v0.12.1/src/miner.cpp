@@ -357,21 +357,21 @@ bool static ScanHash(const CBlockHeader *pblock, uint32_t& nNonce, uint256 *phas
 
 static bool ProcessBlockFound(const CBlock* pblock, const CChainParams& chainparams)
 {
-    LogPrintf("%s\n", pblock->ToString());
-    LogPrintf("generated %s\n", FormatMoney(pblock->vtx[0].vout[0].nValue));
+    LogPrintf("%s\n", pblock->ToString()); // 记录区块哈希、区块头 6 项、交易数、每笔交易详细信息到日志
+    LogPrintf("generated %s\n", FormatMoney(pblock->vtx[0].vout[0].nValue)); // 记录创币交易产生币的数量
 
     // Found a solution
     {
         LOCK(cs_main);
-        if (pblock->hashPrevBlock != chainActive.Tip()->GetBlockHash())
+        if (pblock->hashPrevBlock != chainActive.Tip()->GetBlockHash()) // 验证新区块的父区块是否为链尖区块
             return error("BitcoinMiner: generated block is stale");
     }
 
     // Inform about the new block
-    GetMainSignals().BlockFound(pblock->GetHash());
+    GetMainSignals().BlockFound(pblock->GetHash()); // 通知新区块的哈希，在 validationinterface.cpp 中定义
 
     // Process this block the same as if we had received it from another node
-    CValidationState state;
+    CValidationState state; // 默认为有效状态
     if (!ProcessNewBlock(state, chainparams, NULL, pblock, true, NULL))
         return error("BitcoinMiner: ProcessNewBlock, block not accepted");
 
