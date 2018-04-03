@@ -21,20 +21,20 @@ static const char* pszBase58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnop
 bool DecodeBase58(const char* psz, std::vector<unsigned char>& vch)
 {
     // Skip leading spaces.
-    while (*psz && isspace(*psz))
+    while (*psz && isspace(*psz)) // 跳过空格
         psz++;
     // Skip and count leading '1's.
     int zeroes = 0;
-    while (*psz == '1') {
+    while (*psz == '1') { // 跳过字符前缀'1'
         zeroes++;
         psz++;
     }
     // Allocate enough space in big-endian base256 representation.
     std::vector<unsigned char> b256(strlen(psz) * 733 / 1000 + 1); // log(58) / log(256), rounded up.
     // Process the characters.
-    while (*psz && !isspace(*psz)) {
+    while (*psz && !isspace(*psz)) { // 58 进制转换为 256 进制
         // Decode base58 character
-        const char* ch = strchr(pszBase58, *psz);
+        const char* ch = strchr(pszBase58, *psz); // 获取一个字符在 pszBase58 表中出现的位置
         if (ch == NULL)
             return false;
         // Apply "b256 = b256 * 58 + ch".
@@ -48,19 +48,19 @@ bool DecodeBase58(const char* psz, std::vector<unsigned char>& vch)
         psz++;
     }
     // Skip trailing spaces.
-    while (isspace(*psz))
+    while (isspace(*psz)) // 跳过空格字符
         psz++;
-    if (*psz != 0)
+    if (*psz != 0) // 开头非 0，错误
         return false;
     // Skip leading zeroes in b256.
     std::vector<unsigned char>::iterator it = b256.begin();
-    while (it != b256.end() && *it == 0)
+    while (it != b256.end() && *it == 0) // 跳过开头的 0
         it++;
     // Copy result into output vector.
     vch.reserve(zeroes + (b256.end() - it));
-    vch.assign(zeroes, 0x00);
+    vch.assign(zeroes, 0x00); // 在前面补 zeroes 个 0
     while (it != b256.end())
-        vch.push_back(*(it++));
+        vch.push_back(*(it++)); // 256 转换
     return true;
 }
 

@@ -58,17 +58,17 @@ public:
 
 int64_t UpdateTime(CBlockHeader* pblock, const Consensus::Params& consensusParams, const CBlockIndex* pindexPrev)
 {
-    int64_t nOldTime = pblock->nTime;
-    int64_t nNewTime = std::max(pindexPrev->GetMedianTimePast()+1, GetAdjustedTime());
+    int64_t nOldTime = pblock->nTime; // 记录区块创建的时间
+    int64_t nNewTime = std::max(pindexPrev->GetMedianTimePast()+1, GetAdjustedTime()); // pending
 
-    if (nOldTime < nNewTime)
-        pblock->nTime = nNewTime;
+    if (nOldTime < nNewTime) // 新时间大于旧时间
+        pblock->nTime = nNewTime; // 更新区块的创建时间
 
     // Updating time can change work required on testnet:
-    if (consensusParams.fPowAllowMinDifficultyBlocks)
-        pblock->nBits = GetNextWorkRequired(pindexPrev, pblock, consensusParams);
+    if (consensusParams.fPowAllowMinDifficultyBlocks) // 在测试网中，更新区块时间会改变区块难度
+        pblock->nBits = GetNextWorkRequired(pindexPrev, pblock, consensusParams); // pending
 
-    return nNewTime - nOldTime;
+    return nNewTime - nOldTime; // 返回新旧时间差
 }
 
 CBlockTemplate* CreateNewBlock(const CChainParams& chainparams, const CScript& scriptPubKeyIn)
@@ -409,8 +409,8 @@ void getGenesisBlock(CBlock *pblock) // 获取创世区块的基本信息（nNonce,hash,merk
 void static BitcoinMiner(const CChainParams& chainparams)
 {
     LogPrintf("BitcoinMiner started\n");
-    SetThreadPriority(THREAD_PRIORITY_LOWEST); // 设置线程优先级，在 compat.h 中
-    RenameThread("bitcoin-miner"); // 重命名矿工线程
+    SetThreadPriority(THREAD_PRIORITY_LOWEST); // 设置线程优先级，宏定义在 compat.h 中
+    RenameThread("bitcoin-miner"); // 重命名线程为比特币矿工
 
     unsigned int nExtraNonce = 0; // Nonce: Number used once/Number once 表示该随机数只用一次
 
@@ -429,15 +429,17 @@ void static BitcoinMiner(const CChainParams& chainparams)
                 // Busy-wait for the network to come online so we don't waste time mining
                 // on an obsolete chain. In regtest mode we expect to fly solo.
                 do {
-                    bool fvNodesEmpty;
+                    bool fvNodesEmpty; // 节点列表为空的标志
                     {
                         LOCK(cs_vNodes);
                         fvNodesEmpty = vNodes.empty(); // 建立连接的节点列表是否为空
                     }
+#if 1 // for debug
                     LogPrintf("fvNodesEmpty: %d\n", fvNodesEmpty);
                     LogPrintf("IsInitialBlockDownload(): %d\n", IsInitialBlockDownload());
+#endif
                     if (!fvNodesEmpty && !IsInitialBlockDownload()) // 必须建立一条连接（即不能单机挖矿） 且 完成初始化块下载
-                        break;
+                        break; // 主网和公测网必须从这里跳出才能开始挖矿
                     MilliSleep(1000); // 睡 1s
                 } while (true);
             }
@@ -448,7 +450,7 @@ void static BitcoinMiner(const CChainParams& chainparams)
             unsigned int nTransactionsUpdatedLast = mempool.GetTransactionsUpdated(); // 获取内存池中交易更新的数量
             CBlockIndex* pindexPrev = chainActive.Tip(); // 获取链尖区块（即最后一块）作为新建区块的父区块
 
-            auto_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock(chainparams, coinbaseScript->reserveScript)); // 新建区块[pending]
+            auto_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock(chainparams, coinbaseScript->reserveScript)); // 新建区块
             if (!pblocktemplate.get())
             {
                 LogPrintf("Error in BitcoinMiner: Keypool ran out, please call keypoolrefill before restarting the mining thread\n");
@@ -463,7 +465,7 @@ void static BitcoinMiner(const CChainParams& chainparams)
             //
             // Search // 挖矿核心
             //
-            int64_t nStart = GetTime();
+            int64_t nStart = GetTime(); // 记录开始挖矿的时间
             arith_uint256 hashTarget = arith_uint256().SetCompact(pblock->nBits); // 设置挖当前块的难度目标值
             uint256 hash; // 保存当前块的哈希
             uint32_t nNonce = 0; // 随机数初始化置 0
@@ -471,45 +473,47 @@ void static BitcoinMiner(const CChainParams& chainparams)
                 // Check if something found
                 if (ScanHash(pblock, nNonce, &hash)) // 挖矿，hash 最后 16 位为 0 则满足条件
                 {
+#if 1 // for debug
 					LogPrintf("Search now\n");
+#endif
                     if (UintToArith256(hash) <= hashTarget) // 转化为小端模式，与难度目标值比较，判断是否为合格的块
-                    {
+                    { // 满足条件（小于目标值）
                         // Found a solution
-                        pblock->nNonce = nNonce;
-                        assert(hash == pblock->GetHash());
+                        pblock->nNonce = nNonce; // 记录当前块的随机数
+                        assert(hash == pblock->GetHash()); // 验证一下区块的哈希
 
-                        SetThreadPriority(THREAD_PRIORITY_NORMAL);
+                        SetThreadPriority(THREAD_PRIORITY_NORMAL); // 提高挖矿线程优先级
                         LogPrintf("BitcoinMiner:\n");
-                        LogPrintf("proof-of-work found  \n  hash: %s  \ntarget: %s\n", hash.GetHex(), hashTarget.GetHex());
-                        ProcessBlockFound(pblock, chainparams);
-                        SetThreadPriority(THREAD_PRIORITY_LOWEST);
-                        coinbaseScript->KeepScript();
+                        LogPrintf("proof-of-work found  \n  hash: %s  \ntarget: %s\n", hash.GetHex(), hashTarget.GetHex()); // 记录挖到矿的相关信息
+                        ProcessBlockFound(pblock, chainparams); // pending
+                        SetThreadPriority(THREAD_PRIORITY_LOWEST); // 重置挖矿线程优先级
+                        coinbaseScript->KeepScript(); // pending
 
                         // In regression test mode, stop mining after a block is found.
-                        if (chainparams.MineBlocksOnDemand())
+                        if (chainparams.MineBlocksOnDemand()) // 回归测试网，挖到一个矿后线程便中断
                             throw boost::thread_interrupted();
 
-                        break;
+                        break; // 跳出，继续挖下一个块
                     }
-                }
+                } // 挖到的块不满足条件
 
                 // Check for stop or if block needs to be rebuilt
-                boost::this_thread::interruption_point();
+                boost::this_thread::interruption_point(); // 设置中断点
                 // Regtest mode doesn't require peers
-                if (vNodes.empty() && chainparams.MiningRequiresPeers())
-                    break;
-                if (nNonce >= 0xffff0000)
-                    break;
-                if (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast && GetTime() - nStart > 60)
-                    break;
-                if (pindexPrev != chainActive.Tip())
-                    break;
+                if (vNodes.empty() && chainparams.MiningRequiresPeers()) // 用于非回归测试网无连接时
+                    break; // 跳出挖矿并睡觉
+                if (nNonce >= 0xffff0000) // 挖矿次数超过 0xffff0000 次，则挖矿失败
+                    break; // 跳出，重新建块（更新区块）挖矿
+                if (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast && GetTime() - nStart > 60) // 当前内存池交易更新的数量不等于新建区块前内存池交易更新的数量 且 挖一个矿的时间超过 60s
+                    break; // 跳出，更新区块再挖矿
+                if (pindexPrev != chainActive.Tip()) // 当前区块链尖改变，即有人挖到块并广播验证加入区块链
+                    break; // 跳出，更新区块再挖矿
 
                 // Update nTime every few seconds
-                if (UpdateTime(pblock, chainparams.GetConsensus(), pindexPrev) < 0)
-                    break; // Recreate the block if the clock has run backwards,
+                if (UpdateTime(pblock, chainparams.GetConsensus(), pindexPrev) < 0) // 更新区块时间，并返回更新的时间差（测试网中会更改 nBits）
+                    break; // Recreate the block if the clock has run backwards, // 如果时钟不准（落后），会跳出并重建区块
                            // so that we can use the correct time.
-                if (chainparams.GetConsensus().fPowAllowMinDifficultyBlocks)
+                if (chainparams.GetConsensus().fPowAllowMinDifficultyBlocks) // 在测试网中会重设难度目标值
                 {
                     // Changing pblock->nTime can change work required on testnet:
                     hashTarget.SetCompact(pblock->nBits);
@@ -531,15 +535,15 @@ void static BitcoinMiner(const CChainParams& chainparams)
 
 void GenerateBitcoins(bool fGenerate, int nThreads, const CChainParams& chainparams)
 {
-    static boost::thread_group* minerThreads = NULL; // 矿工线程组指针
+    static boost::thread_group* minerThreads = NULL; // 矿工线程组指针对象
 
     if (nThreads < 0) // 若设置线程数小于 0
         nThreads = GetNumCores(); // 获取 CPU 核数作为挖矿线程数
 
     if (minerThreads != NULL) // 保证线程组指针为空，若当前已经有挖矿线程，则停止当前线程
     {
-        minerThreads->interrupt_all();
-        delete minerThreads;
+        minerThreads->interrupt_all(); // 中断线程组中的所有线程
+        delete minerThreads; // 删除并置空
         minerThreads = NULL;
     }
 
@@ -547,6 +551,6 @@ void GenerateBitcoins(bool fGenerate, int nThreads, const CChainParams& chainpar
         return;
 
     minerThreads = new boost::thread_group(); // 创建空的矿工线程组
-    for (int i = 0; i < nThreads; i++) // 创建指定线程数 nThreads 个挖矿工线程 BitcoinMiner
+    for (int i = 0; i < nThreads; i++) // 创建指定线程数 nThreads 个比特币矿工线程 BitcoinMiner
         minerThreads->create_thread(boost::bind(&BitcoinMiner, boost::cref(chainparams)));
 }

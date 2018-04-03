@@ -82,7 +82,7 @@ public:
         consensus.powLimit = uint256S("00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff"); // 最低难度，可由 nBits 对应的 hashTarget 推出
         consensus.nPowTargetTimespan = 14 * 24 * 60 * 60; // two weeks // 调整难度时间
         consensus.nPowTargetSpacing = 10 * 60; // 产生区块时间，平均每 10 分钟出一个，若时间太短，则易分叉（因为区块传播需要时间）
-        consensus.fPowAllowMinDifficultyBlocks = false;
+        consensus.fPowAllowMinDifficultyBlocks = false; // 更新区块创建时间不会改变区块的难度
         consensus.fPowNoRetargeting = false;
         consensus.nRuleChangeActivationThreshold = 1916; // 95% of 2016
         consensus.nMinerConfirmationWindow = 2016; // nPowTargetTimespan / nPowTargetSpacing // 约 2016 个块调整一次难度，按平均每 10 分钟出一个块
@@ -189,7 +189,7 @@ public:
         consensus.powLimit = uint256S("00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.nPowTargetTimespan = 14 * 24 * 60 * 60; // two weeks
         consensus.nPowTargetSpacing = 10 * 60;
-        consensus.fPowAllowMinDifficultyBlocks = true;
+        consensus.fPowAllowMinDifficultyBlocks = true; // 更新区块创建时间会改变区块的难度
         consensus.fPowNoRetargeting = false;
         consensus.nRuleChangeActivationThreshold = 1512; // 75% for testchains
         consensus.nMinerConfirmationWindow = 2016; // nPowTargetTimespan / nPowTargetSpacing

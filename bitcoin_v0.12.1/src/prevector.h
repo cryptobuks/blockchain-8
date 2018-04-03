@@ -139,12 +139,12 @@ public:
     };
 
 private:
-    size_type _size;
+    size_type _size; // 4 bytes
     union direct_or_indirect {
-        char direct[sizeof(T) * N];
+        char direct[sizeof(T) * N]; // 28 bytes
         struct {
-            size_type capacity;
-            char* indirect;
+            size_type capacity; // 4 bytes
+            char* indirect; // 4 or 8 bytes
         };
     } _union;
 
