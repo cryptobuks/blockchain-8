@@ -208,10 +208,10 @@ UniValue CallRPC(const string& strMethod, const UniValue& params)
         throw runtime_error("no response from server");
 
     // Parse reply
-    UniValue valReply(UniValue::VSTR);
-    if (!valReply.read(response.body))
+    UniValue valReply(UniValue::VSTR); // 构造字符串类型响应对象
+    if (!valReply.read(response.body)) // 读入响应的内容 pending
         throw runtime_error("couldn't parse reply from server");
-    const UniValue& reply = valReply.get_obj();
+    const UniValue& reply = valReply.get_obj(); // pending
     if (reply.empty())
         throw runtime_error("expected reply to have result, error and id properties");
 
@@ -245,8 +245,8 @@ int CommandLineRPC(int argc, char *argv[]) // 3.0.命令行远程过程调用
                 const UniValue reply = CallRPC(strMethod, params); // 调用 RPC（HTTP 请求），并获取响应
 
                 // Parse reply
-                const UniValue& result = find_value(reply, "result");
-                const UniValue& error  = find_value(reply, "error");
+                const UniValue& result = find_value(reply, "result"); // 解析响应结果
+                const UniValue& error  = find_value(reply, "error"); // 解析响应错误信息
 
                 if (!error.isNull()) {
                     // Error
@@ -266,12 +266,12 @@ int CommandLineRPC(int argc, char *argv[]) // 3.0.命令行远程过程调用
                     }
                 } else {
                     // Result
-                    if (result.isNull())
+                    if (result.isNull()) // 结果为空
                         strPrint = "";
-                    else if (result.isStr())
-                        strPrint = result.get_str();
-                    else
-                        strPrint = result.write(2);
+                    else if (result.isStr()) // 结果是字符串类型
+                        strPrint = result.get_str(); // 获取字符串类型的结果
+                    else // 非空 且 非字符串类型的结果
+                        strPrint = result.write(2); // 格式化缩进
                 }
                 // Connection succeeded, no need to retry.
                 break;
