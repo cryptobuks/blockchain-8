@@ -28,11 +28,11 @@ using namespace std;
 
 string JSONRPCRequest(const string& strMethod, const UniValue& params, const UniValue& id)
 {
-    UniValue request(UniValue::VOBJ);
-    request.push_back(Pair("method", strMethod));
-    request.push_back(Pair("params", params));
-    request.push_back(Pair("id", id));
-    return request.write() + "\n";
+    UniValue request(UniValue::VOBJ); // 构造对象类型的请求
+    request.push_back(Pair("method", strMethod)); // 加入请求方法名
+    request.push_back(Pair("params", params)); // 加入请求方法对应的参数
+    request.push_back(Pair("id", id)); // 加入请求 id
+    return request.write() + "\n"; // 格式化字符串
 }
 
 UniValue JSONRPCReplyObj(const UniValue& result, const UniValue& error, const UniValue& id)
@@ -70,8 +70,8 @@ static const std::string COOKIEAUTH_FILE = ".cookie";
 
 boost::filesystem::path GetAuthCookieFile()
 {
-    boost::filesystem::path path(GetArg("-rpccookiefile", COOKIEAUTH_FILE));
-    if (!path.is_complete()) path = GetDataDir() / path;
+    boost::filesystem::path path(GetArg("-rpccookiefile", COOKIEAUTH_FILE)); // cookie 文件名，默认为 ".cookie"
+    if (!path.is_complete()) path = GetDataDir() / path; // 路径拼接，获取 cookie 文件路径名
     return path;
 }
 
@@ -104,11 +104,11 @@ bool GetAuthCookie(std::string *cookie_out)
 {
     std::ifstream file;
     std::string cookie;
-    boost::filesystem::path filepath = GetAuthCookieFile();
+    boost::filesystem::path filepath = GetAuthCookieFile(); // 获取 cookie 文件路径名
     file.open(filepath.string().c_str());
     if (!file.is_open())
         return false;
-    std::getline(file, cookie);
+    std::getline(file, cookie); // 获取 cookie 文件第一行
     file.close();
 
     if (cookie_out)

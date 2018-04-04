@@ -127,23 +127,23 @@ static void http_request_done(struct evhttp_request *req, void *ctx)
         return;
     }
 
-    reply->status = evhttp_request_get_response_code(req);
+    reply->status = evhttp_request_get_response_code(req); // status code
 
     struct evbuffer *buf = evhttp_request_get_input_buffer(req);
     if (buf)
     {
         size_t size = evbuffer_get_length(buf);
-        const char *data = (const char*)evbuffer_pullup(buf, size);
+        const char *data = (const char*)evbuffer_pullup(buf, size); // 获取响应的数据
         if (data)
-            reply->body = std::string(data, size);
-        evbuffer_drain(buf, size);
+            reply->body = std::string(data, size); // 构建 HTTP 响应体
+        evbuffer_drain(buf, size); // 消耗函数，清除已读数据
     }
 }
 
 UniValue CallRPC(const string& strMethod, const UniValue& params)
 {
-    std::string host = GetArg("-rpcconnect", DEFAULT_RPCCONNECT);
-    int port = GetArg("-rpcport", BaseParams().RPCPort());
+    std::string host = GetArg("-rpcconnect", DEFAULT_RPCCONNECT); // 远程过程调用 IP 地址，默认本机环回 IP
+    int port = GetArg("-rpcport", BaseParams().RPCPort()); // 远程过程调用端口，默认基础参数中的 RPC 端口
 
     // Create event base
     struct event_base *base = event_base_new(); // TODO RAII
@@ -154,57 +154,57 @@ UniValue CallRPC(const string& strMethod, const UniValue& params)
     struct evhttp_connection *evcon = evhttp_connection_base_new(base, NULL, host.c_str(), port); // TODO RAII
     if (evcon == NULL)
         throw runtime_error("create connection failed");
-    evhttp_connection_set_timeout(evcon, GetArg("-rpcclienttimeout", DEFAULT_HTTP_CLIENT_TIMEOUT));
+    evhttp_connection_set_timeout(evcon, GetArg("-rpcclienttimeout", DEFAULT_HTTP_CLIENT_TIMEOUT)); // 远程过程调用客户端连接超时，默认 900 s
 
-    HTTPReply response;
-    struct evhttp_request *req = evhttp_request_new(http_request_done, (void*)&response); // TODO RAII
+    HTTPReply response; // HTTP 响应（包含状态和内容）
+    struct evhttp_request *req = evhttp_request_new(http_request_done, (void*)&response); // TODO RAII // 新建一个请求对象（头 + 参数）
     if (req == NULL)
         throw runtime_error("create http request failed");
 
     // Get credentials
-    std::string strRPCUserColonPass;
-    if (mapArgs["-rpcpassword"] == "") {
+    std::string strRPCUserColonPass; // 用于保存用户名和密码
+    if (mapArgs["-rpcpassword"] == "") { // 未提供密码
         // Try fall back to cookie-based authentication if no password is provided
-        if (!GetAuthCookie(&strRPCUserColonPass)) {
+        if (!GetAuthCookie(&strRPCUserColonPass)) { // 获取 cookie："cookie 授权用户名:password"
             throw runtime_error(strprintf(
                 _("Could not locate RPC credentials. No authentication cookie could be found, and no rpcpassword is set in the configuration file (%s)"),
                     GetConfigFile().string().c_str()));
 
         }
     } else {
-        strRPCUserColonPass = mapArgs["-rpcuser"] + ":" + mapArgs["-rpcpassword"];
+        strRPCUserColonPass = mapArgs["-rpcuser"] + ":" + mapArgs["-rpcpassword"]; // username:password
     }
 
-    struct evkeyvalq *output_headers = evhttp_request_get_output_headers(req);
+    struct evkeyvalq *output_headers = evhttp_request_get_output_headers(req); // 获取并构造请求的头
     assert(output_headers);
-    evhttp_add_header(output_headers, "Host", host.c_str());
-    evhttp_add_header(output_headers, "Connection", "close");
-    evhttp_add_header(output_headers, "Authorization", (std::string("Basic ") + EncodeBase64(strRPCUserColonPass)).c_str());
+    evhttp_add_header(output_headers, "Host", host.c_str()); // 添加请求的主机
+    evhttp_add_header(output_headers, "Connection", "close"); // 关闭长连接（即请求结束后连接就断掉）
+    evhttp_add_header(output_headers, "Authorization", (std::string("Basic ") + EncodeBase64(strRPCUserColonPass)).c_str()); // 添加授权（用户名 + 密码）
 
     // Attach request data
-    std::string strRequest = JSONRPCRequest(strMethod, params, 1);
-    struct evbuffer * output_buffer = evhttp_request_get_output_buffer(req);
+    std::string strRequest = JSONRPCRequest(strMethod, params, 1); // RPC 请求参数使用 Json 封装
+    struct evbuffer * output_buffer = evhttp_request_get_output_buffer(req); // 获取请求的输出缓存
     assert(output_buffer);
-    evbuffer_add(output_buffer, strRequest.data(), strRequest.size());
+    evbuffer_add(output_buffer, strRequest.data(), strRequest.size()); // 添加请求的参数到输出缓存
 
-    int r = evhttp_make_request(evcon, req, EVHTTP_REQ_POST, "/");
-    if (r != 0) {
+    int r = evhttp_make_request(evcon, req, EVHTTP_REQ_POST, "/"); // 发送 POST 请求
+    if (r != 0) { // 发送成功，返回值为 0
         evhttp_connection_free(evcon);
         event_base_free(base);
         throw CConnectionFailed("send http request failed");
     }
 
-    event_base_dispatch(base);
+    event_base_dispatch(base); // 类似于 event_base_loop，循环等待事件并通知事件发生
     evhttp_connection_free(evcon);
     event_base_free(base);
 
-    if (response.status == 0)
+    if (response.status == 0) // 响应状态码为 0，表示无法连接到服务器
         throw CConnectionFailed("couldn't connect to server");
-    else if (response.status == HTTP_UNAUTHORIZED)
+    else if (response.status == HTTP_UNAUTHORIZED) // 401 表示未授权，即 RPC 用户名或密码不正确
         throw runtime_error("incorrect rpcuser or rpcpassword (authorization failed)");
-    else if (response.status >= 400 && response.status != HTTP_BAD_REQUEST && response.status != HTTP_NOT_FOUND && response.status != HTTP_INTERNAL_SERVER_ERROR)
+    else if (response.status >= 400 && response.status != HTTP_BAD_REQUEST && response.status != HTTP_NOT_FOUND && response.status != HTTP_INTERNAL_SERVER_ERROR) // 大于等于 400 表示服务器返回错误
         throw runtime_error(strprintf("server returned HTTP error %d", response.status));
-    else if (response.body.empty())
+    else if (response.body.empty()) // 响应体为空，抛出异常
         throw runtime_error("no response from server");
 
     // Parse reply
@@ -236,13 +236,13 @@ int CommandLineRPC(int argc, char *argv[]) // 3.0.命令行远程过程调用
 
         // Parameters default to strings
         std::vector<std::string> strParams(&argv[2], &argv[argc]); // 方法对应的参数（第一个，最后一个）
-        UniValue params = RPCConvertValues(strMethod, strParams);
+        UniValue params = RPCConvertValues(strMethod, strParams); // 参数打包
 
         // Execute and handle connection failures with -rpcwait
-        const bool fWait = GetBoolArg("-rpcwait", false);
+        const bool fWait = GetBoolArg("-rpcwait", false); // 远程过程调用等待（调用失败后循环再次调用），默认关闭
         do {
             try {
-                const UniValue reply = CallRPC(strMethod, params);
+                const UniValue reply = CallRPC(strMethod, params); // 调用 RPC（HTTP 请求），并获取响应
 
                 // Parse reply
                 const UniValue& result = find_value(reply, "result");
@@ -296,8 +296,8 @@ int CommandLineRPC(int argc, char *argv[]) // 3.0.命令行远程过程调用
         throw;
     }
 
-    if (strPrint != "") {
-        fprintf((nRet == 0 ? stdout : stderr), "%s\n", strPrint.c_str());
+    if (strPrint != "") { // 响应字符串非空
+        fprintf((nRet == 0 ? stdout : stderr), "%s\n", strPrint.c_str()); // 输出响应结果
     }
     return nRet;
 }

@@ -122,7 +122,7 @@ public:
     bool pushKVs(const UniValue& obj);
 
     std::string write(unsigned int prettyIndent = 0,
-                      unsigned int indentLevel = 0) const;
+                      unsigned int indentLevel = 0) const; // 格式化（缩进）
 
     bool read(const char *raw);
     bool read(const std::string& rawStr) {
