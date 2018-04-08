@@ -94,7 +94,7 @@ static bool AppInitRPC(int argc, char* argv[]) // 2.0.应用程序初始化远程过程调用
     }
     // Check for -testnet or -regtest parameter (BaseParams() calls are only valid after this clause)
     try {
-        SelectBaseParams(ChainNameFromCommandLine()); // 2.5.根据链名选择链基础参数
+        SelectBaseParams(ChainNameFromCommandLine()); // 2.5.根据链名选择链基础参数（RPC 端口、数据目录名）
     } catch (const std::exception& e) {
         fprintf(stderr, "Error: %s\n", e.what());
         return false;
@@ -274,7 +274,7 @@ int CommandLineRPC(int argc, char *argv[]) // 3.0.命令行远程过程调用
                         strPrint = result.write(2); // 格式化缩进
                 }
                 // Connection succeeded, no need to retry.
-                break;
+                break; // 连接（请求、响应）成功，不需要重试
             }
             catch (const CConnectionFailed&) {
                 if (fWait)
@@ -297,15 +297,15 @@ int CommandLineRPC(int argc, char *argv[]) // 3.0.命令行远程过程调用
     }
 
     if (strPrint != "") { // 响应字符串非空
-        fprintf((nRet == 0 ? stdout : stderr), "%s\n", strPrint.c_str()); // 输出响应结果
+        fprintf((nRet == 0 ? stdout : stderr), "%s\n", strPrint.c_str()); // 输出响应结果到屏幕（标准输出 或 标准错误）
     }
     return nRet;
 }
 
-int main(int argc, char* argv[]) // 0.获取命令参数
+int main(int argc, char* argv[]) // 0.获取（远程过程调用）命令行参数
 {
-    SetupEnvironment(); // 1.设置运行环境
-    if (!SetupNetworking()) { // windows 下设置网络
+    SetupEnvironment(); // 1.设置运行环境（同 bitcoind）
+    if (!SetupNetworking()) { // 设置 windows socket
         fprintf(stderr, "Error: Initializing networking failed\n");
         exit(1);
     }
