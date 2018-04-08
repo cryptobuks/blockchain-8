@@ -676,15 +676,15 @@ bool AppInitServers(boost::thread_group& threadGroup)
 {
     RPCServer::OnStopped(&OnRPCStopped);
     RPCServer::OnPreCommand(&OnRPCPreCommand);
-    if (!InitHTTPServer())
+    if (!InitHTTPServer()) // 初始化 HTTP 服务
         return false;
     if (!StartRPC())
         return false;
     if (!StartHTTPRPC())
         return false;
-    if (GetBoolArg("-rest", DEFAULT_REST_ENABLE) && !StartREST())
+    if (GetBoolArg("-rest", DEFAULT_REST_ENABLE) && !StartREST()) // pending
         return false;
-    if (!StartHTTPServer())
+    if (!StartHTTPServer()) // 启动 HTTP 服务
         return false;
     return true;
 }
@@ -1094,17 +1094,17 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
 
     // Start the lightweight task scheduler thread
     CScheduler::Function serviceLoop = boost::bind(&CScheduler::serviceQueue, &scheduler); // Function/bind 调用 serviceQueue 启动一个线程
-    threadGroup.create_thread(boost::bind(&TraceThread<CScheduler::Function>, "scheduler", serviceLoop)); // create_thread
+    threadGroup.create_thread(boost::bind(&TraceThread<CScheduler::Function>, "scheduler", serviceLoop)); // create_thread 创建一个轻量级任务调度线程
 
     /* Start the RPC server already.  It will be started in "warmup" mode
      * and not really process calls already (but it will signify connections
      * that the server is there and will be ready later).  Warmup mode will
      * be disabled when initialisation is finished.
      */
-    if (fServer) // 启动 HTTP、RPC 相关服务
+    if (fServer) // 服务标志，默认打开
     {
         uiInterface.InitMessage.connect(SetRPCWarmupStatus);
-        if (!AppInitServers(threadGroup))
+        if (!AppInitServers(threadGroup)) // 应用程序初始化服务（启动 HTTP、RPC 相关服务）
             return InitError(_("Unable to start HTTP server. See debug log for details."));
     }
 

@@ -72,10 +72,10 @@ private:
     CWaitableCriticalSection cs;
     CConditionVariable cond;
     /* XXX in C++11 we can use std::unique_ptr here and avoid manual cleanup */
-    std::deque<WorkItem*> queue;
-    bool running;
-    size_t maxDepth;
-    int numThreads;
+    std::deque<WorkItem*> queue; // 任务队列
+    bool running; // 运行状态
+    size_t maxDepth; // 最大深度（容量）
+    int numThreads; // 线程数
 
     /** RAII object to keep track of number of running worker threads */
     class ThreadCounter
@@ -447,7 +447,7 @@ boost::thread threadHTTP;
 bool StartHTTPServer()
 {
     LogPrint("http", "Starting HTTP server\n");
-    int rpcThreads = std::max((long)GetArg("-rpcthreads", DEFAULT_HTTP_THREADS), 1L);
+    int rpcThreads = std::max((long)GetArg("-rpcthreads", DEFAULT_HTTP_THREADS), 1L); // 获取 RPC 线程数，默认为 4，至少为 1
     LogPrintf("HTTP: starting %d worker threads\n", rpcThreads);
     threadHTTP = boost::thread(boost::bind(&ThreadHTTP, eventBase, eventHTTP));
 
