@@ -809,7 +809,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
     if (setProcDEPPol != NULL) setProcDEPPol(PROCESS_DEP_ENABLE);
 #endif
 
-    if (!SetupNetworking()) // 设置 windows 下的 socket
+    if (!SetupNetworking()) // 设置 windows socket
         return InitError("Initializing networking failed");
 
 #ifndef WIN32 // 处理信号
@@ -847,11 +847,11 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
     // also see: InitParameterInteraction()
 
     // if using block pruning, then disable txindex
-    if (GetArg("-prune", 0)) {
-        if (GetBoolArg("-txindex", DEFAULT_TXINDEX))
+    if (GetArg("-prune", 0)) { // 修剪模式（禁用交易索引），默认关闭
+        if (GetBoolArg("-txindex", DEFAULT_TXINDEX)) // 交易索引（与修剪模式不兼容），默认关闭
             return InitError(_("Prune mode is incompatible with -txindex."));
 #ifdef ENABLE_WALLET
-        if (GetBoolArg("-rescan", false)) {
+        if (GetBoolArg("-rescan", false)) { // 再扫描（修剪模式下不能使用，你可以使用 -reindex 再次下载整个区块链），默认关闭
             return InitError(_("Rescans are not possible in pruned mode. You will need to use -reindex which will download the whole blockchain again."));
         }
 #endif
@@ -860,7 +860,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
     // Make sure enough file descriptors are available
     int nBind = std::max((int)mapArgs.count("-bind") + (int)mapArgs.count("-whitebind"), 1);
     int nUserMaxConnections = GetArg("-maxconnections", DEFAULT_MAX_PEER_CONNECTIONS);
-    nMaxConnections = std::max(nUserMaxConnections, 0);
+    nMaxConnections = std::max(nUserMaxConnections, 0); // 记录最大连接数
 
     // Trim requested connection counts, to fit into system limitations
     nMaxConnections = std::max(std::min(nMaxConnections, (int)(FD_SETSIZE - nBind - MIN_CORE_FILEDESCRIPTORS)), 0);
@@ -874,7 +874,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
 
     // ********************************************************* Step 3: parameter-to-internal-flags // 参数转换为内部变量，把外部参数的设置转化为程序内部的状态（bool 型参数，开关类选项）
 
-    fDebug = !mapMultiArgs["-debug"].empty();
+    fDebug = !mapMultiArgs["-debug"].empty(); // 调试开关，默认关闭
     // Special-case: if -debug=0/-nodebug is set, turn off debugging messages
     const vector<string>& categories = mapMultiArgs["-debug"];
     if (GetBoolArg("-nodebug", false) || find(categories.begin(), categories.end(), string("0")) != categories.end())
@@ -901,25 +901,25 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
     if (ratio != 0) {
         mempool.setSanityCheck(1.0 / ratio);
     }
-    fCheckBlockIndex = GetBoolArg("-checkblockindex", chainparams.DefaultConsistencyChecks());
-    fCheckpointsEnabled = GetBoolArg("-checkpoints", DEFAULT_CHECKPOINTS_ENABLED);
+    fCheckBlockIndex = GetBoolArg("-checkblockindex", chainparams.DefaultConsistencyChecks()); // 检查区块索引标志，默认：主网、测试网关闭，回归测试网打开
+    fCheckpointsEnabled = GetBoolArg("-checkpoints", DEFAULT_CHECKPOINTS_ENABLED); // 检测点可用，默认打开
 
     // mempool limits
-    int64_t nMempoolSizeMax = GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000;
+    int64_t nMempoolSizeMax = GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000; // 内存池大小限制，默认接近 300M
     int64_t nMempoolSizeMin = GetArg("-limitdescendantsize", DEFAULT_DESCENDANT_SIZE_LIMIT) * 1000 * 40;
     if (nMempoolSizeMax < 0 || nMempoolSizeMax < nMempoolSizeMin)
         return InitError(strprintf(_("-maxmempool must be at least %d MB"), std::ceil(nMempoolSizeMin / 1000000.0)));
 
     // -par=0 means autodetect, but nScriptCheckThreads==0 means no concurrency
-    nScriptCheckThreads = GetArg("-par", DEFAULT_SCRIPTCHECK_THREADS);
+    nScriptCheckThreads = GetArg("-par", DEFAULT_SCRIPTCHECK_THREADS); // 脚本检测线程数，默认为 0（意味着无并发）
     if (nScriptCheckThreads <= 0)
-        nScriptCheckThreads += GetNumCores();
+        nScriptCheckThreads += GetNumCores(); // 每个核一个脚本检测线程，默认
     if (nScriptCheckThreads <= 1)
         nScriptCheckThreads = 0;
     else if (nScriptCheckThreads > MAX_SCRIPTCHECK_THREADS)
-        nScriptCheckThreads = MAX_SCRIPTCHECK_THREADS;
+        nScriptCheckThreads = MAX_SCRIPTCHECK_THREADS; // 最大线程数为 16
 
-    fServer = GetBoolArg("-server", false);
+    fServer = GetBoolArg("-server", false); // 服务选项，3.8.已设置为 true
 
     // block pruning; get the amount of disk space (in MiB) to allot for block & undo files
     int64_t nSignedPruneTarget = GetArg("-prune", 0) * 1024 * 1024;
@@ -936,7 +936,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
     }
 
 #ifdef ENABLE_WALLET
-    bool fDisableWallet = GetBoolArg("-disablewallet", false);
+    bool fDisableWallet = GetBoolArg("-disablewallet", false); // 禁用钱包选项，默认关闭
 #endif
 
     nConnectTimeout = GetArg("-timeout", DEFAULT_CONNECT_TIMEOUT); // 连接超时，默认 5000
@@ -1013,7 +1013,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
     bSpendZeroConfChange = GetBoolArg("-spendzeroconfchange", DEFAULT_SPEND_ZEROCONF_CHANGE);
     fSendFreeTransactions = GetBoolArg("-sendfreetransactions", DEFAULT_SEND_FREE_TRANSACTIONS);
 
-    std::string strWalletFile = GetArg("-wallet", "wallet.dat");
+    std::string strWalletFile = GetArg("-wallet", "wallet.dat"); // 指定的钱包文件名，默认为 "wallet.dat"
 #endif // ENABLE_WALLET
 
     fIsBareMultisigStd = GetBoolArg("-permitbaremultisig", DEFAULT_PERMIT_BAREMULTISIG);
@@ -1067,33 +1067,33 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
     }
 
 #ifndef WIN32
-    CreatePidFile(GetPidFile(), getpid());
+    CreatePidFile(GetPidFile(), getpid()); // 非 win32 环境下，创建 pid 文件（记录当前 bitcoind 的进程号）
 #endif
-    if (GetBoolArg("-shrinkdebugfile", !fDebug))
+    if (GetBoolArg("-shrinkdebugfile", !fDebug)) // 收缩调试日志文件
         ShrinkDebugFile();
 
-    if (fPrintToDebugLog)
+    if (fPrintToDebugLog) // 打印到调试日志标志，默认打开
         OpenDebugLog();
 
 #ifdef ENABLE_WALLET
-    LogPrintf("Using BerkeleyDB version %s\n", DbEnv::version(0, 0, 0));
+    LogPrintf("Using BerkeleyDB version %s\n", DbEnv::version(0, 0, 0)); // 钱包使用 BerkeleyDB
 #endif
     if (!fLogTimestamps) // 时间戳标志，默认开启
-        LogPrintf("Startup time: %s\n", DateTimeStrFormat("%Y-%m-%d %H:%M:%S", GetTime()));
-    LogPrintf("Default data directory %s\n", GetDefaultDataDir().string());
-    LogPrintf("Using data directory %s\n", strDataDir);
-    LogPrintf("Using config file %s\n", GetConfigFile().string());
-    LogPrintf("Using at most %i connections (%i file descriptors available)\n", nMaxConnections, nFD);
+        LogPrintf("Startup time: %s\n", DateTimeStrFormat("%Y-%m-%d %H:%M:%S", GetTime())); // 记录启动时间
+    LogPrintf("Default data directory %s\n", GetDefaultDataDir().string()); // 记录默认数据目录
+    LogPrintf("Using data directory %s\n", strDataDir); // 记录当前指定使用的数据目录
+    LogPrintf("Using config file %s\n", GetConfigFile().string()); // 记录使用的配置文件
+    LogPrintf("Using at most %i connections (%i file descriptors available)\n", nMaxConnections, nFD); // 记录最大连接数（可用的文件描述符数量）
     std::ostringstream strErrors;
 
-    LogPrintf("Using %u threads for script verification\n", nScriptCheckThreads);
-    if (nScriptCheckThreads) {
+    LogPrintf("Using %u threads for script verification\n", nScriptCheckThreads); // 记录脚本验证线程数（默认为 CPU 核数）
+    if (nScriptCheckThreads) { // 创建响应数量的脚本验证线程
         for (int i=0; i<nScriptCheckThreads-1; i++)
             threadGroup.create_thread(&ThreadScriptCheck);
     }
 
     // Start the lightweight task scheduler thread
-    CScheduler::Function serviceLoop = boost::bind(&CScheduler::serviceQueue, &scheduler); // Function/bind
+    CScheduler::Function serviceLoop = boost::bind(&CScheduler::serviceQueue, &scheduler); // Function/bind 调用 serviceQueue 启动一个线程
     threadGroup.create_thread(boost::bind(&TraceThread<CScheduler::Function>, "scheduler", serviceLoop)); // create_thread
 
     /* Start the RPC server already.  It will be started in "warmup" mode

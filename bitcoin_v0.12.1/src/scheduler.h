@@ -71,10 +71,10 @@ public:
                         boost::chrono::system_clock::time_point &last) const;
 
 private:
-    std::multimap<boost::chrono::system_clock::time_point, Function> taskQueue;
-    boost::condition_variable newTaskScheduled;
-    mutable boost::mutex newTaskMutex;
-    int nThreadsServicingQueue;
+    std::multimap<boost::chrono::system_clock::time_point, Function> taskQueue; // 任务队列
+    boost::condition_variable newTaskScheduled; // 任务队列条件变量
+    mutable boost::mutex newTaskMutex; // 任务队列锁
+    int nThreadsServicingQueue; // 记录服务队列的线程数
     bool stopRequested;
     bool stopWhenEmpty;
     bool shouldStop() { return stopRequested || (stopWhenEmpty && taskQueue.empty()); }

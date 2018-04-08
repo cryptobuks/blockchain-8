@@ -29,7 +29,7 @@ static boost::system_time toPosixTime(const boost::chrono::system_clock::time_po
 
 void CScheduler::serviceQueue()
 {
-    boost::unique_lock<boost::mutex> lock(newTaskMutex);
+    boost::unique_lock<boost::mutex> lock(newTaskMutex); // 上锁
     ++nThreadsServicingQueue;
 
     // newTaskMutex is locked throughout this loop EXCEPT
@@ -37,9 +37,9 @@ void CScheduler::serviceQueue()
     // is called.
     while (!shouldStop()) {
         try {
-            while (!shouldStop() && taskQueue.empty()) {
+            while (!shouldStop() && taskQueue.empty()) { // 队列为空
                 // Wait until there is something to do.
-                newTaskScheduled.wait(lock);
+                newTaskScheduled.wait(lock); // 等待条件满足
             }
 
             // Wait until either there is a new task, or until
@@ -64,14 +64,14 @@ void CScheduler::serviceQueue()
             if (shouldStop() || taskQueue.empty())
                 continue;
 
-            Function f = taskQueue.begin()->second;
-            taskQueue.erase(taskQueue.begin());
+            Function f = taskQueue.begin()->second; // 获取队列中一个任务
+            taskQueue.erase(taskQueue.begin()); // 清除任务队列中第一个元素
 
             {
                 // Unlock before calling f, so it can reschedule itself or another task
                 // without deadlocking:
-                reverse_lock<boost::unique_lock<boost::mutex> > rlock(lock);
-                f();
+                reverse_lock<boost::unique_lock<boost::mutex> > rlock(lock); // 在调用 f 前解锁，防止死锁
+                f(); // 执行任务
             }
         } catch (...) {
             --nThreadsServicingQueue;

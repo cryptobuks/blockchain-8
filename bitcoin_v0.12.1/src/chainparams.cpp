@@ -136,7 +136,7 @@ public:
         //vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_main, pnSeed6_main + ARRAYLEN(pnSeed6_main));
 
         fMiningRequiresPeers = true; // 挖矿是否需要伙伴，即是否单机挖矿，默认关闭，回归测试打开
-        fDefaultConsistencyChecks = false;
+        fDefaultConsistencyChecks = false; // 检查区块索引标志
         fRequireStandard = true;
         fMineBlocksOnDemand = false; // 矿/区块 一次需求，默认关闭，回归测试打开
         fTestnetToBeDeprecatedFieldRPC = false;
