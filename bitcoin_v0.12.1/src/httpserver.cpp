@@ -39,7 +39,7 @@
 #include <boost/scoped_ptr.hpp>
 
 /** Maximum size of http request (request line + headers) */
-static const size_t MAX_HEADERS_SIZE = 8192;
+static const size_t MAX_HEADERS_SIZE = 8192; // http 请求行 + 请求头部大小限制 8K
 
 /** HTTP request work item */
 class HTTPWorkItem : public HTTPClosure
@@ -130,15 +130,15 @@ public:
             WorkItem* i = 0;
             {
                 boost::unique_lock<boost::mutex> lock(cs);
-                while (running && queue.empty())
-                    cond.wait(lock);
+                while (running && queue.empty()) // 任务队列为空
+                    cond.wait(lock); // 等待条件被激活（往队列里添加任务时）
                 if (!running)
                     break;
-                i = queue.front();
-                queue.pop_front();
+                i = queue.front(); // 取队头元素（任务队列中第一个元素）
+                queue.pop_front(); // 队头出队
             }
-            (*i)();
-            delete i;
+            (*i)(); // 执行任务
+            delete i; // 执行后删除
         }
     }
     /** Interrupt and exit loops */
@@ -189,7 +189,7 @@ static WorkQueue<HTTPClosure>* workQueue = 0;
 //! Handlers for (sub)paths
 std::vector<HTTPPathHandler> pathHandlers;
 //! Bound listening sockets
-std::vector<evhttp_bound_socket *> boundSockets;
+std::vector<evhttp_bound_socket *> boundSockets; // 已绑定的 http socket 列表
 
 /** Check if a network address is allowed to access the HTTP server */
 static bool ClientAllowed(const CNetAddr& netaddr)
@@ -319,17 +319,17 @@ static void ThreadHTTP(struct event_base* base, struct evhttp* http)
 /** Bind HTTP server to specified addresses */
 static bool HTTPBindAddresses(struct evhttp* http)
 {
-    int defaultPort = GetArg("-rpcport", BaseParams().RPCPort());
-    std::vector<std::pair<std::string, uint16_t> > endpoints;
+    int defaultPort = GetArg("-rpcport", BaseParams().RPCPort()); // 设置 RPC 端口
+    std::vector<std::pair<std::string, uint16_t> > endpoints; // std::pair<IP, PORT>
 
     // Determine what addresses to bind to
-    if (!mapArgs.count("-rpcallowip")) { // Default to loopback if not allowing external IPs
+    if (!mapArgs.count("-rpcallowip")) { // Default to loopback if not allowing external IPs // 优先白名单
         endpoints.push_back(std::make_pair("::1", defaultPort));
         endpoints.push_back(std::make_pair("127.0.0.1", defaultPort));
         if (mapArgs.count("-rpcbind")) {
             LogPrintf("WARNING: option -rpcbind was ignored because -rpcallowip was not specified, refusing to allow everyone to connect\n");
         }
-    } else if (mapArgs.count("-rpcbind")) { // Specific bind address
+    } else if (mapArgs.count("-rpcbind")) { // Specific bind address // 指定的 rpc 地址
         const std::vector<std::string>& vbind = mapMultiArgs["-rpcbind"];
         for (std::vector<std::string>::const_iterator i = vbind.begin(); i != vbind.end(); ++i) {
             int port = defaultPort;
@@ -345,9 +345,9 @@ static bool HTTPBindAddresses(struct evhttp* http)
     // Bind addresses
     for (std::vector<std::pair<std::string, uint16_t> >::iterator i = endpoints.begin(); i != endpoints.end(); ++i) {
         LogPrint("http", "Binding RPC on address %s port %i\n", i->first, i->second);
-        evhttp_bound_socket *bind_handle = evhttp_bind_socket_with_handle(http, i->first.empty() ? NULL : i->first.c_str(), i->second);
+        evhttp_bound_socket *bind_handle = evhttp_bind_socket_with_handle(http, i->first.empty() ? NULL : i->first.c_str(), i->second); // 绑定 IP 和端口
         if (bind_handle) {
-            boundSockets.push_back(bind_handle);
+            boundSockets.push_back(bind_handle); // 加入已绑定的 http socket 列表
         } else {
             LogPrintf("Binding RPC on address %s port %i failed.\n", i->first, i->second);
         }
@@ -380,7 +380,7 @@ bool InitHTTPServer()
     struct evhttp* http = 0;
     struct event_base* base = 0;
 
-    if (!InitHTTPAllowList())
+    if (!InitHTTPAllowList()) // 设置 HTTP 白名单（总是允许本地地址）
         return false;
 
     if (GetBoolArg("-rpcssl", false)) {
@@ -406,7 +406,7 @@ bool InitHTTPServer()
     evthread_use_pthreads();
 #endif
 
-    base = event_base_new(); // XXX RAII
+    base = event_base_new(); // XXX RAII // 1.创建 event_base 和 evhttp
     if (!base) {
         LogPrintf("Couldn't create an event_base: exiting\n");
         return false;
@@ -420,12 +420,12 @@ bool InitHTTPServer()
         return false;
     }
 
-    evhttp_set_timeout(http, GetArg("-rpcservertimeout", DEFAULT_HTTP_SERVER_TIMEOUT));
-    evhttp_set_max_headers_size(http, MAX_HEADERS_SIZE);
-    evhttp_set_max_body_size(http, MAX_SIZE);
-    evhttp_set_gencb(http, http_request_cb, NULL);
+    evhttp_set_timeout(http, GetArg("-rpcservertimeout", DEFAULT_HTTP_SERVER_TIMEOUT)); // 设置 http 服务超时时间为 rpc 服务超时，默认 30 秒
+    evhttp_set_max_headers_size(http, MAX_HEADERS_SIZE); // http 头大小，默认 8K
+    evhttp_set_max_body_size(http, MAX_SIZE); // 设置消息体大小，默认 32M
+    evhttp_set_gencb(http, http_request_cb, NULL); // 设置处理请求的回调函数
 
-    if (!HTTPBindAddresses(http)) {
+    if (!HTTPBindAddresses(http)) { // 2.绑定 IP 地址和端口
         LogPrintf("Unable to bind any endpoint for RPC server\n");
         evhttp_free(http);
         event_base_free(base);
@@ -433,7 +433,7 @@ bool InitHTTPServer()
     }
 
     LogPrint("http", "Initialized HTTP server\n");
-    int workQueueDepth = std::max((long)GetArg("-rpcworkqueue", DEFAULT_HTTP_WORKQUEUE), 1L);
+    int workQueueDepth = std::max((long)GetArg("-rpcworkqueue", DEFAULT_HTTP_WORKQUEUE), 1L); // 获取 HTTP 任务队列最大容量，默认 16，最小为 1
     LogPrintf("HTTP: creating work queue of depth %d\n", workQueueDepth);
 
     workQueue = new WorkQueue<HTTPClosure>(workQueueDepth);
@@ -451,7 +451,7 @@ bool StartHTTPServer()
     LogPrintf("HTTP: starting %d worker threads\n", rpcThreads);
     threadHTTP = boost::thread(boost::bind(&ThreadHTTP, eventBase, eventHTTP));
 
-    for (int i = 0; i < rpcThreads; i++)
+    for (int i = 0; i < rpcThreads; i++) // 创建 HTTP 服务（任务队列运行）线程
         boost::thread(boost::bind(&HTTPWorkQueueRun, workQueue));
     return true;
 }
@@ -618,7 +618,7 @@ CService HTTPRequest::GetPeer()
         // evhttp retains ownership over returned address string
         const char* address = "";
         uint16_t port = 0;
-        evhttp_connection_get_peer(con, (char**)&address, &port);
+        evhttp_connection_get_peer(con, (char**)&address, &port); // 从 HTTP 连接中获取对方 IP 和 PORT
         peer = CService(address, port);
     }
     return peer;

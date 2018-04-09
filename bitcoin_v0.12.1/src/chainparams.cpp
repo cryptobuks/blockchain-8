@@ -81,7 +81,7 @@ public:
         consensus.BIP34Hash = uint256S("0x000000000000024b89b42a942fe0d9fea3bb44ab7bd1b19115dd6a759c0808b8");
         consensus.powLimit = uint256S("00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff"); // 最低难度，可由 nBits 对应的 hashTarget 推出
         consensus.nPowTargetTimespan = 14 * 24 * 60 * 60; // two weeks // 调整难度时间
-        consensus.nPowTargetSpacing = 10 * 60; // 产生区块时间，平均每 10 分钟出一个，若时间太短，则易分叉（因为区块传播需要时间）
+        consensus.nPowTargetSpacing = 10 * 60; // 产生区块时间，平均每 10 分钟出一个，若时间太短，则易分叉（因为区块传播需要时间），且不存在区块离线时间（原因不明）
         consensus.fPowAllowMinDifficultyBlocks = false; // 更新区块创建时间不会改变区块的难度
         consensus.fPowNoRetargeting = false;
         consensus.nRuleChangeActivationThreshold = 1916; // 95% of 2016

@@ -678,7 +678,7 @@ bool AppInitServers(boost::thread_group& threadGroup)
     RPCServer::OnPreCommand(&OnRPCPreCommand);
     if (!InitHTTPServer()) // 初始化 HTTP 服务
         return false;
-    if (!StartRPC())
+    if (!StartRPC()) // 启动 RPC 远程过程调用服务
         return false;
     if (!StartHTTPRPC())
         return false;
