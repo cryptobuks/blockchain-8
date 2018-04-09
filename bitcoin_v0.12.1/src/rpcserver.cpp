@@ -400,7 +400,7 @@ bool StartRPC()
 {
     LogPrint("rpc", "Starting RPC\n");
     fRPCRunning = true; // 设置 RPC 运行状态
-    g_rpcSignals.Started();
+    g_rpcSignals.Started(); // 未找到信号注册 pending
     return true;
 }
 

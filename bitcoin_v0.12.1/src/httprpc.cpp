@@ -224,7 +224,7 @@ static bool InitRPCAuthentication()
 bool StartHTTPRPC()
 {
     LogPrint("rpc", "Starting HTTP RPC server\n");
-    if (!InitRPCAuthentication())
+    if (!InitRPCAuthentication()) // 初始化 RPC 验证（rpc 用户名和密码）
         return false;
 
     RegisterHTTPHandler("/", true, HTTPReq_JSONRPC);

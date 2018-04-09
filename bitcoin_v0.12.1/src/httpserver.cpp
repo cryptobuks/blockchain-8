@@ -252,7 +252,7 @@ static std::string RequestMethodString(HTTPRequest::RequestMethod m)
 /** HTTP request callback */
 static void http_request_cb(struct evhttp_request* req, void* arg)
 {
-    std::auto_ptr<HTTPRequest> hreq(new HTTPRequest(req));
+    std::auto_ptr<HTTPRequest> hreq(new HTTPRequest(req)); // 创建一个 HTTP 请求
 
     LogPrint("http", "Received a %s request for %s from %s\n",
              RequestMethodString(hreq->GetRequestMethod()), hreq->GetURI(), hreq->GetPeer().ToString());
@@ -311,7 +311,7 @@ static void ThreadHTTP(struct event_base* base, struct evhttp* http)
 {
     RenameThread("bitcoin-http");
     LogPrint("http", "Entering http event loop\n");
-    event_base_dispatch(base);
+    event_base_dispatch(base); // 派发事件循环
     // Event loop will be interrupted by InterruptHTTPServer()
     LogPrint("http", "Exited http event loop\n");
 }
@@ -423,7 +423,7 @@ bool InitHTTPServer()
     evhttp_set_timeout(http, GetArg("-rpcservertimeout", DEFAULT_HTTP_SERVER_TIMEOUT)); // 设置 http 服务超时时间为 rpc 服务超时，默认 30 秒
     evhttp_set_max_headers_size(http, MAX_HEADERS_SIZE); // http 头大小，默认 8K
     evhttp_set_max_body_size(http, MAX_SIZE); // 设置消息体大小，默认 32M
-    evhttp_set_gencb(http, http_request_cb, NULL); // 设置处理请求的回调函数
+    evhttp_set_gencb(http, http_request_cb, NULL); // 3.设置处理请求的回调函数
 
     if (!HTTPBindAddresses(http)) { // 2.绑定 IP 地址和端口
         LogPrintf("Unable to bind any endpoint for RPC server\n");
@@ -436,7 +436,7 @@ bool InitHTTPServer()
     int workQueueDepth = std::max((long)GetArg("-rpcworkqueue", DEFAULT_HTTP_WORKQUEUE), 1L); // 获取 HTTP 任务队列最大容量，默认 16，最小为 1
     LogPrintf("HTTP: creating work queue of depth %d\n", workQueueDepth);
 
-    workQueue = new WorkQueue<HTTPClosure>(workQueueDepth);
+    workQueue = new WorkQueue<HTTPClosure>(workQueueDepth); // 创建（关闭）任务队列
     eventBase = base;
     eventHTTP = http;
     return true;
@@ -449,7 +449,7 @@ bool StartHTTPServer()
     LogPrint("http", "Starting HTTP server\n");
     int rpcThreads = std::max((long)GetArg("-rpcthreads", DEFAULT_HTTP_THREADS), 1L); // 获取 RPC 线程数，默认为 4，至少为 1
     LogPrintf("HTTP: starting %d worker threads\n", rpcThreads);
-    threadHTTP = boost::thread(boost::bind(&ThreadHTTP, eventBase, eventHTTP));
+    threadHTTP = boost::thread(boost::bind(&ThreadHTTP, eventBase, eventHTTP)); // 4.派发事件循环
 
     for (int i = 0; i < rpcThreads; i++) // 创建 HTTP 服务（任务队列运行）线程
         boost::thread(boost::bind(&HTTPWorkQueueRun, workQueue));
