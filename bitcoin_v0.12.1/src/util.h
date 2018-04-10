@@ -222,14 +222,14 @@ void RenameThread(const char* name);
 /**
  * .. and a wrapper that just calls func once
  */
-template <typename Callable> void TraceThread(const char* name,  Callable func)
+template <typename Callable> void TraceThread(const char* name,  Callable func) // Callable -> CScheduler::Function
 {
-    std::string s = strprintf("bitcoin-%s", name);
-    RenameThread(s.c_str());
+    std::string s = strprintf("bitcoin-%s", name); // "bitcoin-scheduler"
+    RenameThread(s.c_str()); // 重命名线程
     try
     {
         LogPrintf("%s thread start\n", name);
-        func();
+        func(); // 执行函数对象（回调函数） serviceLoop
         LogPrintf("%s thread exit\n", name);
     }
     catch (const boost::thread_interrupted&)

@@ -29,15 +29,15 @@ static boost::system_time toPosixTime(const boost::chrono::system_clock::time_po
 
 void CScheduler::serviceQueue()
 {
-    boost::unique_lock<boost::mutex> lock(newTaskMutex); // 上锁
-    ++nThreadsServicingQueue;
+    boost::unique_lock<boost::mutex> lock(newTaskMutex); // 上锁，保证函数线程安全
+    ++nThreadsServicingQueue; // 使用队列的线程数加 1
 
     // newTaskMutex is locked throughout this loop EXCEPT
     // when the thread is waiting or when the user's function
     // is called.
-    while (!shouldStop()) {
+    while (!shouldStop()) { // loop
         try {
-            while (!shouldStop() && taskQueue.empty()) { // 队列为空
+            while (!shouldStop() && taskQueue.empty()) { // 任务队列为空
                 // Wait until there is something to do.
                 newTaskScheduled.wait(lock); // 等待条件满足
             }
@@ -48,14 +48,14 @@ void CScheduler::serviceQueue()
 // wait_until needs boost 1.50 or later; older versions have timed_wait:
 #if BOOST_VERSION < 105000 // 任务队列非空
             while (!shouldStop() && !taskQueue.empty() &&
-                   newTaskScheduled.timed_wait(lock, toPosixTime(taskQueue.begin()->first))) {
+                   newTaskScheduled.timed_wait(lock, toPosixTime(taskQueue.begin()->first))) { // 获取新任务的 key（时间），进行等待
                 // Keep waiting until timeout
             }
 #else
             // Some boost versions have a conflicting overload of wait_until that returns void.
             // Explicitly use a template here to avoid hitting that overload.
             while (!shouldStop() && !taskQueue.empty() &&
-                   newTaskScheduled.wait_until<>(lock, taskQueue.begin()->first) != boost::cv_status::timeout) {
+                   newTaskScheduled.wait_until<>(lock, taskQueue.begin()->first) != boost::cv_status::timeout) { // 105000 之后的 boost 版本
                 // Keep waiting until timeout
             }
 #endif
@@ -64,8 +64,8 @@ void CScheduler::serviceQueue()
             if (shouldStop() || taskQueue.empty())
                 continue;
 
-            Function f = taskQueue.begin()->second; // 获取队列中一个任务
-            taskQueue.erase(taskQueue.begin()); // 清除任务队列中第一个元素
+            Function f = taskQueue.begin()->second; // 获取队列中第一个任务
+            taskQueue.erase(taskQueue.begin()); // 清除该任务
 
             {
                 // Unlock before calling f, so it can reschedule itself or another task
@@ -77,8 +77,8 @@ void CScheduler::serviceQueue()
             --nThreadsServicingQueue;
             throw;
         }
-    }
-    --nThreadsServicingQueue;
+    } // end of loop
+    --nThreadsServicingQueue; // 使用任务队列的线程数减 1
 }
 
 void CScheduler::stop(bool drain)

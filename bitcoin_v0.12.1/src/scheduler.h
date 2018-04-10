@@ -45,7 +45,7 @@ public:
     void schedule(Function f, boost::chrono::system_clock::time_point t);
 
     // Convenience method: call f once deltaSeconds from now
-    void scheduleFromNow(Function f, int64_t deltaSeconds);
+    void scheduleFromNow(Function f, int64_t deltaSeconds); // 便捷方法：从现在起每 delta 秒调用一次 f
 
     // Another convenience method: call f approximately
     // every deltaSeconds forever, starting deltaSeconds from now.
@@ -58,7 +58,7 @@ public:
 
     // Services the queue 'forever'. Should be run in a thread,
     // and interrupted using boost::interrupt_thread
-    void serviceQueue();
+    void serviceQueue(); // scheduler 调度器线程函数循环主体
 
     // Tell any threads running serviceQueue to stop as soon as they're
     // done servicing whatever task they're currently servicing (drain=false)
@@ -77,7 +77,7 @@ private:
     int nThreadsServicingQueue; // 记录服务队列的线程数
     bool stopRequested;
     bool stopWhenEmpty;
-    bool shouldStop() { return stopRequested || (stopWhenEmpty && taskQueue.empty()); }
+    bool shouldStop() { return stopRequested || (stopWhenEmpty && taskQueue.empty()); } // 终止条件：stopRequested 为 true 或 stopWhenEmpty 为 true 且任务队列为空
 };
 
 #endif

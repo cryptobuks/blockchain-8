@@ -303,8 +303,8 @@ void OnRPCPreCommand(const CRPCCommand& cmd)
     // Observe safe mode
     string strWarning = GetWarnings("rpc");
     if (strWarning != "" && !GetBoolArg("-disablesafemode", DEFAULT_DISABLE_SAFEMODE) &&
-        !cmd.okSafeMode)
-        throw JSONRPCError(RPC_FORBIDDEN_BY_SAFE_MODE, string("Safe mode: ") + strWarning);
+        !cmd.okSafeMode) // 若有警告信息
+        throw JSONRPCError(RPC_FORBIDDEN_BY_SAFE_MODE, string("Safe mode: ") + strWarning); // 抛出异常
 }
 
 std::string HelpMessage(HelpMessageMode mode)
@@ -674,15 +674,15 @@ bool InitSanityCheck(void)
 
 bool AppInitServers(boost::thread_group& threadGroup)
 {
-    RPCServer::OnStopped(&OnRPCStopped);
-    RPCServer::OnPreCommand(&OnRPCPreCommand);
+    RPCServer::OnStopped(&OnRPCStopped); // 停止 RPC pending
+    RPCServer::OnPreCommand(&OnRPCPreCommand); // 检查在安全模式下是否有警告消息
     if (!InitHTTPServer()) // 初始化 HTTP 服务
         return false;
     if (!StartRPC()) // 启动 RPC 远程过程调用服务
         return false;
-    if (!StartHTTPRPC())
+    if (!StartHTTPRPC()) // 启动 HTTP RPC 服务
         return false;
-    if (GetBoolArg("-rest", DEFAULT_REST_ENABLE) && !StartREST()) // pending
+    if (GetBoolArg("-rest", DEFAULT_REST_ENABLE) && !StartREST()) // 启动 REST 服务 pending
         return false;
     if (!StartHTTPServer()) // 启动 HTTP 服务
         return false;
@@ -1093,8 +1093,8 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
     }
 
     // Start the lightweight task scheduler thread
-    CScheduler::Function serviceLoop = boost::bind(&CScheduler::serviceQueue, &scheduler); // Function/bind 调用 serviceQueue 启动一个线程
-    threadGroup.create_thread(boost::bind(&TraceThread<CScheduler::Function>, "scheduler", serviceLoop)); // create_thread 创建一个轻量级任务调度线程
+    CScheduler::Function serviceLoop = boost::bind(&CScheduler::serviceQueue, &scheduler); // Function/bind 绑定类成员函数 serviceQueue 到函数对象 serviceLoop
+    threadGroup.create_thread(boost::bind(&TraceThread<CScheduler::Function>, "scheduler", serviceLoop)); // 线程组 threadGroup 创建一个轻量级任务调度线程
 
     /* Start the RPC server already.  It will be started in "warmup" mode
      * and not really process calls already (but it will signify connections

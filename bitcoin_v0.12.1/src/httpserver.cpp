@@ -203,25 +203,25 @@ static bool ClientAllowed(const CNetAddr& netaddr)
 }
 
 /** Initialize ACL list for HTTP server */
-static bool InitHTTPAllowList()
+static bool InitHTTPAllowList() // ACL: Allow Control List
 {
-    rpc_allow_subnets.clear();
+    rpc_allow_subnets.clear(); // 清空子网列表
     rpc_allow_subnets.push_back(CSubNet("127.0.0.0/8")); // always allow IPv4 local subnet
     rpc_allow_subnets.push_back(CSubNet("::1"));         // always allow IPv6 localhost
-    if (mapMultiArgs.count("-rpcallowip")) {
+    if (mapMultiArgs.count("-rpcallowip")) { // 获取 -rpcallowip 设置的 ip 列表
         const std::vector<std::string>& vAllow = mapMultiArgs["-rpcallowip"];
-        BOOST_FOREACH (std::string strAllow, vAllow) {
-            CSubNet subnet(strAllow);
-            if (!subnet.IsValid()) {
+        BOOST_FOREACH (std::string strAllow, vAllow) { // 遍历该列表
+            CSubNet subnet(strAllow); // 创建子网对象
+            if (!subnet.IsValid()) { // 检查子网有效性
                 uiInterface.ThreadSafeMessageBox(
                     strprintf("Invalid -rpcallowip subnet specification: %s. Valid are a single IP (e.g. 1.2.3.4), a network/netmask (e.g. 1.2.3.4/255.255.255.0) or a network/CIDR (e.g. 1.2.3.4/24).", strAllow),
                     "", CClientUIInterface::MSG_ERROR);
                 return false;
             }
-            rpc_allow_subnets.push_back(subnet);
+            rpc_allow_subnets.push_back(subnet); // 加入 ACL 列表
         }
     }
-    std::string strAllowed;
+    std::string strAllowed; // 记录日志
     BOOST_FOREACH (const CSubNet& subnet, rpc_allow_subnets)
         strAllowed += subnet.ToString() + " ";
     LogPrint("http", "Allowing HTTP connections from: %s\n", strAllowed);
@@ -380,10 +380,10 @@ bool InitHTTPServer()
     struct evhttp* http = 0;
     struct event_base* base = 0;
 
-    if (!InitHTTPAllowList()) // 设置 HTTP 白名单（总是允许本地地址）
+    if (!InitHTTPAllowList()) // 初始化 HTTP 访问控制列表（白名单）
         return false;
 
-    if (GetBoolArg("-rpcssl", false)) {
+    if (GetBoolArg("-rpcssl", false)) { // rpcssl 默认关闭，当前版本不支持，如果设置了就报错
         uiInterface.ThreadSafeMessageBox(
             "SSL mode for RPC (-rpcssl) is no longer supported.",
             "", CClientUIInterface::MSG_ERROR);
