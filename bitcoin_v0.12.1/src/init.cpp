@@ -1103,7 +1103,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
      */
     if (fServer) // 服务标志，默认打开
     {
-        uiInterface.InitMessage.connect(SetRPCWarmupStatus);
+        uiInterface.InitMessage.connect(SetRPCWarmupStatus); // 注册 设置 RPC 预热状态函数
         if (!AppInitServers(threadGroup)) // 应用程序初始化服务（启动 HTTP、RPC 相关服务）
             return InitError(_("Unable to start HTTP server. See debug log for details."));
     }
@@ -1111,7 +1111,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
     int64_t nStart;
 
     // ********************************************************* Step 5: verify wallet database integrity // 若启用钱包功能，则验证钱包数据库的完整性
-#ifdef ENABLE_WALLET
+#ifdef ENABLE_WALLET // 前提，ENABLE_WALLET 在 bitcoin-config.h 中定义，通过 ./configure --disable-wallet 来禁用钱包
     if (!fDisableWallet) { // 禁止钱包标志，默认关闭
         LogPrintf("Using wallet %s\n", strWalletFile); // 记录钱包文件名（指定/默认）
         uiInterface.InitMessage(_("Verifying wallet...")); // UI 交互，初始化钱包信息
@@ -1131,7 +1131,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
 #endif // ENABLE_WALLET
     // ********************************************************* Step 6: network initialization // 网络初始化
 
-    RegisterNodeSignals(GetNodeSignals());
+    RegisterNodeSignals(GetNodeSignals()); // 6.1.注册节点信号，获取节点信号全局对象，并传入 RegisterNodeSignals 进行函数注册（连接）
 
     // sanitize comments per BIP-0014, format user agent and check total size
     std::vector<string> uacomments;

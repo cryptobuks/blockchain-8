@@ -562,11 +562,11 @@ bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats) {
 
 void RegisterNodeSignals(CNodeSignals& nodeSignals)
 {
-    nodeSignals.GetHeight.connect(&GetHeight);
-    nodeSignals.ProcessMessages.connect(&ProcessMessages);
-    nodeSignals.SendMessages.connect(&SendMessages);
-    nodeSignals.InitializeNode.connect(&InitializeNode);
-    nodeSignals.FinalizeNode.connect(&FinalizeNode);
+    nodeSignals.GetHeight.connect(&GetHeight); // 获取激活的链高度
+    nodeSignals.ProcessMessages.connect(&ProcessMessages); // 处理消息，并进行响应
+    nodeSignals.SendMessages.connect(&SendMessages); // 发送消息
+    nodeSignals.InitializeNode.connect(&InitializeNode); // 初始化节点
+    nodeSignals.FinalizeNode.connect(&FinalizeNode); // 终止节点
 }
 
 void UnregisterNodeSignals(CNodeSignals& nodeSignals)

@@ -50,12 +50,12 @@ bool IsRPCRunning();
  * Set the RPC warmup status.  When this is done, all RPC calls will error out
  * immediately with RPC_IN_WARMUP.
  */
-void SetRPCWarmupStatus(const std::string& newStatus);
+void SetRPCWarmupStatus(const std::string& newStatus); // 设置 RPC 预热新状态
 /* Mark warmup as done.  RPC calls will be processed from now on.  */
-void SetRPCWarmupFinished();
+void SetRPCWarmupFinished(); // 标记预热完成，从现在开始处理 RPC 调用
 
 /* returns the current warmup state.  */
-bool RPCIsInWarmup(std::string *statusOut);
+bool RPCIsInWarmup(std::string *statusOut); // 获取当前 RPC 的预热状态
 
 /**
  * Type-check arguments; throws JSONRPCError if wrong type given. Does not check that

@@ -179,9 +179,9 @@ static const unsigned int DEFAULT_CHECKLEVEL = 3;
 static const uint64_t MIN_DISK_SPACE_FOR_BLOCK_FILES = 550 * 1024 * 1024;
 
 /** Register with a network node to receive its signals */
-void RegisterNodeSignals(CNodeSignals& nodeSignals);
+void RegisterNodeSignals(CNodeSignals& nodeSignals); // 注册信号处理函数
 /** Unregister a network node */
-void UnregisterNodeSignals(CNodeSignals& nodeSignals);
+void UnregisterNodeSignals(CNodeSignals& nodeSignals); // 解注册
 
 /** 
  * Process an incoming block. This only returns after the best known valid
