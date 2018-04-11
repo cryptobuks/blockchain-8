@@ -84,7 +84,7 @@ UniValue JSONRPCError(int code, const std::string& message);
 /** Get name of RPC authentication cookie file */
 boost::filesystem::path GetAuthCookieFile();
 /** Generate a new RPC authentication cookie and write it to disk */
-bool GenerateAuthCookie(std::string *cookie_out);
+bool GenerateAuthCookie(std::string *cookie_out); // 生成一个新的 RPC 身份验证 cookie 并写入磁盘
 /** Read the RPC authentication cookie from disk */
 bool GetAuthCookie(std::string *cookie_out);
 /** Delete RPC authentication cookie from disk */

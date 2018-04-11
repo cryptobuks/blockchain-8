@@ -206,17 +206,17 @@ static bool HTTPReq_JSONRPC(HTTPRequest* req, const std::string &)
 static bool InitRPCAuthentication()
 {
     if (mapArgs["-rpcpassword"] == "")
-    {
+    { // 密码为空
         LogPrintf("No rpcpassword set - using random cookie authentication\n");
-        if (!GenerateAuthCookie(&strRPCUserColonPass)) {
+        if (!GenerateAuthCookie(&strRPCUserColonPass)) { // 生成 cookie 字符串
             uiInterface.ThreadSafeMessageBox(
                 _("Error: A fatal internal error occurred, see debug.log for details"), // Same message as AbortNode
                 "", CClientUIInterface::MSG_ERROR);
             return false;
         }
-    } else {
+    } else { // 密码非空
         LogPrintf("Config options rpcuser and rpcpassword will soon be deprecated. Locally-run instances may remove rpcuser to use cookie-based auth, or may be replaced with rpcauth. Please see share/rpcuser for rpcauth auth generation.\n");
-        strRPCUserColonPass = mapArgs["-rpcuser"] + ":" + mapArgs["-rpcpassword"];
+        strRPCUserColonPass = mapArgs["-rpcuser"] + ":" + mapArgs["-rpcpassword"]; // 拼接 RPC "user:pass" 字符串
     }
     return true;
 }
@@ -224,10 +224,10 @@ static bool InitRPCAuthentication()
 bool StartHTTPRPC()
 {
     LogPrint("rpc", "Starting HTTP RPC server\n");
-    if (!InitRPCAuthentication()) // 初始化 RPC 验证（rpc 用户名和密码）
+    if (!InitRPCAuthentication()) // 初始化 RPC 身份验证（rpc "用户名:密码"）
         return false;
 
-    RegisterHTTPHandler("/", true, HTTPReq_JSONRPC);
+    RegisterHTTPHandler("/", true, HTTPReq_JSONRPC); // 注册 http url 处理函数
 
     assert(EventBase());
     httpRPCTimerInterface = new HTTPRPCTimerInterface(EventBase());

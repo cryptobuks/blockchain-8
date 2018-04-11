@@ -399,8 +399,8 @@ const CRPCCommand *CRPCTable::operator[](const std::string &name) const
 bool StartRPC()
 {
     LogPrint("rpc", "Starting RPC\n");
-    fRPCRunning = true; // 设置 RPC 运行状态
-    g_rpcSignals.Started(); // 未找到信号注册 pending
+    fRPCRunning = true; // 设置 RPC 运行状态为 true
+    g_rpcSignals.Started(); // 此版本未找到信号注册 pending
     return true;
 }
 

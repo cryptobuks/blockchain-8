@@ -78,20 +78,20 @@ boost::filesystem::path GetAuthCookieFile()
 bool GenerateAuthCookie(std::string *cookie_out)
 {
     unsigned char rand_pwd[32];
-    GetRandBytes(rand_pwd, 32);
-    std::string cookie = COOKIEAUTH_USER + ":" + EncodeBase64(&rand_pwd[0],32);
+    GetRandBytes(rand_pwd, 32); // 生成随机数
+    std::string cookie = COOKIEAUTH_USER + ":" + EncodeBase64(&rand_pwd[0],32); // 拼接 cookie 字符串
 
     /** the umask determines what permissions are used to create this file -
      * these are set to 077 in init.cpp unless overridden with -sysperms.
      */
     std::ofstream file;
-    boost::filesystem::path filepath = GetAuthCookieFile();
+    boost::filesystem::path filepath = GetAuthCookieFile(); // 获取验证 cookie 文件路径
     file.open(filepath.string().c_str());
     if (!file.is_open()) {
         LogPrintf("Unable to open cookie authentication file %s for writing\n", filepath.string());
         return false;
     }
-    file << cookie;
+    file << cookie; // 把 cookie 写入 cookie 文件中
     file.close();
     LogPrintf("Generated RPC authentication cookie %s\n", filepath.string());
 
@@ -112,7 +112,7 @@ bool GetAuthCookie(std::string *cookie_out)
     file.close();
 
     if (cookie_out)
-        *cookie_out = cookie;
+        *cookie_out = cookie; // 传出 cookie 字符串
     return true;
 }
 

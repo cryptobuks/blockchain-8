@@ -171,9 +171,9 @@ struct HTTPPathHandler
         prefix(prefix), exactMatch(exactMatch), handler(handler)
     {
     }
-    std::string prefix;
-    bool exactMatch;
-    HTTPRequestHandler handler;
+    std::string prefix; // 请求的路径
+    bool exactMatch; // 精确匹配 或 前缀匹配（在 http_request_cb 中完成验证）
+    HTTPRequestHandler handler; // 对某个 http 路径请求
 };
 
 /** HTTP module state */
@@ -187,7 +187,7 @@ static std::vector<CSubNet> rpc_allow_subnets;
 //! Work queue for handling longer requests off the event loop thread
 static WorkQueue<HTTPClosure>* workQueue = 0;
 //! Handlers for (sub)paths
-std::vector<HTTPPathHandler> pathHandlers;
+std::vector<HTTPPathHandler> pathHandlers; // http 请求路径对应的处理函数列表
 //! Bound listening sockets
 std::vector<evhttp_bound_socket *> boundSockets; // 已绑定的 http socket 列表
 
@@ -274,7 +274,7 @@ static void http_request_cb(struct evhttp_request* req, void* arg)
     std::string path;
     std::vector<HTTPPathHandler>::const_iterator i = pathHandlers.begin();
     std::vector<HTTPPathHandler>::const_iterator iend = pathHandlers.end();
-    for (; i != iend; ++i) {
+    for (; i != iend; ++i) { // 查找处理函数，分精确匹配和前缀匹配两种
         bool match = false;
         if (i->exactMatch)
             match = (strURI == i->prefix);
@@ -287,10 +287,10 @@ static void http_request_cb(struct evhttp_request* req, void* arg)
     }
 
     // Dispatch to worker thread
-    if (i != iend) {
-        std::auto_ptr<HTTPWorkItem> item(new HTTPWorkItem(hreq.release(), path, i->handler));
+    if (i != iend) { // 若找到了对应的处理函数，则派发到工作线程
+        std::auto_ptr<HTTPWorkItem> item(new HTTPWorkItem(hreq.release(), path, i->handler)); // 把请求和对应的处理函数封装为 HTTPWorkItem 对象
         assert(workQueue);
-        if (workQueue->Enqueue(item.get()))
+        if (workQueue->Enqueue(item.get())) // 再把该对象加入任务队列，该任务队列由单独的线程不断执行
             item.release(); /* if true, queue took ownership */
         else
             item->req->WriteReply(HTTP_INTERNAL, "Work queue depth exceeded");
@@ -311,7 +311,7 @@ static void ThreadHTTP(struct event_base* base, struct evhttp* http)
 {
     RenameThread("bitcoin-http");
     LogPrint("http", "Entering http event loop\n");
-    event_base_dispatch(base); // 派发事件循环
+    event_base_dispatch(base); // 5.派发事件循环
     // Event loop will be interrupted by InterruptHTTPServer()
     LogPrint("http", "Exited http event loop\n");
 }
@@ -380,7 +380,7 @@ bool InitHTTPServer()
     struct evhttp* http = 0;
     struct event_base* base = 0;
 
-    if (!InitHTTPAllowList()) // 初始化 HTTP 访问控制列表（白名单）
+    if (!InitHTTPAllowList()) // 初始化 HTTP ACL 访问控制列表（白名单）
         return false;
 
     if (GetBoolArg("-rpcssl", false)) { // rpcssl 默认关闭，当前版本不支持，如果设置了就报错
@@ -391,7 +391,7 @@ bool InitHTTPServer()
     }
 
     // Redirect libevent's logging to our own log
-    event_set_log_callback(&libevent_log_cb);
+    event_set_log_callback(&libevent_log_cb); // 重定向 libevent 日志到当前日志系统
 #if LIBEVENT_VERSION_NUMBER >= 0x02010100
     // If -debug=libevent, set full libevent debugging.
     // Otherwise, disable all libevent debugging.
@@ -400,20 +400,20 @@ bool InitHTTPServer()
     else
         event_enable_debug_logging(EVENT_DBG_NONE);
 #endif
-#ifdef WIN32
+#ifdef WIN32 // 初始化 libevent 的 http 服务端协议
     evthread_use_windows_threads();
 #else
     evthread_use_pthreads();
 #endif
 
-    base = event_base_new(); // XXX RAII // 1.创建 event_base 和 evhttp
+    base = event_base_new(); // XXX RAII // 1.创建 event_base 对象
     if (!base) {
         LogPrintf("Couldn't create an event_base: exiting\n");
         return false;
     }
 
     /* Create a new evhttp object to handle requests. */
-    http = evhttp_new(base); // XXX RAII
+    http = evhttp_new(base); // XXX RAII 2.利用 base 创建 evhttp 对象
     if (!http) {
         LogPrintf("couldn't create evhttp. Exiting.\n");
         event_base_free(base);
@@ -423,9 +423,9 @@ bool InitHTTPServer()
     evhttp_set_timeout(http, GetArg("-rpcservertimeout", DEFAULT_HTTP_SERVER_TIMEOUT)); // 设置 http 服务超时时间为 rpc 服务超时，默认 30 秒
     evhttp_set_max_headers_size(http, MAX_HEADERS_SIZE); // http 头大小，默认 8K
     evhttp_set_max_body_size(http, MAX_SIZE); // 设置消息体大小，默认 32M
-    evhttp_set_gencb(http, http_request_cb, NULL); // 3.设置处理请求的回调函数
+    evhttp_set_gencb(http, http_request_cb, NULL); // 4.设置处理请求的回调函数 http_request_cb
 
-    if (!HTTPBindAddresses(http)) { // 2.绑定 IP 地址和端口
+    if (!HTTPBindAddresses(http)) { // 3.evhttp_bind_socket(http, "0.0.0.0", port),绑定 IP 地址和端口
         LogPrintf("Unable to bind any endpoint for RPC server\n");
         evhttp_free(http);
         event_base_free(base);
@@ -436,7 +436,7 @@ bool InitHTTPServer()
     int workQueueDepth = std::max((long)GetArg("-rpcworkqueue", DEFAULT_HTTP_WORKQUEUE), 1L); // 获取 HTTP 任务队列最大容量，默认 16，最小为 1
     LogPrintf("HTTP: creating work queue of depth %d\n", workQueueDepth);
 
-    workQueue = new WorkQueue<HTTPClosure>(workQueueDepth); // 创建（关闭）任务队列
+    workQueue = new WorkQueue<HTTPClosure>(workQueueDepth); // 创建任务队列
     eventBase = base;
     eventHTTP = http;
     return true;
@@ -449,7 +449,7 @@ bool StartHTTPServer()
     LogPrint("http", "Starting HTTP server\n");
     int rpcThreads = std::max((long)GetArg("-rpcthreads", DEFAULT_HTTP_THREADS), 1L); // 获取 RPC 线程数，默认为 4，至少为 1
     LogPrintf("HTTP: starting %d worker threads\n", rpcThreads);
-    threadHTTP = boost::thread(boost::bind(&ThreadHTTP, eventBase, eventHTTP)); // 4.派发事件循环
+    threadHTTP = boost::thread(boost::bind(&ThreadHTTP, eventBase, eventHTTP)); // 5.派发事件循环，http 协议启动
 
     for (int i = 0; i < rpcThreads; i++) // 创建 HTTP 服务（任务队列运行）线程
         boost::thread(boost::bind(&HTTPWorkQueueRun, workQueue));
