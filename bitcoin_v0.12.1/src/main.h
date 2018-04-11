@@ -211,7 +211,7 @@ bool InitBlockIndex(const CChainParams& chainparams);
 /** Load the block tree and coins database from disk */
 bool LoadBlockIndex();
 /** Unload database information */
-void UnloadBlockIndex();
+void UnloadBlockIndex(); // 卸载加载到内存中的数据库信息
 /** Process protocol messages received from a given node */
 bool ProcessMessages(CNode* pfrom);
 /**

@@ -104,7 +104,7 @@ CDBWrapper::~CDBWrapper()
 
 bool CDBWrapper::WriteBatch(CDBBatch& batch, bool fSync) throw(dbwrapper_error)
 {
-    leveldb::Status status = pdb->Write(fSync ? syncoptions : writeoptions, &batch.batch);
+    leveldb::Status status = pdb->Write(fSync ? syncoptions : writeoptions, &batch.batch); // pdb 为 leveldb 数据库指针
     HandleError(status);
     return true;
 }

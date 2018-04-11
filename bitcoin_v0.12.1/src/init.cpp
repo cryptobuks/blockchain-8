@@ -1291,23 +1291,23 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
     }
 
     // cache size calculations
-    int64_t nTotalCache = (GetArg("-dbcache", nDefaultDbCache) << 20);
+    int64_t nTotalCache = (GetArg("-dbcache", nDefaultDbCache) << 20); // 总缓存大小
     nTotalCache = std::max(nTotalCache, nMinDbCache << 20); // total cache cannot be less than nMinDbCache
     nTotalCache = std::min(nTotalCache, nMaxDbCache << 20); // total cache cannot be greated than nMaxDbcache
-    int64_t nBlockTreeDBCache = nTotalCache / 8;
+    int64_t nBlockTreeDBCache = nTotalCache / 8; // 区块树数据库缓存大小
     if (nBlockTreeDBCache > (1 << 21) && !GetBoolArg("-txindex", DEFAULT_TXINDEX))
         nBlockTreeDBCache = (1 << 21); // block tree db cache shouldn't be larger than 2 MiB
     nTotalCache -= nBlockTreeDBCache;
-    int64_t nCoinDBCache = std::min(nTotalCache / 2, (nTotalCache / 4) + (1 << 23)); // use 25%-50% of the remainder for disk cache
+    int64_t nCoinDBCache = std::min(nTotalCache / 2, (nTotalCache / 4) + (1 << 23)); // use 25%-50% of the remainder for disk cache // 币数据库缓存大小
     nTotalCache -= nCoinDBCache;
-    nCoinCacheUsage = nTotalCache; // the rest goes to in-memory cache
+    nCoinCacheUsage = nTotalCache; // the rest goes to in-memory cache // 比缓存用量
     LogPrintf("Cache configuration:\n");
     LogPrintf("* Using %.1fMiB for block index database\n", nBlockTreeDBCache * (1.0 / 1024 / 1024));
     LogPrintf("* Using %.1fMiB for chain state database\n", nCoinDBCache * (1.0 / 1024 / 1024));
     LogPrintf("* Using %.1fMiB for in-memory UTXO set\n", nCoinCacheUsage * (1.0 / 1024 / 1024));
 
-    bool fLoaded = false;
-    while (!fLoaded) {
+    bool fLoaded = false; // 加载标志，表示加载区块索引是否成功，初始为 false
+    while (!fLoaded) { // 若第一次没有加载成功，再加载一遍
         bool fReset = fReindex;
         std::string strLoadError;
 
@@ -1316,22 +1316,22 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
         nStart = GetTimeMillis();
         do {
             try {
-                UnloadBlockIndex();
+                UnloadBlockIndex(); // 为防第二次加载，先清空当前的区块索引
                 delete pcoinsTip;
                 delete pcoinsdbview;
                 delete pcoinscatcher;
                 delete pblocktree;
 
-                pblocktree = new CBlockTreeDB(nBlockTreeDBCache, false, fReindex);
+                pblocktree = new CBlockTreeDB(nBlockTreeDBCache, false, fReindex); // 区块索引
                 pcoinsdbview = new CCoinsViewDB(nCoinDBCache, false, fReindex);
                 pcoinscatcher = new CCoinsViewErrorCatcher(pcoinsdbview);
                 pcoinsTip = new CCoinsViewCache(pcoinscatcher);
 
-                if (fReindex) {
-                    pblocktree->WriteReindexing(true);
+                if (fReindex) { // 默认 false
+                    pblocktree->WriteReindexing(true); // 写入再索引，区块数据库 leveldb
                     //If we're reindexing in prune mode, wipe away unusable block files and all undo data files
-                    if (fPruneMode)
-                        CleanupBlockRevFiles();
+                    if (fPruneMode) // 如果我们在修剪模式中再索引，
+                        CleanupBlockRevFiles(); // 清空无用的块文件（blk）和所有恢复数据文件（rev）
                 }
 
                 if (!LoadBlockIndex()) {

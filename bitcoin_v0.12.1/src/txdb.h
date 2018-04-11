@@ -42,7 +42,7 @@ public:
 };
 
 /** Access to the block database (blocks/index/) */
-class CBlockTreeDB : public CDBWrapper
+class CBlockTreeDB : public CDBWrapper // 读写目录 blocks/index/ 下的文件
 {
 public:
     CBlockTreeDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false);

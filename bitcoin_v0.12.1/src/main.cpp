@@ -3919,7 +3919,7 @@ bool CVerifyDB::VerifyDB(const CChainParams& chainparams, CCoinsView *coinsview,
 
 void UnloadBlockIndex()
 {
-    LOCK(cs_main);
+    LOCK(cs_main); // 保证线程安全
     setBlockIndexCandidates.clear();
     chainActive.SetTip(NULL);
     pindexBestInvalid = NULL;
@@ -3947,7 +3947,7 @@ void UnloadBlockIndex()
     BOOST_FOREACH(BlockMap::value_type& entry, mapBlockIndex) {
         delete entry.second;
     }
-    mapBlockIndex.clear();
+    mapBlockIndex.clear(); // 清空区块索引映射
     fHavePruned = false;
 }
 

@@ -210,7 +210,7 @@ public:
     {
         CDBBatch batch(&obfuscate_key);
         batch.Write(key, value);
-        return WriteBatch(batch, fSync);
+        return WriteBatch(batch, fSync); // Íù leveldb ÖÐÐ´Êý¾Ý
     }
 
     template <typename K>
