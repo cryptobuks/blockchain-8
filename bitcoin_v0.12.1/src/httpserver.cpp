@@ -73,12 +73,12 @@ private:
     CConditionVariable cond;
     /* XXX in C++11 we can use std::unique_ptr here and avoid manual cleanup */
     std::deque<WorkItem*> queue; // 任务队列
-    bool running; // 运行状态
+    bool running; // 运行状态（决定是否运行/退出循环）
     size_t maxDepth; // 最大深度（容量）
     int numThreads; // 线程数
 
     /** RAII object to keep track of number of running worker threads */
-    class ThreadCounter
+    class ThreadCounter // 嵌套类
     {
     public:
         WorkQueue &wq;
@@ -123,17 +123,17 @@ public:
         return true;
     }
     /** Thread function */
-    void Run()
+    void Run() // 线程函数：不断从任务队列中读取、删除并执行任务，任务类型为 WorkItem（类类型）
     {
         ThreadCounter count(*this);
-        while (running) {
+        while (running) { // loop
             WorkItem* i = 0;
             {
                 boost::unique_lock<boost::mutex> lock(cs);
                 while (running && queue.empty()) // 任务队列为空
                     cond.wait(lock); // 等待条件被激活（往队列里添加任务时）
                 if (!running)
-                    break;
+                    break; // break out of loop
                 i = queue.front(); // 取队头元素（任务队列中第一个元素）
                 queue.pop_front(); // 队头出队
             }
@@ -142,10 +142,10 @@ public:
         }
     }
     /** Interrupt and exit loops */
-    void Interrupt()
+    void Interrupt() // 打断并退出循环
     {
         boost::unique_lock<boost::mutex> lock(cs);
-        running = false;
+        running = false; // 改变运行状态为 false
         cond.notify_all();
     }
     /** Wait for worker threads to exit */
@@ -359,7 +359,7 @@ static bool HTTPBindAddresses(struct evhttp* http)
 static void HTTPWorkQueueRun(WorkQueue<HTTPClosure>* queue)
 {
     RenameThread("bitcoin-httpworker");
-    queue->Run();
+    queue->Run(); // 依次运行队列中的任务
 }
 
 /** libevent event log callback */
@@ -653,7 +653,7 @@ HTTPRequest::RequestMethod HTTPRequest::GetRequestMethod()
 void RegisterHTTPHandler(const std::string &prefix, bool exactMatch, const HTTPRequestHandler &handler)
 {
     LogPrint("http", "Registering HTTP handler for %s (exactmatch %d)\n", prefix, exactMatch);
-    pathHandlers.push_back(HTTPPathHandler(prefix, exactMatch, handler));
+    pathHandlers.push_back(HTTPPathHandler(prefix, exactMatch, handler)); // 加入处理函数列表
 }
 
 void UnregisterHTTPHandler(const std::string &prefix, bool exactMatch)

@@ -50,7 +50,7 @@ public:
     }
     RPCTimerBase* NewTimer(boost::function<void(void)>& func, int64_t millis)
     {
-        return new HTTPRPCTimer(base, func, millis);
+        return new HTTPRPCTimer(base, func, millis); // 在指定时间后执行 func 一次
     }
 private:
     struct event_base* base;
@@ -229,9 +229,9 @@ bool StartHTTPRPC()
 
     RegisterHTTPHandler("/", true, HTTPReq_JSONRPC); // 注册 http url 处理函数
 
-    assert(EventBase());
-    httpRPCTimerInterface = new HTTPRPCTimerInterface(EventBase());
-    RPCRegisterTimerInterface(httpRPCTimerInterface);
+    assert(EventBase()); // 返回 eventBase 指针对象
+    httpRPCTimerInterface = new HTTPRPCTimerInterface(EventBase()); // 创建 http 定时器接口对象
+    RPCRegisterTimerInterface(httpRPCTimerInterface); // RPC 注册定时器接口
     return true;
 }
 

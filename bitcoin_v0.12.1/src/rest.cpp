@@ -612,8 +612,8 @@ static const struct {
 
 bool StartREST()
 {
-    for (unsigned int i = 0; i < ARRAYLEN(uri_prefixes); i++)
-        RegisterHTTPHandler(uri_prefixes[i].prefix, false, uri_prefixes[i].handler);
+    for (unsigned int i = 0; i < ARRAYLEN(uri_prefixes); i++) // 把 uri_prefixes 数组中的 url 路径和对应的处理函数
+        RegisterHTTPHandler(uri_prefixes[i].prefix, false, uri_prefixes[i].handler); // 通过该函数存入 pathHandlers 列表中，这里均为前缀匹配
     return true;
 }
 

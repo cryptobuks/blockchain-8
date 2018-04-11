@@ -25,7 +25,7 @@ void StopHTTPRPC();
 /** Start HTTP REST subsystem.
  * Precondition; HTTP and RPC has been started.
  */
-bool StartREST();
+bool StartREST(); // 启动 HTTP REST 子系统
 /** Interrupt RPC REST subsystem.
  */
 void InterruptREST();

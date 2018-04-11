@@ -33,7 +33,7 @@ static bool fRPCInWarmup = true;
 static std::string rpcWarmupStatus("RPC server started"); // 静态 string 类型全局变量
 static CCriticalSection cs_rpcWarmup;
 /* Timer-creating functions */
-static std::vector<RPCTimerInterface*> timerInterfaces;
+static std::vector<RPCTimerInterface*> timerInterfaces; // RPC 定时器接口列表
 /* Map of name to timer.
  * @note Can be changed to std::unique_ptr when C++11 */
 static std::map<std::string, boost::shared_ptr<RPCTimerBase> > deadlineTimers;
@@ -549,7 +549,7 @@ std::string HelpExampleRpc(const std::string& methodname, const std::string& arg
 
 void RPCRegisterTimerInterface(RPCTimerInterface *iface)
 {
-    timerInterfaces.push_back(iface);
+    timerInterfaces.push_back(iface); // 加入定时器接口列表
 }
 
 void RPCUnregisterTimerInterface(RPCTimerInterface *iface)

@@ -682,7 +682,7 @@ bool AppInitServers(boost::thread_group& threadGroup)
         return false;
     if (!StartHTTPRPC()) // 启动 HTTP RPC 服务
         return false;
-    if (GetBoolArg("-rest", DEFAULT_REST_ENABLE) && !StartREST()) // 启动 REST 服务 pending
+    if (GetBoolArg("-rest", DEFAULT_REST_ENABLE) && !StartREST()) // 启动 REST 服务，默认关闭
         return false;
     if (!StartHTTPServer()) // 启动 HTTP 服务
         return false;
