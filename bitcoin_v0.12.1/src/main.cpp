@@ -56,7 +56,7 @@ using namespace std;
 
 CCriticalSection cs_main;
 
-BlockMap mapBlockIndex;
+BlockMap mapBlockIndex; // 保存区块链上区块的索引
 CChain chainActive;
 CBlockIndex *pindexBestHeader = NULL;
 int64_t nTimeBestReceived = 0;
@@ -3701,13 +3701,13 @@ boost::filesystem::path GetBlockPosFilename(const CDiskBlockPos &pos, const char
 
 CBlockIndex * InsertBlockIndex(uint256 hash)
 {
-    if (hash.IsNull())
+    if (hash.IsNull()) // 哈希非空
         return NULL;
 
     // Return existing
     BlockMap::iterator mi = mapBlockIndex.find(hash);
-    if (mi != mapBlockIndex.end())
-        return (*mi).second;
+    if (mi != mapBlockIndex.end()) // 若存在该哈希的索引
+        return (*mi).second; // 直接返回
 
     // Create new
     CBlockIndex* pindexNew = new CBlockIndex();
@@ -3721,11 +3721,11 @@ CBlockIndex * InsertBlockIndex(uint256 hash)
 
 bool static LoadBlockIndexDB()
 {
-    const CChainParams& chainparams = Params();
+    const CChainParams& chainparams = Params(); // 获取网络参数
     if (!pblocktree->LoadBlockIndexGuts())
         return false;
 
-    boost::this_thread::interruption_point();
+    boost::this_thread::interruption_point(); // 断点
 
     // Calculate nChainWork
     vector<pair<int, CBlockIndex*> > vSortedByHeight;
@@ -3954,20 +3954,20 @@ void UnloadBlockIndex()
 bool LoadBlockIndex()
 {
     // Load block index from databases
-    if (!fReindex && !LoadBlockIndexDB())
+    if (!fReindex && !LoadBlockIndexDB()) // 若 fReindex 没有设置，则加载区块索引数据库，否则不加载，在后面会重新索引
         return false;
     return true;
 }
 
 bool InitBlockIndex(const CChainParams& chainparams) 
 {
-    LOCK(cs_main);
+    LOCK(cs_main); // 线程安全锁
 
     // Initialize global variables that cannot be constructed at startup.
-    recentRejects.reset(new CRollingBloomFilter(120000, 0.000001));
+    recentRejects.reset(new CRollingBloomFilter(120000, 0.000001)); // 初始化不能再启动时创建全局对象
 
     // Check whether we're already initialized
-    if (chainActive.Genesis() != NULL)
+    if (chainActive.Genesis() != NULL) // 检查是否初始化了创世区块索引
         return true;
 
     // Use the provided setting for -txindex in the new database
@@ -3976,21 +3976,21 @@ bool InitBlockIndex(const CChainParams& chainparams)
     LogPrintf("Initializing databases...\n");
 
     // Only add the genesis block if not reindexing (in which case we reuse the one already on disk)
-    if (!fReindex) {
+    if (!fReindex) { // 如果不再索引只添加创世区块（此时我们重用磁盘上已存在的创世区块所在的区块文件）
         try {
             CBlock &block = const_cast<CBlock&>(chainparams.GenesisBlock());
             // Start new block file
             unsigned int nBlockSize = ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION);
             CDiskBlockPos blockPos;
             CValidationState state;
-            if (!FindBlockPos(state, blockPos, nBlockSize+8, 0, block.GetBlockTime()))
+            if (!FindBlockPos(state, blockPos, nBlockSize+8, 0, block.GetBlockTime())) // 获取区块位置
                 return error("LoadBlockIndex(): FindBlockPos failed");
-            if (!WriteBlockToDisk(block, blockPos, chainparams.MessageStart()))
+            if (!WriteBlockToDisk(block, blockPos, chainparams.MessageStart())) // 把区块信息写到磁盘
                 return error("LoadBlockIndex(): writing genesis block to disk failed");
-            CBlockIndex *pindex = AddToBlockIndex(block);
-            if (!ReceivedBlockTransactions(block, state, pindex, blockPos))
+            CBlockIndex *pindex = AddToBlockIndex(block); // 添加到区块索引
+            if (!ReceivedBlockTransactions(block, state, pindex, blockPos)) // 接收区块交易
                 return error("LoadBlockIndex(): genesis block not accepted");
-            if (!ActivateBestChain(state, chainparams, &block))
+            if (!ActivateBestChain(state, chainparams, &block)) // 激活最佳链
                 return error("LoadBlockIndex(): genesis block cannot be activated");
             // Force a chainstate write so that when we VerifyDB in a moment, it doesn't check stale data
             return FlushStateToDisk(state, FLUSH_STATE_ALWAYS);

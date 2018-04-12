@@ -177,36 +177,36 @@ bool CBlockTreeDB::ReadFlag(const std::string &name, bool &fValue) {
 
 bool CBlockTreeDB::LoadBlockIndexGuts()
 {
-    boost::scoped_ptr<CDBIterator> pcursor(NewIterator());
+    boost::scoped_ptr<CDBIterator> pcursor(NewIterator()); // scoped_ptr 是 auto_ptr 的改进，不能复制和赋值，不会转让所有权
 
-    pcursor->Seek(make_pair(DB_BLOCK_INDEX, uint256()));
+    pcursor->Seek(make_pair(DB_BLOCK_INDEX, uint256())); // 游标指向第一个区块
 
     // Load mapBlockIndex
     while (pcursor->Valid()) {
-        boost::this_thread::interruption_point();
+        boost::this_thread::interruption_point(); // 设置断点
         std::pair<char, uint256> key;
         if (pcursor->GetKey(key) && key.first == DB_BLOCK_INDEX) {
             CDiskBlockIndex diskindex;
-            if (pcursor->GetValue(diskindex)) {
+            if (pcursor->GetValue(diskindex)) { // 获取区块索引信息，并构建区块索引
                 // Construct block index object
-                CBlockIndex* pindexNew = InsertBlockIndex(diskindex.GetBlockHash());
-                pindexNew->pprev          = InsertBlockIndex(diskindex.hashPrev);
-                pindexNew->nHeight        = diskindex.nHeight;
-                pindexNew->nFile          = diskindex.nFile;
-                pindexNew->nDataPos       = diskindex.nDataPos;
-                pindexNew->nUndoPos       = diskindex.nUndoPos;
-                pindexNew->nVersion       = diskindex.nVersion;
-                pindexNew->hashMerkleRoot = diskindex.hashMerkleRoot;
-                pindexNew->nTime          = diskindex.nTime;
-                pindexNew->nBits          = diskindex.nBits;
-                pindexNew->nNonce         = diskindex.nNonce;
-                pindexNew->nStatus        = diskindex.nStatus;
-                pindexNew->nTx            = diskindex.nTx;
+                CBlockIndex* pindexNew = InsertBlockIndex(diskindex.GetBlockHash()); // 新建一个区块索引对象
+                pindexNew->pprev          = InsertBlockIndex(diskindex.hashPrev); // 前一个区块的索引
+                pindexNew->nHeight        = diskindex.nHeight; // 区块高度
+                pindexNew->nFile          = diskindex.nFile; // 所在文件 ?????
+                pindexNew->nDataPos       = diskindex.nDataPos; // blk 文件中该区块数据的位移
+                pindexNew->nUndoPos       = diskindex.nUndoPos; // rev 文件中 pending
+                pindexNew->nVersion       = diskindex.nVersion; // 版本
+                pindexNew->hashMerkleRoot = diskindex.hashMerkleRoot; // 默尔克树根
+                pindexNew->nTime          = diskindex.nTime; // 时间戳
+                pindexNew->nBits          = diskindex.nBits; // 难度
+                pindexNew->nNonce         = diskindex.nNonce; // 随机数
+                pindexNew->nStatus        = diskindex.nStatus; // 区块状态 enum BlockStatus
+                pindexNew->nTx            = diskindex.nTx; // 交易数
 
-                if (!CheckProofOfWork(pindexNew->GetBlockHash(), pindexNew->nBits, Params().GetConsensus()))
+                if (!CheckProofOfWork(pindexNew->GetBlockHash(), pindexNew->nBits, Params().GetConsensus())) // 检查工作量证明
                     return error("LoadBlockIndex(): CheckProofOfWork failed: %s", pindexNew->ToString());
 
-                pcursor->Next();
+                pcursor->Next(); // 游标指向下一个区块
             } else {
                 return error("LoadBlockIndex() : failed to read value");
             }
