@@ -561,25 +561,25 @@ struct CImportingNow
 // rev files since they'll be rewritten by the reindex anyway.  This ensures that vinfoBlockFile
 // is in sync with what's actually on disk by the time we start downloading, so that pruning
 // works correctly.
-void CleanupBlockRevFiles()
+void CleanupBlockRevFiles() // 删除某个缺失区块之后的所有区块数据，和前缀为 rev 的文件
 {
     using namespace boost::filesystem;
-    map<string, path> mapBlockFiles;
+    map<string, path> mapBlockFiles; // <?????, path>
 
     // Glob all blk?????.dat and rev?????.dat files from the blocks directory.
     // Remove the rev files immediately and insert the blk file paths into an
     // ordered map keyed by block file index.
     LogPrintf("Removing unusable blk?????.dat and rev?????.dat files for -reindex with -prune\n");
     path blocksdir = GetDataDir() / "blocks";
-    for (directory_iterator it(blocksdir); it != directory_iterator(); it++) {
+    for (directory_iterator it(blocksdir); it != directory_iterator(); it++) { // directory_iterator 默认构造函数，指向目录尾部
         if (is_regular_file(*it) &&
             it->path().filename().string().length() == 12 &&
             it->path().filename().string().substr(8,4) == ".dat")
-        {
+        { // 文件校验（包括文件名）
             if (it->path().filename().string().substr(0,3) == "blk")
                 mapBlockFiles[it->path().filename().string().substr(3,5)] = it->path();
             else if (it->path().filename().string().substr(0,3) == "rev")
-                remove(it->path());
+                remove(it->path()); // 移除所有 rev 文件
         }
     }
 
@@ -587,7 +587,7 @@ void CleanupBlockRevFiles()
     // zero by walking the ordered map (keys are block file indices) by
     // keeping a separate counter.  Once we hit a gap (or if 0 doesn't exist)
     // start removing block files.
-    int nContigCounter = 0;
+    int nContigCounter = 0; // 检查缺失的 blk 文件，删除缺失的 blk 后的所有 blk 文件
     BOOST_FOREACH(const PAIRTYPE(string, path)& item, mapBlockFiles) {
         if (atoi(item.first) == nContigCounter) {
             nContigCounter++;
@@ -1261,7 +1261,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
 
     // ********************************************************* Step 7: load block chain // 加载区块链数据，区块数据目录 blocks
 
-    fReindex = GetBoolArg("-reindex", false); // 再索引标志，默认关闭
+    fReindex = GetBoolArg("-reindex", false); // 再索引标志（重新生成 rev 文件），默认关闭
 
     // Upgrading to 0.8; hard-link the old blknnnn.dat files into /blocks/
     boost::filesystem::path blocksDir = GetDataDir() / "blocks"; // 兼容老版的区块格式，区块文件扩容
@@ -1330,7 +1330,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
                 if (fReindex) { // 默认 false
                     pblocktree->WriteReindexing(true); // 写入再索引，区块数据库 leveldb
                     //If we're reindexing in prune mode, wipe away unusable block files and all undo data files
-                    if (fPruneMode) // 如果我们在修剪模式中再索引，
+                    if (fPruneMode) // 如果我们在修剪模式（修剪已确认的区块）中再索引，
                         CleanupBlockRevFiles(); // 清空无用的块文件（blk）和所有恢复数据文件（rev）
                 }
 
