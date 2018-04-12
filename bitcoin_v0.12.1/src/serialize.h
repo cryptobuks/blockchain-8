@@ -168,7 +168,7 @@ enum
  * code. Adding "ADD_SERIALIZE_METHODS" in the body of the class causes these wrappers to be
  * added as members. 
  */
-#define ADD_SERIALIZE_METHODS                                                          \
+#define ADD_SERIALIZE_METHODS                                                          \ // 用于序列化数据结构，方便存储和传输
     size_t GetSerializeSize(int nType, int nVersion) const {                         \
         CSizeComputer s(nType, nVersion);                                            \
         NCONST_PTR(this)->SerializationOp(s, CSerActionSerialize(), nType, nVersion);\
