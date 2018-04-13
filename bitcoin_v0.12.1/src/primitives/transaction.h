@@ -198,7 +198,7 @@ struct CMutableTransaction;
 /** The basic transaction that is broadcasted on the network and contained in
  * blocks.  A transaction can contain multiple inputs and outputs.
  */
-class CTransaction // 该交易为不易变版本，一经生成不能改变
+class CTransaction // 该交易为不易变版本，一经生成不能改变（网络中广播和区块打包）
 {
 private:
     /** Memory only. */
@@ -207,7 +207,7 @@ private:
 
 public:
     // Default transaction version.
-    static const int32_t CURRENT_VERSION=1;
+    static const int32_t CURRENT_VERSION=1; // 默认交易版本
 
     // Changing the default transaction version requires a two step process: first
     // adapting relay policy by bumping MAX_STANDARD_VERSION, and then later date
@@ -220,10 +220,10 @@ public:
     // actually immutable; deserialization and assignment are implemented,
     // and bypass the constness. This is safe, as they update the entire
     // structure, including the hash.
-    const int32_t nVersion;
-    const std::vector<CTxIn> vin;
-    const std::vector<CTxOut> vout;
-    const uint32_t nLockTime;
+    const int32_t nVersion; // 交易版本
+    const std::vector<CTxIn> vin; // 交易输入
+    const std::vector<CTxOut> vout; // 交易输出
+    const uint32_t nLockTime; // 锁定时间
 
     /** Construct a CTransaction that qualifies as IsNull() */
     CTransaction();
@@ -255,7 +255,7 @@ public:
     }
 
     // Return sum of txouts.
-    CAmount GetValueOut() const;
+    CAmount GetValueOut() const; // 返回交易输出总和
     // GetValueIn() is a method on CCoinsViewCache, because
     // inputs must be known to compute value in.
 
@@ -265,7 +265,7 @@ public:
     // Compute modified tx size for priority calculation (optionally given tx size)
     unsigned int CalculateModifiedSize(unsigned int nTxSize=0) const;
 
-    bool IsCoinBase() const
+    bool IsCoinBase() const // 判断是否为创币交易
     {
         return (vin.size() == 1 && vin[0].prevout.IsNull());
     }

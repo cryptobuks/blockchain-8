@@ -70,32 +70,32 @@ class CTxMemPool;
  *
  */
 
-class CTxMemPoolEntry
+class CTxMemPoolEntry // 交易池中交易的基本条目
 {
 private:
-    CTransaction tx;
-    CAmount nFee; //! Cached to avoid expensive parent-transaction lookups
-    size_t nTxSize; //! ... and avoid recomputing tx size
-    size_t nModSize; //! ... and modified size for priority
-    size_t nUsageSize; //! ... and total memory usage
-    int64_t nTime; //! Local time when entering the mempool
-    double entryPriority; //! Priority when entering the mempool
-    unsigned int entryHeight; //! Chain height when entering the mempool
+    CTransaction tx; // 一笔交易
+    CAmount nFee; //! Cached to avoid expensive parent-transaction lookups // 交易费
+    size_t nTxSize; //! ... and avoid recomputing tx size // 交易大小 "size"
+    size_t nModSize; //! ... and modified size for priority // 
+    size_t nUsageSize; //! ... and total memory usage // 总内存用量 "usage"
+    int64_t nTime; //! Local time when entering the mempool // 时间戳
+    double entryPriority; //! Priority when entering the mempool // 优先级
+    unsigned int entryHeight; //! Chain height when entering the mempool // 当前链的高度
     bool hadNoDependencies; //! Not dependent on any other txs when it entered the mempool
     CAmount inChainInputValue; //! Sum of all txin values that are already in blockchain
     bool spendsCoinbase; //! keep track of transactions that spend a coinbase
     unsigned int sigOpCount; //! Legacy sig ops plus P2SH sig op count
-    int64_t feeDelta; //! Used for determining the priority of the transaction for mining in a block
-    LockPoints lockPoints; //! Track the height and time at which tx was final
+    int64_t feeDelta; //! Used for determining the priority of the transaction for mining in a block // 用来确认交易优先级，用于挖矿打包到一个块
+    LockPoints lockPoints; //! Track the height and time at which tx was final // 交易最终所在链高度和被打包的时间
 
     // Information about descendants of this transaction that are in the
     // mempool; if we remove this transaction we must remove all of these
     // descendants as well.  if nCountWithDescendants is 0, treat this entry as
     // dirty, and nSizeWithDescendants and nModFeesWithDescendants will not be
     // correct.
-    uint64_t nCountWithDescendants; //! number of descendant transactions
-    uint64_t nSizeWithDescendants;  //! ... and size
-    CAmount nModFeesWithDescendants;  //! ... and total fees (all including us)
+    uint64_t nCountWithDescendants; //! number of descendant transactions // 子孙交易的数量
+    uint64_t nSizeWithDescendants;  //! ... and size // 子孙交易的大小
+    CAmount nModFeesWithDescendants;  //! ... and total fees (all including us) // 总费用（自身和所有子孙）
 
 public:
     CTxMemPoolEntry(const CTransaction& _tx, const CAmount& _nFee,
@@ -121,12 +121,12 @@ public:
     const LockPoints& GetLockPoints() const { return lockPoints; }
 
     // Adjusts the descendant state, if this entry is not dirty.
-    void UpdateState(int64_t modifySize, CAmount modifyFee, int64_t modifyCount);
+    void UpdateState(int64_t modifySize, CAmount modifyFee, int64_t modifyCount); // 更新子孙状态
     // Updates the fee delta used for mining priority score, and the
     // modified fees with descendants.
-    void UpdateFeeDelta(int64_t feeDelta);
+    void UpdateFeeDelta(int64_t feeDelta); // 更新 feeDelta，并修改子孙交易费用
     // Update the LockPoints after a reorg
-    void UpdateLockPoints(const LockPoints& lp);
+    void UpdateLockPoints(const LockPoints& lp); // 更新 LockPoint
 
     /** We can set the entry to be dirty if doing the full calculation of in-
      *  mempool descendants will be too expensive, which can potentially happen
@@ -354,18 +354,18 @@ public:
 class CTxMemPool
 {
 private:
-    uint32_t nCheckFrequency; //! Value n means that n times in 2^32 we check.
-    unsigned int nTransactionsUpdated;
+    uint32_t nCheckFrequency; //! Value n means that n times in 2^32 we check. // 在 pow(2, 32) 时间内检查的次数
+    unsigned int nTransactionsUpdated; //
     CBlockPolicyEstimator* minerPolicyEstimator;
 
-    uint64_t totalTxSize; //! sum of all mempool tx' byte sizes
-    uint64_t cachedInnerUsage; //! sum of dynamic memory usage of all the map elements (NOT the maps themselves)
+    uint64_t totalTxSize; //! sum of all mempool tx' byte sizes // 交易池中所有交易总的字节大小
+    uint64_t cachedInnerUsage; //! sum of dynamic memory usage of all the map elements (NOT the maps themselves) // 所有 map 元素使用动态内存总和
 
     CFeeRate minReasonableRelayFee;
 
     mutable int64_t lastRollingFeeUpdate;
     mutable bool blockSinceLastRollingFeeBump;
-    mutable double rollingMinimumFeeRate; //! minimum fee to get into the pool, decreases exponentially
+    mutable double rollingMinimumFeeRate; //! minimum fee to get into the pool, decreases exponentially // 放入内存池的最小费用
 
     void trackPackageRemoved(const CFeeRate& rate);
 
@@ -376,19 +376,19 @@ public:
     typedef boost::multi_index_container<
         CTxMemPoolEntry,
         boost::multi_index::indexed_by<
-            // sorted by txid
+            // sorted by txid // 1.根据交易 id/hash 排序
             boost::multi_index::ordered_unique<mempoolentry_txid>,
-            // sorted by fee rate
+            // sorted by fee rate // 2.根据交易费排序
             boost::multi_index::ordered_non_unique<
                 boost::multi_index::identity<CTxMemPoolEntry>,
                 CompareTxMemPoolEntryByDescendantScore
             >,
-            // sorted by entry time
+            // sorted by entry time // 3.根据条目时间排序
             boost::multi_index::ordered_non_unique<
                 boost::multi_index::identity<CTxMemPoolEntry>,
                 CompareTxMemPoolEntryByEntryTime
                 >,
-            // sorted by score (for mining prioritization)
+            // sorted by score (for mining prioritization) // 4.根据分数排序
             boost::multi_index::ordered_unique<
                 boost::multi_index::identity<CTxMemPoolEntry>,
                 CompareTxMemPoolEntryByScore
@@ -439,7 +439,7 @@ public:
      * consistent (does not contain two transactions that spend the same inputs,
      * all inputs are in the mapNextTx array). If sanity-checking is turned off,
      * check does nothing.
-     */
+     */ // 若开启了 sanity-checking，函数 check 确保内存池的一致性（即不包含双花交易，所有的输入都在 mapNextTx 数组中）。
     void check(const CCoinsViewCache *pcoins) const;
     void setSanityCheck(double dFrequency = 1.0) { nCheckFrequency = dFrequency * 4294967295.0; }
 
@@ -465,9 +465,9 @@ public:
      * Check that none of this transactions inputs are in the mempool, and thus
      * the tx is not dependent on other mempool transactions to be included in a block.
      */
-    bool HasNoInputsOf(const CTransaction& tx) const;
+    bool HasNoInputsOf(const CTransaction& tx) const; // 检查交易的输入是否在当前的内存池中
 
-    /** Affect CreateNewBlock prioritisation of transactions */
+    /** Affect CreateNewBlock prioritisation of transactions */ // 调整 CreateNewBlock 时交易的优先级
     void PrioritiseTransaction(const uint256 hash, const std::string strHash, double dPriorityDelta, const CAmount& nFeeDelta);
     void ApplyDeltas(const uint256 hash, double &dPriorityDelta, CAmount &nFeeDelta) const;
     void ClearPrioritisation(const uint256 hash);
@@ -475,7 +475,7 @@ public:
 public:
     /** Remove a set of transactions from the mempool.
      *  If a transaction is in this set, then all in-mempool descendants must
-     *  also be in the set.*/
+     *  also be in the set.*/ // 从内存池中移除一个交易集合。如果一笔交易在该集合里，那么所有子交易必须在该集合里
     void RemoveStaged(setEntries &stage);
 
     /** When adding transactions from a disconnected block back to the mempool,
@@ -487,7 +487,7 @@ public:
      *  for).  Note: hashesToUpdate should be the set of transactions from the
      *  disconnected block that have been accepted back into the mempool.
      */
-    void UpdateTransactionsFromBlock(const std::vector<uint256> &hashesToUpdate);
+    void UpdateTransactionsFromBlock(const std::vector<uint256> &hashesToUpdate); // 从竞争失败的块中更新交易到内存池
 
     /** Try to calculate all in-mempool ancestors of entry.
      *  (these are all calculated including the tx itself)
@@ -498,7 +498,7 @@ public:
      *  errString = populated with error reason if any limits are hit
      *  fSearchForParents = whether to search a tx's vin for in-mempool parents, or
      *    look up parents from mapLinks. Must be true for entries not in the mempool
-     */
+     */ // 尝试计算内存池里所有条目的祖先
     bool CalculateMemPoolAncestors(const CTxMemPoolEntry &entry, setEntries &setAncestors, uint64_t limitAncestorCount, uint64_t limitAncestorSize, uint64_t limitDescendantCount, uint64_t limitDescendantSize, std::string &errString, bool fSearchForParents = true);
 
     /** Populate setDescendants with all in-mempool descendants of hash.
@@ -511,17 +511,17 @@ public:
       *  The minReasonableRelayFee constructor arg is used to bound the time it
       *  takes the fee rate to go back down all the way to 0. When the feerate
       *  would otherwise be half of this, it is set to 0 instead.
-      */
+      */ // 获取进入内存池所需的最小费用，可能本身不支持大型交易。
     CFeeRate GetMinFee(size_t sizelimit) const;
 
     /** Remove transactions from the mempool until its dynamic size is <= sizelimit.
       *  pvNoSpendsRemaining, if set, will be populated with the list of transactions
       *  which are not in mempool which no longer have any spends in this mempool.
-      */
+      */ // 移除内存池中动态大小超过 sizelimit 的交易。
     void TrimToSize(size_t sizelimit, std::vector<uint256>* pvNoSpendsRemaining=NULL);
 
     /** Expire all transaction (and their dependencies) in the mempool older than time. Return the number of removed transactions. */
-    int Expire(int64_t time);
+    int Expire(int64_t time); // 移除内存池中所有 time 之前的交易和其子孙交易。返回成功移除交易的数量。
 
     unsigned long size()
     {
