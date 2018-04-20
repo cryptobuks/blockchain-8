@@ -23,7 +23,7 @@ def getdifficulty():
 def getnetworkhashps():
     return json_rpc("getnetworkhashps", [])
 
-def p2pool_func():
+def rpc_func():
     print("info:")
     print(getinfo())
     print("\nbestblockinfo:")
@@ -37,5 +37,5 @@ if __name__ == "__main__":
     url = "http://127.0.0.1:8332"
     auth=("rpcuser", "rpcpassword")
     while (1):
-        p2pool_func()
+        rpc_func()
         time.sleep(7)
