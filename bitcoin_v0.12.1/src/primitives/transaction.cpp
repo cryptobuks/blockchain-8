@@ -89,7 +89,7 @@ CTransaction& CTransaction::operator=(const CTransaction &tx) {
 
 CAmount CTransaction::GetValueOut() const
 {
-    CAmount nValueOut = 0;
+    CAmount nValueOut = 0; // 记录输出金额总和
     for (std::vector<CTxOut>::const_iterator it(vout.begin()); it != vout.end(); ++it)
     {
         nValueOut += it->nValue;
