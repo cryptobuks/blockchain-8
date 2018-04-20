@@ -24,14 +24,11 @@ def getnetworkhashps():
     return json_rpc("getnetworkhashps", [])
 
 def rpc_func():
-    print("info:")
-    print(getinfo())
-    print("\nbestblockinfo:")
-    print(getbestblockinfo())
-    print("\ndifficulty:")
-    print(getdifficulty())
-    print("\nnetworkhashps:")
-    print(getnetworkhashps())
+    print("----------------------------------------")
+    print("info:\n" + str(getinfo()))
+    print("\nbestblockinfo:\n" + str(getbestblockinfo()))
+    print("\ndifficulty:\n" + str(getdifficulty()))
+    print("\nnetworkhashps:\n" + str(getnetworkhashps()))
 
 if __name__ == "__main__":
     url = "http://127.0.0.1:8332"
