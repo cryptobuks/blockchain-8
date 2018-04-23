@@ -192,11 +192,11 @@ std::vector<HTTPPathHandler> pathHandlers; // http 请求路径对应的处理函数列表
 std::vector<evhttp_bound_socket *> boundSockets; // 已绑定的 http socket 列表
 
 /** Check if a network address is allowed to access the HTTP server */
-static bool ClientAllowed(const CNetAddr& netaddr)
+static bool ClientAllowed(const CNetAddr& netaddr) // 检查一个网络地址是否被允许访问 HTTP 服务器
 {
-    if (!netaddr.IsValid())
+    if (!netaddr.IsValid()) // 检查地址有效性
         return false;
-    BOOST_FOREACH (const CSubNet& subnet, rpc_allow_subnets)
+    BOOST_FOREACH (const CSubNet& subnet, rpc_allow_subnets) // 遍历 ACL 访问控制列表，并与指定地址比对
         if (subnet.Match(netaddr))
             return true;
     return false;
@@ -258,13 +258,13 @@ static void http_request_cb(struct evhttp_request* req, void* arg)
              RequestMethodString(hreq->GetRequestMethod()), hreq->GetURI(), hreq->GetPeer().ToString());
 
     // Early address-based allow check
-    if (!ClientAllowed(hreq->GetPeer())) {
+    if (!ClientAllowed(hreq->GetPeer())) { // 检查请求连入地址是否被允许，即是否存在于 ACL 访问控制列表中
         hreq->WriteReply(HTTP_FORBIDDEN);
         return;
     }
 
     // Early reject unknown HTTP methods
-    if (hreq->GetRequestMethod() == HTTPRequest::UNKNOWN) {
+    if (hreq->GetRequestMethod() == HTTPRequest::UNKNOWN) { // 提前拒绝未知方法
         hreq->WriteReply(HTTP_BADMETHOD);
         return;
     }
