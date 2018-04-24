@@ -881,25 +881,25 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
         fDebug = false;
 
     // Check for -debugnet
-    if (GetBoolArg("-debugnet", false))
+    if (GetBoolArg("-debugnet", false)) // -debugnet 参数，默认关闭，限制不支持改参数，使用 -debug=net
         InitWarning(_("Unsupported argument -debugnet ignored, use -debug=net."));
     // Check for -socks - as this is a privacy risk to continue, exit here
-    if (mapArgs.count("-socks"))
+    if (mapArgs.count("-socks")) // -socks 已不被支持，现只支持 SOCKS5 proxies
         return InitError(_("Unsupported argument -socks found. Setting SOCKS version isn't possible anymore, only SOCKS5 proxies are supported."));
     // Check for -tor - as this is a privacy risk to continue, exit here
-    if (GetBoolArg("-tor", false))
+    if (GetBoolArg("-tor", false)) // -tor 参数是一个隐藏风险，现使用 -onion 参数
         return InitError(_("Unsupported argument -tor found, use -onion."));
 
-    if (GetBoolArg("-benchmark", false))
+    if (GetBoolArg("-benchmark", false)) // -benchmark 参数已不支持，使用 -debug=bench
         InitWarning(_("Unsupported argument -benchmark ignored, use -debug=bench."));
 
-    if (GetBoolArg("-whitelistalwaysrelay", false))
+    if (GetBoolArg("-whitelistalwaysrelay", false)) // -whitelistalwaysrelay 参数不再支持，使用 -whitelistrelay 或 -whitelistforcerelay
         InitWarning(_("Unsupported argument -whitelistalwaysrelay ignored, use -whitelistrelay and/or -whitelistforcerelay."));
 
     // Checkmempool and checkblockindex default to true in regtest mode
-    int ratio = std::min<int>(std::max<int>(GetArg("-checkmempool", chainparams.DefaultConsistencyChecks() ? 1 : 0), 0), 1000000);
-    if (ratio != 0) {
-        mempool.setSanityCheck(1.0 / ratio);
+    int ratio = std::min<int>(std::max<int>(GetArg("-checkmempool", chainparams.DefaultConsistencyChecks() ? 1 : 0), 0), 1000000); // 1 or 0 对应 true or false，主网默认关闭
+    if (ratio != 0) { // true
+        mempool.setSanityCheck(1.0 / ratio); // 交易内存池设置完整性检查频率
     }
     fCheckBlockIndex = GetBoolArg("-checkblockindex", chainparams.DefaultConsistencyChecks()); // 检查区块索引标志，默认：主网、测试网关闭，回归测试网打开
     fCheckpointsEnabled = GetBoolArg("-checkpoints", DEFAULT_CHECKPOINTS_ENABLED); // 检测点可用，默认打开
@@ -922,13 +922,13 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
     fServer = GetBoolArg("-server", false); // 服务选项，3.8.已设置为 true
 
     // block pruning; get the amount of disk space (in MiB) to allot for block & undo files
-    int64_t nSignedPruneTarget = GetArg("-prune", 0) * 1024 * 1024;
+    int64_t nSignedPruneTarget = GetArg("-prune", 0) * 1024 * 1024; // 0 表示禁止修剪区块
     if (nSignedPruneTarget < 0) {
         return InitError(_("Prune cannot be configured with a negative value."));
     }
-    nPruneTarget = (uint64_t) nSignedPruneTarget;
-    if (nPruneTarget) {
-        if (nPruneTarget < MIN_DISK_SPACE_FOR_BLOCK_FILES) {
+    nPruneTarget = (uint64_t) nSignedPruneTarget; // 0 或大于 0
+    if (nPruneTarget) { // 0 表示禁止，大于 0 表示开启修剪模式
+        if (nPruneTarget < MIN_DISK_SPACE_FOR_BLOCK_FILES) { // 修剪得目标大于等于 550 MB，为什么？
             return InitError(strprintf(_("Prune configured below the minimum of %d MiB.  Please use a higher number."), MIN_DISK_SPACE_FOR_BLOCK_FILES / 1024 / 1024));
         }
         LogPrintf("Prune configured to target %uMiB on disk for block and undo files.\n", nPruneTarget / 1024 / 1024);
