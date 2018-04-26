@@ -637,7 +637,7 @@ int RaiseFileDescriptorLimit(int nMinFD) {
     return 2048;
 #else
     struct rlimit limitFD;
-    if (getrlimit(RLIMIT_NOFILE, &limitFD) != -1) { // RLIMIT_NOFILE 内核默认 1024，表示每个进程最大能打开的文件描述符数量
+    if (getrlimit(RLIMIT_NOFILE, &limitFD) != -1) { // RLIMIT_NOFILE 内核默认 1024，表示每个进程最大能打开的文件描述符数量，linux-4.16.4 src 中定义为 5、6、7
         if (limitFD.rlim_cur < (rlim_t)nMinFD) { // rlim_cur 为 Soft limit 是内核对一个进程能使用的资源的限制，而 rlim_max 为 Hard limit 是 Soft limit 的上限
             limitFD.rlim_cur = nMinFD;
             if (limitFD.rlim_cur > limitFD.rlim_max)

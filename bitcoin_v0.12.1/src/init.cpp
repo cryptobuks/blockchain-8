@@ -911,7 +911,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
         return InitError(strprintf(_("-maxmempool must be at least %d MB"), std::ceil(nMempoolSizeMin / 1000000.0)));
 
     // -par=0 means autodetect, but nScriptCheckThreads==0 means no concurrency
-    nScriptCheckThreads = GetArg("-par", DEFAULT_SCRIPTCHECK_THREADS); // 脚本检测线程数，默认为 0（意味着无并发）
+    nScriptCheckThreads = GetArg("-par", DEFAULT_SCRIPTCHECK_THREADS); // 脚本检测线程数，默认为 0
     if (nScriptCheckThreads <= 0)
         nScriptCheckThreads += GetNumCores(); // 每个核一个脚本检测线程，默认
     if (nScriptCheckThreads <= 1)
@@ -1041,27 +1041,27 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
 
     // Initialize elliptic curve code
     ECC_Start(); // 椭圆曲线编码启动
-    globalVerifyHandle.reset(new ECCVerifyHandle());
+    globalVerifyHandle.reset(new ECCVerifyHandle()); // pending
 
     // Sanity check
-    if (!InitSanityCheck())
+    if (!InitSanityCheck()) // 初始化完整性检查 pending
         return InitError(_("Initialization sanity check failed. Bitcoin Core is shutting down."));
 
     std::string strDataDir = GetDataDir().string();
-#ifdef ENABLE_WALLET
+#ifdef ENABLE_WALLET // 若开启钱包功能
     // Wallet file must be a plain filename without a directory
-    if (strWalletFile != boost::filesystem::basename(strWalletFile) + boost::filesystem::extension(strWalletFile))
+    if (strWalletFile != boost::filesystem::basename(strWalletFile) + boost::filesystem::extension(strWalletFile)) // 验证钱包文件名的完整性，basename 获取文件基础名 "wallet"，extension 获取文件扩展名 ".dat"
         return InitError(strprintf(_("Wallet %s resides outside data directory %s"), strWalletFile, strDataDir));
-#endif
+#endif // 钱包名校验结束
     // Make sure only a single Bitcoin process is using the data directory.
-    boost::filesystem::path pathLockFile = GetDataDir() / ".lock";
+    boost::filesystem::path pathLockFile = GetDataDir() / ".lock"; // 空的 lock 隐藏文件，作用：作为临界资源，保证当前只有一个 Bitcoin 进程使用数据目录
     FILE* file = fopen(pathLockFile.string().c_str(), "a"); // empty lock file; created if it doesn't exist.
-    if (file) fclose(file);
+    if (file) fclose(file); // 若文件正常打开则关闭该空文件
 
     try {
-        static boost::interprocess::file_lock lock(pathLockFile.string().c_str());
-        if (!lock.try_lock())
-            return InitError(strprintf(_("Cannot obtain a lock on data directory %s. Bitcoin Core is probably already running."), strDataDir));
+        static boost::interprocess::file_lock lock(pathLockFile.string().c_str()); // 初始化文件锁对象
+        if (!lock.try_lock()) // 上锁
+            return InitError(strprintf(_("Cannot obtain a lock on data directory %s. Bitcoin Core is probably already running."), strDataDir)); // 第二个进程会在这里上锁失败并退出
     } catch(const boost::interprocess::interprocess_exception& e) {
         return InitError(strprintf(_("Cannot obtain a lock on data directory %s. Bitcoin Core is probably already running.") + " %s.", strDataDir, e.what()));
     }
@@ -1070,10 +1070,10 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
     CreatePidFile(GetPidFile(), getpid()); // 非 win32 环境下，创建 pid 文件（记录当前 bitcoind 的进程号）
 #endif
     if (GetBoolArg("-shrinkdebugfile", !fDebug)) // 收缩调试日志文件
-        ShrinkDebugFile();
+        ShrinkDebugFile(); // pending
 
     if (fPrintToDebugLog) // 打印到调试日志标志，默认打开
-        OpenDebugLog();
+        OpenDebugLog(); // pending
 
 #ifdef ENABLE_WALLET
     LogPrintf("Using BerkeleyDB version %s\n", DbEnv::version(0, 0, 0)); // 钱包使用 BerkeleyDB
@@ -1084,12 +1084,12 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
     LogPrintf("Using data directory %s\n", strDataDir); // 记录当前指定使用的数据目录
     LogPrintf("Using config file %s\n", GetConfigFile().string()); // 记录使用的配置文件
     LogPrintf("Using at most %i connections (%i file descriptors available)\n", nMaxConnections, nFD); // 记录最大连接数（可用的文件描述符数量）
-    std::ostringstream strErrors;
+    std::ostringstream strErrors; // 错误信息的字符串输出流
 
     LogPrintf("Using %u threads for script verification\n", nScriptCheckThreads); // 记录脚本验证线程数（默认为 CPU 核数）
-    if (nScriptCheckThreads) { // 创建响应数量的脚本验证线程
+    if (nScriptCheckThreads) { // 创建相应数量的脚本验证线程
         for (int i=0; i<nScriptCheckThreads-1; i++)
-            threadGroup.create_thread(&ThreadScriptCheck);
+            threadGroup.create_thread(&ThreadScriptCheck); // CCheckQueue 类中的 loop 成员函数 pending
     }
 
     // Start the lightweight task scheduler thread
@@ -1108,7 +1108,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
             return InitError(_("Unable to start HTTP server. See debug log for details."));
     }
 
-    int64_t nStart;
+    int64_t nStart; // 启动标志
 
     // ********************************************************* Step 5: verify wallet database integrity // 若启用钱包功能，则验证钱包数据库的完整性
 #ifdef ENABLE_WALLET // 前提，ENABLE_WALLET 在 bitcoin-config.h 中定义，通过 ./configure --disable-wallet 来禁用钱包
