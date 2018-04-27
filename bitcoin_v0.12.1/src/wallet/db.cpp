@@ -78,7 +78,7 @@ bool CDBEnv::Open(const boost::filesystem::path& pathIn)
 
     boost::this_thread::interruption_point();
 
-    strPath = pathIn.string();
+    strPath = pathIn.string(); // 初始化钱包数据库目录
     boost::filesystem::path pathLogDir = pathIn / "database"; // 数据库目录（用于存放日志）的路径
     TryCreateDirectory(pathLogDir); // 尝试创建该目录
     boost::filesystem::path pathErrorFile = pathIn / "db.log"; // 存放错误的日志

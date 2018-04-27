@@ -908,38 +908,38 @@ bool BackupWallet(const CWallet& wallet, const string& strDest)
 //
 bool CWalletDB::Recover(CDBEnv& dbenv, const std::string& filename, bool fOnlyKeys)
 {
-    // Recovery procedure:
-    // move wallet.dat to wallet.timestamp.bak
-    // Call Salvage with fAggressive=true to
+    // Recovery procedure: // 恢复过程：
+    // move wallet.dat to wallet.timestamp.bak // 1.改名：重命名 wallet.dat 为 wallet.timestamp.bak
+    // Call Salvage with fAggressive=true to // 2.
     // get as much data as possible.
     // Rewrite salvaged data to wallet.dat
     // Set -rescan so any missing transactions will be
     // found.
-    int64_t now = GetTime();
-    std::string newFilename = strprintf("wallet.%d.bak", now);
+    int64_t now = GetTime(); // 获取当前的时间戳
+    std::string newFilename = strprintf("wallet.%d.bak", now); // 拼接新数据库文件名
 
     int result = dbenv.dbenv->dbrename(NULL, filename.c_str(), NULL,
-                                       newFilename.c_str(), DB_AUTO_COMMIT);
-    if (result == 0)
-        LogPrintf("Renamed %s to %s\n", filename, newFilename);
+                                       newFilename.c_str(), DB_AUTO_COMMIT); // 数据库文件重命名
+    if (result == 0) // rename 成功
+        LogPrintf("Renamed %s to %s\n", filename, newFilename); // 记录日志
     else
     {
         LogPrintf("Failed to rename %s to %s\n", filename, newFilename);
         return false;
     }
 
-    std::vector<CDBEnv::KeyValPair> salvagedData;
-    bool fSuccess = dbenv.Salvage(newFilename, true, salvagedData);
-    if (salvagedData.empty())
+    std::vector<CDBEnv::KeyValPair> salvagedData; // 挽救数据，KV 键值对
+    bool fSuccess = dbenv.Salvage(newFilename, true, salvagedData); // 挽救钱包并获取挽救的数据
+    if (salvagedData.empty()) // 若挽救的数据为空
     {
-        LogPrintf("Salvage(aggressive) found no records in %s.\n", newFilename);
+        LogPrintf("Salvage(aggressive) found no records in %s.\n", newFilename); // 表明没有在新文件中找到记录
         return false;
     }
-    LogPrintf("Salvage(aggressive) found %u records\n", salvagedData.size());
+    LogPrintf("Salvage(aggressive) found %u records\n", salvagedData.size()); // 记录挽救数据的大小
 
-    boost::scoped_ptr<Db> pdbCopy(new Db(dbenv.dbenv, 0));
+    boost::scoped_ptr<Db> pdbCopy(new Db(dbenv.dbenv, 0)); // 创建数据库副本堆对象，并打开 Berkeley DB
     int ret = pdbCopy->open(NULL,               // Txn pointer
-                            filename.c_str(),   // Filename
+                            filename.c_str(),   // Filename // e.g. "xx/wallet.dat"
                             "main",             // Logical db name
                             DB_BTREE,           // Database type
                             DB_CREATE,          // Flags
@@ -949,25 +949,25 @@ bool CWalletDB::Recover(CDBEnv& dbenv, const std::string& filename, bool fOnlyKe
         LogPrintf("Cannot create database file %s\n", filename);
         return false;
     }
-    CWallet dummyWallet;
-    CWalletScanState wss;
+    CWallet dummyWallet; // 假钱包
+    CWalletScanState wss; // 钱包扫描状态
 
-    DbTxn* ptxn = dbenv.TxnBegin();
-    BOOST_FOREACH(CDBEnv::KeyValPair& row, salvagedData)
+    DbTxn* ptxn = dbenv.TxnBegin(); // 交易指针指向交易集中的第一笔交易
+    BOOST_FOREACH(CDBEnv::KeyValPair& row, salvagedData) // 反复获取挽救的数据的一行
     {
-        if (fOnlyKeys)
+        if (fOnlyKeys) // true
         {
-            CDataStream ssKey(row.first, SER_DISK, CLIENT_VERSION);
-            CDataStream ssValue(row.second, SER_DISK, CLIENT_VERSION);
+            CDataStream ssKey(row.first, SER_DISK, CLIENT_VERSION); // key
+            CDataStream ssValue(row.second, SER_DISK, CLIENT_VERSION); // value
             string strType, strErr;
             bool fReadOK;
             {
                 // Required in LoadKeyMetadata():
-                LOCK(dummyWallet.cs_wallet);
+                LOCK(dummyWallet.cs_wallet); // 假钱包上锁
                 fReadOK = ReadKeyValue(&dummyWallet, ssKey, ssValue,
-                                        wss, strType, strErr);
+                                        wss, strType, strErr); // 把键值对读入假钱包
             }
-            if (!IsKeyType(strType))
+            if (!IsKeyType(strType)) // 非 Key 类型
                 continue;
             if (!fReadOK)
             {
@@ -977,12 +977,12 @@ bool CWalletDB::Recover(CDBEnv& dbenv, const std::string& filename, bool fOnlyKe
         }
         Dbt datKey(&row.first[0], row.first.size());
         Dbt datValue(&row.second[0], row.second.size());
-        int ret2 = pdbCopy->put(ptxn, &datKey, &datValue, DB_NOOVERWRITE);
+        int ret2 = pdbCopy->put(ptxn, &datKey, &datValue, DB_NOOVERWRITE); // 放入数据库副本
         if (ret2 > 0)
             fSuccess = false;
     }
     ptxn->commit(0);
-    pdbCopy->close(0);
+    pdbCopy->close(0); // 关闭数据库副本
 
     return fSuccess;
 }
