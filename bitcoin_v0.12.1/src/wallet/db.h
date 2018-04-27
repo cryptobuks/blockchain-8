@@ -25,7 +25,7 @@ static const bool DEFAULT_WALLET_PRIVDB = true;
 
 extern unsigned int nWalletDBUpdated;
 
-class CDBEnv
+class CDBEnv // 数据库环境
 {
 private:
     bool fDbEnvInit;
@@ -91,7 +91,7 @@ extern CDBEnv bitdb;
 
 
 /** RAII class that provides access to a Berkeley database */
-class CDB
+class CDB // 数据库（提供访问 Berkeley 数据库的 RAII 类）
 {
 protected:
     Db* pdb;

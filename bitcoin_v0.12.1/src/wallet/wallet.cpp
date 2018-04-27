@@ -365,20 +365,20 @@ void CWallet::Flush(bool shutdown)
 
 bool CWallet::Verify(const string& walletFile, string& warningString, string& errorString)
 {
-    if (!bitdb.Open(GetDataDir()))
-    {
+    if (!bitdb.Open(GetDataDir())) // 打开数据库
+    { // 失败时
         // try moving the database env out of the way
         boost::filesystem::path pathDatabase = GetDataDir() / "database";
         boost::filesystem::path pathDatabaseBak = GetDataDir() / strprintf("database.%d.bak", GetTime());
         try {
-            boost::filesystem::rename(pathDatabase, pathDatabaseBak);
+            boost::filesystem::rename(pathDatabase, pathDatabaseBak); // 重命名 pathDatabase 为 pathDatabaseBak，允许失败
             LogPrintf("Moved old %s to %s. Retrying.\n", pathDatabase.string(), pathDatabaseBak.string());
         } catch (const boost::filesystem::filesystem_error&) {
             // failure is ok (well, not really, but it's not worse than what we started with)
         }
         
         // try again
-        if (!bitdb.Open(GetDataDir())) {
+        if (!bitdb.Open(GetDataDir())) { // 再次打开数据库，若仍然失败，可能意味着我们无法创建数据库环境
             // if it still fails, it probably means we can't even create the database env
             string msg = strprintf(_("Error initializing wallet database environment %s!"), GetDataDir());
             errorString += msg;
@@ -386,14 +386,14 @@ bool CWallet::Verify(const string& walletFile, string& warningString, string& er
         }
     }
     
-    if (GetBoolArg("-salvagewallet", false))
+    if (GetBoolArg("-salvagewallet", false)) // 拯救钱包选项
     {
         // Recover readable keypairs:
-        if (!CWalletDB::Recover(bitdb, walletFile, true))
+        if (!CWalletDB::Recover(bitdb, walletFile, true)) // 恢复可读的密钥对
             return false;
     }
     
-    if (boost::filesystem::exists(GetDataDir() / walletFile))
+    if (boost::filesystem::exists(GetDataDir() / walletFile)) // 若钱包文件存在
     {
         CDBEnv::VerifyResult r = bitdb.Verify(walletFile, CWalletDB::Recover);
         if (r == CDBEnv::RECOVER_OK)

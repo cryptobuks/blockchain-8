@@ -1112,19 +1112,19 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
 
     // ********************************************************* Step 5: verify wallet database integrity // 若启用钱包功能，则验证钱包数据库的完整性
 #ifdef ENABLE_WALLET // 前提，ENABLE_WALLET 在 bitcoin-config.h 中定义，通过 ./configure --disable-wallet 来禁用钱包
-    if (!fDisableWallet) { // 禁止钱包标志，默认关闭
+    if (!fDisableWallet) { // 禁止钱包标志，默认关闭，即默认打开钱包功能
         LogPrintf("Using wallet %s\n", strWalletFile); // 记录钱包文件名（指定/默认）
         uiInterface.InitMessage(_("Verifying wallet...")); // UI 交互，初始化钱包信息
 
-        std::string warningString;
-        std::string errorString;
+        std::string warningString; // 警告信息
+        std::string errorString; // 错误信息
 
-        if (!CWallet::Verify(strWalletFile, warningString, errorString))
+        if (!CWallet::Verify(strWalletFile, warningString, errorString)) // 验证钱包
             return false;
 
-        if (!warningString.empty())
+        if (!warningString.empty()) // 警告信息非空
             InitWarning(warningString);
-        if (!errorString.empty())
+        if (!errorString.empty()) // 错误信息非空
             return InitError(errorString);
 
     } // (!fDisableWallet)
