@@ -25,14 +25,14 @@ static const bool DEFAULT_WALLET_PRIVDB = true;
 
 extern unsigned int nWalletDBUpdated;
 
-class CDBEnv // 数据库环境
+class CDBEnv // 数据库环境（钱包）
 {
 private:
-    bool fDbEnvInit;
-    bool fMockDb;
+    bool fDbEnvInit; // 数据库环境初始化标志，默认为 false
+    bool fMockDb; // 初始化为 false
     // Don't change into boost::filesystem::path, as that can result in
     // shutdown problems/crashes caused by a static initialized internal pointer.
-    std::string strPath;
+    std::string strPath; // 保存数据库目录的路径
 
     void EnvShutdown();
 
@@ -91,10 +91,10 @@ extern CDBEnv bitdb;
 
 
 /** RAII class that provides access to a Berkeley database */
-class CDB // 数据库（提供访问 Berkeley 数据库的 RAII 类）
+class CDB // （钱包）数据库（提供访问 Berkeley 数据库的 RAII 类）
 {
 protected:
-    Db* pdb;
+    Db* pdb; // 
     std::string strFile;
     DbTxn* activeTxn;
     bool fReadOnly;

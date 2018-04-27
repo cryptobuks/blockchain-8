@@ -73,22 +73,22 @@ void CDBEnv::Close()
 
 bool CDBEnv::Open(const boost::filesystem::path& pathIn)
 {
-    if (fDbEnvInit)
+    if (fDbEnvInit) // 默认为 false
         return true;
 
     boost::this_thread::interruption_point();
 
     strPath = pathIn.string();
-    boost::filesystem::path pathLogDir = pathIn / "database";
-    TryCreateDirectory(pathLogDir);
-    boost::filesystem::path pathErrorFile = pathIn / "db.log";
-    LogPrintf("CDBEnv::Open: LogDir=%s ErrorFile=%s\n", pathLogDir.string(), pathErrorFile.string());
+    boost::filesystem::path pathLogDir = pathIn / "database"; // 数据库目录（用于存放日志）的路径
+    TryCreateDirectory(pathLogDir); // 尝试创建该目录
+    boost::filesystem::path pathErrorFile = pathIn / "db.log"; // 存放错误的日志
+    LogPrintf("CDBEnv::Open: LogDir=%s ErrorFile=%s\n", pathLogDir.string(), pathErrorFile.string()); // 记录 数据库日志目录 和 错误文件
 
     unsigned int nEnvFlags = 0;
-    if (GetBoolArg("-privdb", DEFAULT_WALLET_PRIVDB))
-        nEnvFlags |= DB_PRIVATE;
+    if (GetBoolArg("-privdb", DEFAULT_WALLET_PRIVDB)) // 用于在钱包数据库环境中设置 DB_PRIVATE 标志
+        nEnvFlags |= DB_PRIVATE; // DB_PRIVATE 为 open 选项，表示从堆中分配内存，而不是从文件系统或系统共享内存中（表示该信息为一个进程私有，即它们保存在内存中而非本地化到文件系统）
 
-    dbenv->set_lg_dir(pathLogDir.string().c_str());
+    dbenv->set_lg_dir(pathLogDir.string().c_str()); // 设置数据库日志
     dbenv->set_cachesize(0, 0x100000, 1); // 1 MiB should be enough for just the wallet
     dbenv->set_lg_bsize(0x10000);
     dbenv->set_lg_max(1048576);
@@ -107,11 +107,11 @@ bool CDBEnv::Open(const boost::filesystem::path& pathIn)
                              DB_THREAD |
                              DB_RECOVER |
                              nEnvFlags,
-                         S_IRUSR | S_IWUSR);
+                         S_IRUSR | S_IWUSR); // 打开数据库
     if (ret != 0)
         return error("CDBEnv::Open: Error %d opening database environment: %s\n", ret, DbEnv::strerror(ret));
 
-    fDbEnvInit = true;
+    fDbEnvInit = true; // 初始化完成，把数据库环境初始化标志设置为 true
     fMockDb = false;
     return true;
 }

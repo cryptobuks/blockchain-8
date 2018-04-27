@@ -593,10 +593,10 @@ bool TryCreateDirectory(const boost::filesystem::path& p)
 {
     try
     {
-        return boost::filesystem::create_directory(p);
+        return boost::filesystem::create_directory(p); // 创建目录 p
     } catch (const boost::filesystem::filesystem_error&) {
-        if (!boost::filesystem::exists(p) || !boost::filesystem::is_directory(p))
-            throw;
+        if (!boost::filesystem::exists(p) || !boost::filesystem::is_directory(p)) // 目录 p 不存在 或 存在但非目录类型
+            throw; // 抛出异常
     }
 
     // create_directory didn't create the directory, it had to have existed already

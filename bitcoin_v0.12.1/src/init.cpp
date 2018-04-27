@@ -1119,7 +1119,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
         std::string warningString; // 警告信息
         std::string errorString; // 错误信息
 
-        if (!CWallet::Verify(strWalletFile, warningString, errorString)) // 验证钱包
+        if (!CWallet::Verify(strWalletFile, warningString, errorString)) // 验证钱包数据库
             return false;
 
         if (!warningString.empty()) // 警告信息非空
