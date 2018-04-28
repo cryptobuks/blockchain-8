@@ -910,13 +910,13 @@ bool CWalletDB::Recover(CDBEnv& dbenv, const std::string& filename, bool fOnlyKe
 {
     // Recovery procedure: // 恢复过程：
     // move wallet.dat to wallet.timestamp.bak // 1.改名：重命名 wallet.dat 为 wallet.timestamp.bak
-    // Call Salvage with fAggressive=true to // 2.
+    // Call Salvage with fAggressive=true to // 2.调用 Salvage 函数挽救钱包数据，fAggressive 标志设为 true，开启 DB_AGGRESSIVE 模式，可能获取更多的数据
     // get as much data as possible.
-    // Rewrite salvaged data to wallet.dat
-    // Set -rescan so any missing transactions will be
+    // Rewrite salvaged data to wallet.dat // 3.重写挽救的数据到 wallet.dat
+    // Set -rescan so any missing transactions will be // 4.设置 -rescan 以便丢失的交易将全被找回
     // found.
     int64_t now = GetTime(); // 获取当前的时间戳
-    std::string newFilename = strprintf("wallet.%d.bak", now); // 拼接新数据库文件名
+    std::string newFilename = strprintf("wallet.%d.bak", now); // 1.拼接新数据库文件名
 
     int result = dbenv.dbenv->dbrename(NULL, filename.c_str(), NULL,
                                        newFilename.c_str(), DB_AUTO_COMMIT); // 数据库文件重命名
@@ -928,7 +928,7 @@ bool CWalletDB::Recover(CDBEnv& dbenv, const std::string& filename, bool fOnlyKe
         return false;
     }
 
-    std::vector<CDBEnv::KeyValPair> salvagedData; // 挽救数据，KV 键值对
+    std::vector<CDBEnv::KeyValPair> salvagedData; // 2.挽救数据，KV 键值对
     bool fSuccess = dbenv.Salvage(newFilename, true, salvagedData); // 挽救钱包并获取挽救的数据
     if (salvagedData.empty()) // 若挽救的数据为空
     {
@@ -937,7 +937,7 @@ bool CWalletDB::Recover(CDBEnv& dbenv, const std::string& filename, bool fOnlyKe
     }
     LogPrintf("Salvage(aggressive) found %u records\n", salvagedData.size()); // 记录挽救数据的大小
 
-    boost::scoped_ptr<Db> pdbCopy(new Db(dbenv.dbenv, 0)); // 创建数据库副本堆对象，并打开 Berkeley DB
+    boost::scoped_ptr<Db> pdbCopy(new Db(dbenv.dbenv, 0)); // 3.创建数据库副本堆对象，并打开 Berkeley DB
     int ret = pdbCopy->open(NULL,               // Txn pointer
                             filename.c_str(),   // Filename // e.g. "xx/wallet.dat"
                             "main",             // Logical db name
@@ -949,7 +949,7 @@ bool CWalletDB::Recover(CDBEnv& dbenv, const std::string& filename, bool fOnlyKe
         LogPrintf("Cannot create database file %s\n", filename);
         return false;
     }
-    CWallet dummyWallet; // 假钱包
+    CWallet dummyWallet; // 4.假钱包
     CWalletScanState wss; // 钱包扫描状态
 
     DbTxn* ptxn = dbenv.TxnBegin(); // 交易指针指向交易集中的第一笔交易

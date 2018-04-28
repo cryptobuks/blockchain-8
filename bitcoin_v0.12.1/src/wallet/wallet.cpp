@@ -389,13 +389,13 @@ bool CWallet::Verify(const string& walletFile, string& warningString, string& er
     if (GetBoolArg("-salvagewallet", false)) // 拯救钱包选项，默认关闭
     {
         // Recover readable keypairs:
-        if (!CWalletDB::Recover(bitdb, walletFile, true)) // 恢复可读的密钥对 pending
+        if (!CWalletDB::Recover(bitdb, walletFile, true)) // 恢复可读的密钥对
             return false;
     }
     
     if (boost::filesystem::exists(GetDataDir() / walletFile)) // 若钱包文件存在
     {
-        CDBEnv::VerifyResult r = bitdb.Verify(walletFile, CWalletDB::Recover);
+        CDBEnv::VerifyResult r = bitdb.Verify(walletFile, CWalletDB::Recover); // 验证钱包数据库文件，若文件异常，则进行恢复并返回恢复的结果
         if (r == CDBEnv::RECOVER_OK)
         {
             warningString += strprintf(_("Warning: wallet.dat corrupt, data salvaged!"
