@@ -1134,88 +1134,88 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
     RegisterNodeSignals(GetNodeSignals()); // 6.1.注册节点信号，获取节点信号全局对象，并传入 RegisterNodeSignals 进行函数注册（连接）
 
     // sanitize comments per BIP-0014, format user agent and check total size
-    std::vector<string> uacomments;
-    BOOST_FOREACH(string cmt, mapMultiArgs["-uacomment"])
+    std::vector<string> uacomments; // 6.2.存放用户代理评论列表，意味不明 pending
+    BOOST_FOREACH(string cmt, mapMultiArgs["-uacomment"]) // 依次遍历所有评论
     {
-        if (cmt != SanitizeString(cmt, SAFE_CHARS_UA_COMMENT))
+        if (cmt != SanitizeString(cmt, SAFE_CHARS_UA_COMMENT)) // 序列化字符串后进行比较，保证不含不安全的字符
             return InitError(strprintf(_("User Agent comment (%s) contains unsafe characters."), cmt));
-        uacomments.push_back(SanitizeString(cmt, SAFE_CHARS_UA_COMMENT));
+        uacomments.push_back(SanitizeString(cmt, SAFE_CHARS_UA_COMMENT)); // 加入评论列表
     }
-    strSubVersion = FormatSubVersion(CLIENT_NAME, CLIENT_VERSION, uacomments);
-    if (strSubVersion.size() > MAX_SUBVERSION_LENGTH) {
+    strSubVersion = FormatSubVersion(CLIENT_NAME, CLIENT_VERSION, uacomments); // 6.3.获取客户子版本信息
+    if (strSubVersion.size() > MAX_SUBVERSION_LENGTH) { // 版本信息不得超过 256 个字节
         return InitError(strprintf(_("Total length of network version string (%i) exceeds maximum length (%i). Reduce the number or size of uacomments."),
             strSubVersion.size(), MAX_SUBVERSION_LENGTH));
     }
 
-    if (mapArgs.count("-onlynet")) {
-        std::set<enum Network> nets;
-        BOOST_FOREACH(const std::string& snet, mapMultiArgs["-onlynet"]) {
-            enum Network net = ParseNetwork(snet);
+    if (mapArgs.count("-onlynet")) { // 指定网络选项，只连接到指定网络中的节点
+        std::set<enum Network> nets; // 存放指定网络的集合
+        BOOST_FOREACH(const std::string& snet, mapMultiArgs["-onlynet"]) { // 遍历 -onlynet 的所有值
+            enum Network net = ParseNetwork(snet); // 解析网络
             if (net == NET_UNROUTABLE)
                 return InitError(strprintf(_("Unknown network specified in -onlynet: '%s'"), snet));
-            nets.insert(net);
+            nets.insert(net); // 放入指定网络的集合
         }
-        for (int n = 0; n < NET_MAX; n++) {
+        for (int n = 0; n < NET_MAX; n++) { // 遍历网络类型，共 5 种
             enum Network net = (enum Network)n;
-            if (!nets.count(net))
-                SetLimited(net);
+            if (!nets.count(net)) // 把指定网络集合中不存在的网络类型
+                SetLimited(net); // 禁用指定网络中不存在的网络类型
         }
     }
 
-    if (mapArgs.count("-whitelist")) {
-        BOOST_FOREACH(const std::string& net, mapMultiArgs["-whitelist"]) {
-            CSubNet subnet(net);
-            if (!subnet.IsValid())
+    if (mapArgs.count("-whitelist")) { // 白名单选项
+        BOOST_FOREACH(const std::string& net, mapMultiArgs["-whitelist"]) { // 遍历指定的白名单列表
+            CSubNet subnet(net); // 构建子网对象
+            if (!subnet.IsValid()) // 检测子网是否有效
                 return InitError(strprintf(_("Invalid netmask specified in -whitelist: '%s'"), net));
-            CNode::AddWhitelistedRange(subnet);
+            CNode::AddWhitelistedRange(subnet); // 把有效的子网加入白名单列表
         }
     }
 
-    bool proxyRandomize = GetBoolArg("-proxyrandomize", DEFAULT_PROXYRANDOMIZE);
+    bool proxyRandomize = GetBoolArg("-proxyrandomize", DEFAULT_PROXYRANDOMIZE); // 代理随机化选项，默认开启
     // -proxy sets a proxy for all outgoing network traffic
     // -noproxy (or -proxy=0) as well as the empty string can be used to not set a proxy, this is the default
-    std::string proxyArg = GetArg("-proxy", "");
-    if (proxyArg != "" && proxyArg != "0") {
-        proxyType addrProxy = proxyType(CService(proxyArg, 9050), proxyRandomize);
-        if (!addrProxy.IsValid())
+    std::string proxyArg = GetArg("-proxy", ""); // 代理选项，默认关闭，代理全部向外的网络流量
+    if (proxyArg != "" && proxyArg != "0") { // 值非 0 且 非空表示设置了代理
+        proxyType addrProxy = proxyType(CService(proxyArg, 9050), proxyRandomize); // 设置代理地址和端口
+        if (!addrProxy.IsValid()) // 验证代理地址的有效性
             return InitError(strprintf(_("Invalid -proxy address: '%s'"), proxyArg));
 
-        SetProxy(NET_IPV4, addrProxy);
-        SetProxy(NET_IPV6, addrProxy);
-        SetProxy(NET_TOR, addrProxy);
-        SetNameProxy(addrProxy);
+        SetProxy(NET_IPV4, addrProxy); // 设置 IPV4 代理
+        SetProxy(NET_IPV6, addrProxy); // 设置 IPV6 代理
+        SetProxy(NET_TOR, addrProxy); // 设置 TOR 洋葱路由代理
+        SetNameProxy(addrProxy); // 设置代理名
         SetReachable(NET_TOR); // by default, -proxy sets onion as reachable, unless -noonion later
     }
 
     // -onion can be used to set only a proxy for .onion, or override normal proxy for .onion addresses
     // -noonion (or -onion=0) disables connecting to .onion entirely
     // An empty string is used to not override the onion proxy (in which case it defaults to -proxy set above, or none)
-    std::string onionArg = GetArg("-onion", "");
-    if (onionArg != "") {
+    std::string onionArg = GetArg("-onion", ""); // 洋葱路由选项，默认关闭
+    if (onionArg != "") { // 值非空时
         if (onionArg == "0") { // Handle -noonion/-onion=0
             SetReachable(NET_TOR, false); // set onions as unreachable
-        } else {
-            proxyType addrOnion = proxyType(CService(onionArg, 9050), proxyRandomize);
-            if (!addrOnion.IsValid())
+        } else { // 设置洋葱路由
+            proxyType addrOnion = proxyType(CService(onionArg, 9050), proxyRandomize); // 设置洋葱路由地址和端口
+            if (!addrOnion.IsValid()) // 检测洋葱路由地址可用性
                 return InitError(strprintf(_("Invalid -onion address: '%s'"), onionArg));
-            SetProxy(NET_TOR, addrOnion);
-            SetReachable(NET_TOR);
+            SetProxy(NET_TOR, addrOnion); // 设置洋葱代理
+            SetReachable(NET_TOR); // pending
         }
     }
 
     // see Step 2: parameter interactions for more information about these
-    fListen = GetBoolArg("-listen", DEFAULT_LISTEN);
-    fDiscover = GetBoolArg("-discover", true);
-    fNameLookup = GetBoolArg("-dns", DEFAULT_NAME_LOOKUP);
+    fListen = GetBoolArg("-listen", DEFAULT_LISTEN); // 监听选项，默认开启
+    fDiscover = GetBoolArg("-discover", true); // 发现选项，默认开启
+    fNameLookup = GetBoolArg("-dns", DEFAULT_NAME_LOOKUP); // dns 名字发现，默认打开
 
     bool fBound = false;
-    if (fListen) {
-        if (mapArgs.count("-bind") || mapArgs.count("-whitebind")) {
-            BOOST_FOREACH(const std::string& strBind, mapMultiArgs["-bind"]) {
+    if (fListen) { // 默认 true
+        if (mapArgs.count("-bind") || mapArgs.count("-whitebind")) { // 指定了 bind 选项
+            BOOST_FOREACH(const std::string& strBind, mapMultiArgs["-bind"]) { // 遍历 bind 地址
                 CService addrBind;
-                if (!Lookup(strBind.c_str(), addrBind, GetListenPort(), false))
+                if (!Lookup(strBind.c_str(), addrBind, GetListenPort(), false)) // 解析 bind 地址
                     return InitError(strprintf(_("Cannot resolve -bind address: '%s'"), strBind));
-                fBound |= Bind(addrBind, (BF_EXPLICIT | BF_REPORT_ERROR));
+                fBound |= Bind(addrBind, (BF_EXPLICIT | BF_REPORT_ERROR)); // bind 绑定指定地址
             }
             BOOST_FOREACH(const std::string& strBind, mapMultiArgs["-whitebind"]) {
                 CService addrBind;
@@ -1226,22 +1226,22 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
                 fBound |= Bind(addrBind, (BF_EXPLICIT | BF_REPORT_ERROR | BF_WHITELIST));
             }
         }
-        else {
+        else { // 未设置 bind
             struct in_addr inaddr_any;
             inaddr_any.s_addr = INADDR_ANY;
-            fBound |= Bind(CService(in6addr_any, GetListenPort()), BF_NONE);
-            fBound |= Bind(CService(inaddr_any, GetListenPort()), !fBound ? BF_REPORT_ERROR : BF_NONE);
+            fBound |= Bind(CService(in6addr_any, GetListenPort()), BF_NONE); // 绑定本地 ipv6
+            fBound |= Bind(CService(inaddr_any, GetListenPort()), !fBound ? BF_REPORT_ERROR : BF_NONE); // 绑定本地 ipv4，0.0.0.0:port 表示所有地址 或 任意地址
         }
-        if (!fBound)
+        if (!fBound) // !false 绑定失败，记录错误日志并退出
             return InitError(_("Failed to listen on any port. Use -listen=0 if you want this."));
     }
 
-    if (mapArgs.count("-externalip")) {
-        BOOST_FOREACH(const std::string& strAddr, mapMultiArgs["-externalip"]) {
-            CService addrLocal(strAddr, GetListenPort(), fNameLookup);
-            if (!addrLocal.IsValid())
+    if (mapArgs.count("-externalip")) { // 外部的 ip 地址选项
+        BOOST_FOREACH(const std::string& strAddr, mapMultiArgs["-externalip"]) { // 遍历指定的外部 ip 地址
+            CService addrLocal(strAddr, GetListenPort(), fNameLookup); // pending
+            if (!addrLocal.IsValid()) // 验证地址有效性
                 return InitError(strprintf(_("Cannot resolve -externalip address: '%s'"), strAddr));
-            AddLocal(CService(strAddr, GetListenPort(), fNameLookup), LOCAL_MANUAL);
+            AddLocal(CService(strAddr, GetListenPort(), fNameLookup), LOCAL_MANUAL); // 添加本地地址 pending
         }
     }
 

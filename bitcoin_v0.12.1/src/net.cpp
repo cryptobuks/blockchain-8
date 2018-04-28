@@ -78,7 +78,7 @@ uint64_t nLocalServices = NODE_NETWORK;
 CCriticalSection cs_mapLocalHost;
 map<CNetAddr, LocalServiceInfo> mapLocalHost;
 static bool vfReachable[NET_MAX] = {};
-static bool vfLimited[NET_MAX] = {};
+static bool vfLimited[NET_MAX] = {}; // 网络限制集
 static CNode* pnodeLocalHost = NULL;
 uint64_t nLocalHostNonce = 0;
 static std::vector<ListenSocket> vhListenSocket;
@@ -274,12 +274,12 @@ bool RemoveLocal(const CService& addr)
 }
 
 /** Make a particular network entirely off-limits (no automatic connects to it) */
-void SetLimited(enum Network net, bool fLimited)
+void SetLimited(enum Network net, bool fLimited) // fLimited 默认为 true
 {
     if (net == NET_UNROUTABLE)
         return;
     LOCK(cs_mapLocalHost);
-    vfLimited[net] = fLimited;
+    vfLimited[net] = fLimited; // 把网络限制集中对应的未指定的网络类型设为 true，表示该网络类型被限制
 }
 
 bool IsLimited(enum Network net)
@@ -595,7 +595,7 @@ void CNode::SetBannedSetDirty(bool dirty)
 }
 
 
-std::vector<CSubNet> CNode::vWhitelistedRange;
+std::vector<CSubNet> CNode::vWhitelistedRange; // 白名单列表
 CCriticalSection CNode::cs_vWhitelistedRange;
 
 bool CNode::IsWhitelistedRange(const CNetAddr &addr) {
@@ -609,7 +609,7 @@ bool CNode::IsWhitelistedRange(const CNetAddr &addr) {
 
 void CNode::AddWhitelistedRange(const CSubNet &subnet) {
     LOCK(cs_vWhitelistedRange);
-    vWhitelistedRange.push_back(subnet);
+    vWhitelistedRange.push_back(subnet); // 添加到白名单列表中
 }
 
 #undef X
