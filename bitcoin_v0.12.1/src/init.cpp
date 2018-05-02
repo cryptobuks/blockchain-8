@@ -1245,18 +1245,18 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
         }
     }
 
-    BOOST_FOREACH(const std::string& strDest, mapMultiArgs["-seednode"])
-        AddOneShot(strDest);
+    BOOST_FOREACH(const std::string& strDest, mapMultiArgs["-seednode"]) // 遍历添加的种子节点 IP 地址
+        AddOneShot(strDest); // 加入双端队列 vOneShots
 
-#if ENABLE_ZMQ
+#if ENABLE_ZMQ // 开启 ZeroMQ 选项，一套嵌入式的网络链接库，类似于 Socket 的一系列接口
     pzmqNotificationInterface = CZMQNotificationInterface::CreateWithArguments(mapArgs);
 
     if (pzmqNotificationInterface) {
-        RegisterValidationInterface(pzmqNotificationInterface);
+        RegisterValidationInterface(pzmqNotificationInterface); // 注册 zmq 通知接口
     }
 #endif
-    if (mapArgs.count("-maxuploadtarget")) {
-        CNode::SetMaxOutboundTarget(GetArg("-maxuploadtarget", DEFAULT_MAX_UPLOAD_TARGET)*1024*1024);
+    if (mapArgs.count("-maxuploadtarget")) { // 尝试保持外接流量低于给定目标值
+        CNode::SetMaxOutboundTarget(GetArg("-maxuploadtarget", DEFAULT_MAX_UPLOAD_TARGET)*1024*1024); // 默认为 0 表示无限制
     }
 
     // ********************************************************* Step 7: load block chain // 加载区块链数据，区块数据目录 blocks
@@ -1265,18 +1265,18 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
 
     // Upgrading to 0.8; hard-link the old blknnnn.dat files into /blocks/
     boost::filesystem::path blocksDir = GetDataDir() / "blocks"; // 兼容老版的区块格式，区块文件扩容
-    if (!boost::filesystem::exists(blocksDir))
+    if (!boost::filesystem::exists(blocksDir)) // 若该目录不存在
     {
-        boost::filesystem::create_directories(blocksDir);
+        boost::filesystem::create_directories(blocksDir); // 则创建区块数据目录
         bool linked = false;
-        for (unsigned int i = 1; i < 10000; i++) {
-            boost::filesystem::path source = GetDataDir() / strprintf("blk%04u.dat", i);
+        for (unsigned int i = 1; i < 10000; i++) { // 遍历原区块数据文件
+            boost::filesystem::path source = GetDataDir() / strprintf("blk%04u.dat", i); // 旧版区块数据文件名
             if (!boost::filesystem::exists(source)) break;
-            boost::filesystem::path dest = blocksDir / strprintf("blk%05u.dat", i-1);
+            boost::filesystem::path dest = blocksDir / strprintf("blk%05u.dat", i-1); // 新版区块数据文件名，统一放在 blocks 目录下
             try {
-                boost::filesystem::create_hard_link(source, dest);
+                boost::filesystem::create_hard_link(source, dest); // 若存在旧版区块数据文件，则建立硬链接，以兼容新版
                 LogPrintf("Hardlinked %s -> %s\n", source.string(), dest.string());
-                linked = true;
+                linked = true; // 将链接标志设置为 true
             } catch (const boost::filesystem::filesystem_error& e) {
                 // Note: hardlink creation failing is not a disaster, it just means
                 // blocks will get re-downloaded from peers.
@@ -1284,7 +1284,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
                 break;
             }
         }
-        if (linked)
+        if (linked) // 若建立了硬链接，则设置再索引标志为 true
         {
             fReindex = true;
         }
@@ -1391,18 +1391,18 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
                 break;
             }
 
-            fLoaded = true;
+            fLoaded = true; // 加载成功
         } while(false);
 
-        if (!fLoaded) {
+        if (!fLoaded) { // 若加载失败
             // first suggest a reindex
-            if (!fReset) {
+            if (!fReset) { // =fReindex 首次建议再索引
                 bool fRet = uiInterface.ThreadSafeMessageBox(
                     strLoadError + ".\n\n" + _("Do you want to rebuild the block database now?"),
-                    "", CClientUIInterface::MSG_ERROR | CClientUIInterface::BTN_ABORT);
+                    "", CClientUIInterface::MSG_ERROR | CClientUIInterface::BTN_ABORT); // 弹出交互框，针对 qt
                 if (fRet) {
-                    fReindex = true;
-                    fRequestShutdown = false;
+                    fReindex = true; // 再索引标志置为 true，下次再加载区块索引
+                    fRequestShutdown = false; // 请求关闭标志置为 false
                 } else {
                     LogPrintf("Aborted block database rebuild. Exiting.\n");
                     return false;
@@ -1411,12 +1411,12 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
                 return InitError(strLoadError);
             }
         }
-    } // end of while
+    } // end of while load
 
     // As LoadBlockIndex can take several minutes, it's possible the user
     // requested to kill the GUI during the last operation. If so, exit.
-    // As the program has not fully started yet, Shutdown() is possibly overkill.
-    if (fRequestShutdown)
+    // As the program has not fully started yet, Shutdown() is possibly overkill.（这里是未使用 Shutdown 的原因）
+    if (fRequestShutdown) // 加载区块索引可能需要几分钟，在这期间，用户可能会关闭 GUI。如此，便退出。
     {
         LogPrintf("Shutdown requested. Exiting.\n");
         return false;

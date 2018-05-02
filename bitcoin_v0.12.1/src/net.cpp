@@ -94,7 +94,7 @@ deque<pair<int64_t, CInv> > vRelayExpiration;
 CCriticalSection cs_mapRelay;
 limitedmap<CInv, int64_t> mapAlreadyAskedFor(MAX_INV_SZ);
 
-static deque<string> vOneShots;
+static deque<string> vOneShots; // ÒâÎ¶²»Ã÷ pending
 CCriticalSection cs_vOneShots;
 
 set<CNetAddr> setservAddNodeAddresses;
