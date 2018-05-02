@@ -65,7 +65,7 @@
 using namespace std;
 
 #ifdef ENABLE_WALLET
-CWallet* pwalletMain = NULL;
+CWallet* pwalletMain = NULL; // 指向主钱包对象的指针
 #endif
 bool fFeeEstimatesInitialized = false;
 static const bool DEFAULT_PROXYRANDOMIZE = true;
@@ -1363,16 +1363,16 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
                     break;
                 }
 
-                uiInterface.InitMessage(_("Verifying blocks..."));
-                if (fHavePruned && GetArg("-checkblocks", DEFAULT_CHECKBLOCKS) > MIN_BLOCKS_TO_KEEP) {
+                uiInterface.InitMessage(_("Verifying blocks...")); // 开始验证区块
+                if (fHavePruned && GetArg("-checkblocks", DEFAULT_CHECKBLOCKS) > MIN_BLOCKS_TO_KEEP) { // pending
                     LogPrintf("Prune: pruned datadir may not have more than %d blocks; -checkblocks=%d may fail\n",
                         MIN_BLOCKS_TO_KEEP, GetArg("-checkblocks", DEFAULT_CHECKBLOCKS));
                 }
 
                 {
                     LOCK(cs_main);
-                    CBlockIndex* tip = chainActive.Tip();
-                    if (tip && tip->nTime > GetAdjustedTime() + 2 * 60 * 60) {
+                    CBlockIndex* tip = chainActive.Tip(); // 获取激活的链尖区块索引
+                    if (tip && tip->nTime > GetAdjustedTime() + 2 * 60 * 60) { // 链尖区块时间不能比当前时间快 2h
                         strLoadError = _("The block database contains a block which appears to be from the future. "
                                 "This may be due to your computer's date and time being set incorrectly. "
                                 "Only rebuild the block database if you are sure that your computer's date and time are correct");
@@ -1381,7 +1381,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
                 }
 
                 if (!CVerifyDB().VerifyDB(chainparams, pcoinsdbview, GetArg("-checklevel", DEFAULT_CHECKLEVEL),
-                              GetArg("-checkblocks", DEFAULT_CHECKBLOCKS))) {
+                              GetArg("-checkblocks", DEFAULT_CHECKBLOCKS))) { // 验证数据库，验证等级默认 3，验证块数默认 288
                     strLoadError = _("Corrupted block database detected");
                     break;
                 }
@@ -1421,30 +1421,30 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
         LogPrintf("Shutdown requested. Exiting.\n");
         return false;
     }
-    LogPrintf(" block index %15dms\n", GetTimeMillis() - nStart);
+    LogPrintf(" block index %15dms\n", GetTimeMillis() - nStart); // 记录区块索引时间
 
-    boost::filesystem::path est_path = GetDataDir() / FEE_ESTIMATES_FILENAME;
-    CAutoFile est_filein(fopen(est_path.string().c_str(), "rb"), SER_DISK, CLIENT_VERSION);
+    boost::filesystem::path est_path = GetDataDir() / FEE_ESTIMATES_FILENAME; // 费用估计文件
+    CAutoFile est_filein(fopen(est_path.string().c_str(), "rb"), SER_DISK, CLIENT_VERSION); // 创建该文件并创建估费文件对象
     // Allowed to fail as this file IS missing on first startup.
     if (!est_filein.IsNull())
-        mempool.ReadFeeEstimates(est_filein);
-    fFeeEstimatesInitialized = true;
+        mempool.ReadFeeEstimates(est_filein); // 内存池读取估计费用
+    fFeeEstimatesInitialized = true; // 费用估计初始化状态标志置为 true
 
     // ********************************************************* Step 8: load wallet // 若启用钱包功能，则加载钱包
-#ifdef ENABLE_WALLET
-    if (fDisableWallet) {
+#ifdef ENABLE_WALLET // 钱包有效的宏
+    if (fDisableWallet) { // 默认 false
         pwalletMain = NULL;
         LogPrintf("Wallet disabled!\n");
     } else {
 
         // needed to restore wallet transaction meta data after -zapwallettxes
-        std::vector<CWalletTx> vWtx;
+        std::vector<CWalletTx> vWtx; // 用于在 -zapwalettxes 选项后存储钱包交易元数据
 
-        if (GetBoolArg("-zapwallettxes", false)) {
+        if (GetBoolArg("-zapwallettxes", false)) { // 分离钱包交易选项，默认关闭
             uiInterface.InitMessage(_("Zapping all transactions from wallet..."));
 
-            pwalletMain = new CWallet(strWalletFile);
-            DBErrors nZapWalletRet = pwalletMain->ZapWalletTx(vWtx);
+            pwalletMain = new CWallet(strWalletFile); // 根据指定的钱包文件名创建并初始化钱包对象
+            DBErrors nZapWalletRet = pwalletMain->ZapWalletTx(vWtx); // 钱包从钱包中分离所有交易 pending
             if (nZapWalletRet != DB_LOAD_OK) {
                 uiInterface.InitMessage(_("Error loading wallet.dat: Wallet corrupted"));
                 return false;
@@ -1454,7 +1454,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
             pwalletMain = NULL;
         }
 
-        uiInterface.InitMessage(_("Loading wallet..."));
+        uiInterface.InitMessage(_("Loading wallet...")); // 开始加载钱包
 
         nStart = GetTimeMillis();
         bool fFirstRun = true;
