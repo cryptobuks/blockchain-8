@@ -9,12 +9,12 @@
 #include <stdint.h>
 #include <string>
 
-int64_t GetTime();
-int64_t GetTimeMillis();
-int64_t GetTimeMicros();
-int64_t GetLogTimeMicros();
+int64_t GetTime(); // 获取当前时间 秒
+int64_t GetTimeMillis(); // 获取当前时间 毫秒
+int64_t GetTimeMicros(); // 获取当前时间 微秒
+int64_t GetLogTimeMicros(); // 调用 GetTimeMicros
 void SetMockTime(int64_t nMockTimeIn);
-void MilliSleep(int64_t n);
+void MilliSleep(int64_t n); // 睡 n 毫秒
 
 std::string DateTimeStrFormat(const char* pszFormat, int64_t nTime);
 

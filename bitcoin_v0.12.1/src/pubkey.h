@@ -141,13 +141,13 @@ public:
     }
 
     //! Get the KeyID of this public key (hash of its serialization)
-    CKeyID GetID() const
+    CKeyID GetID() const // 获取公钥地址 ID，即公钥的 hash160，20个字节
     {
         return CKeyID(Hash160(vch, vch + size()));
     }
 
     //! Get the 256-bit hash of this public key.
-    uint256 GetHash() const
+    uint256 GetHash() const // 获取 256 位的公钥哈希
     {
         return Hash(vch, vch + size());
     }

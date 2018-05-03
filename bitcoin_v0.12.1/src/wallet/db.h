@@ -94,11 +94,11 @@ extern CDBEnv bitdb;
 class CDB // （钱包）数据库（提供访问 Berkeley 数据库的 RAII 类）
 {
 protected:
-    Db* pdb; // 
-    std::string strFile;
+    Db* pdb; // Berkeley DB 内置类型
+    std::string strFile; // 钱包文件名
     DbTxn* activeTxn;
-    bool fReadOnly;
-    bool fFlushOnClose;
+    bool fReadOnly; // 只读标志
+    bool fFlushOnClose; // 关闭并刷新标志
 
     explicit CDB(const std::string& strFilename, const char* pszMode = "r+", bool fFlushOnCloseIn=true);
     ~CDB() { Close(); }
@@ -217,13 +217,13 @@ protected:
         return (ret == 0);
     }
 
-    Dbc* GetCursor()
+    Dbc* GetCursor() // 获取数据库的游标，Dbc 表示 Database cursor 类型
     {
-        if (!pdb)
-            return NULL;
+        if (!pdb) // 若为 NULL
+            return NULL; // 直接返回 NULL
         Dbc* pcursor = NULL;
-        int ret = pdb->cursor(NULL, &pcursor, 0);
-        if (ret != 0)
+        int ret = pdb->cursor(NULL, &pcursor, 0); // 调用 Berkeley DB: cursor 获取数据库的游标
+        if (ret != 0) // 0 表示获取成功
             return NULL;
         return pcursor;
     }

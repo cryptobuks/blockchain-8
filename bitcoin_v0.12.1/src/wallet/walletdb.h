@@ -32,12 +32,12 @@ class uint256;
 /** Error statuses for the wallet database */
 enum DBErrors
 {
-    DB_LOAD_OK,
-    DB_CORRUPT,
-    DB_NONCRITICAL_ERROR,
-    DB_TOO_NEW,
-    DB_LOAD_FAIL,
-    DB_NEED_REWRITE
+    DB_LOAD_OK, // 0
+    DB_CORRUPT, // 1
+    DB_NONCRITICAL_ERROR, // 2
+    DB_TOO_NEW, // 3
+    DB_LOAD_FAIL, // 4
+    DB_NEED_REWRITE // 5
 };
 
 class CKeyMetadata
@@ -74,7 +74,7 @@ public:
 };
 
 /** Access to the wallet database (wallet.dat) */
-class CWalletDB : public CDB
+class CWalletDB : public CDB // 访问钱包数据库（wallet.dat）
 {
 public:
     CWalletDB(const std::string& strFilename, const char* pszMode = "r+", bool fFlushOnClose = true) : CDB(strFilename, pszMode, fFlushOnClose)

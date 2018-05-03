@@ -613,10 +613,10 @@ static bool IsKeyType(string strType)
 
 DBErrors CWalletDB::LoadWallet(CWallet* pwallet)
 {
-    pwallet->vchDefaultKey = CPubKey();
-    CWalletScanState wss;
+    pwallet->vchDefaultKey = CPubKey(); // 初始化钱包默认公钥
+    CWalletScanState wss; // 记录钱包扫描状态
     bool fNoncriticalErrors = false;
-    DBErrors result = DB_LOAD_OK;
+    DBErrors result = DB_LOAD_OK; // 加载钱包的状态，默认为 0，表示成功
 
     try {
         LOCK(pwallet->cs_wallet);
@@ -629,48 +629,48 @@ DBErrors CWalletDB::LoadWallet(CWallet* pwallet)
         }
 
         // Get cursor
-        Dbc* pcursor = GetCursor();
+        Dbc* pcursor = GetCursor(); // 获取钱包数据库游标
         if (!pcursor)
         {
             LogPrintf("Error getting wallet database cursor\n");
             return DB_CORRUPT;
         }
 
-        while (true)
+        while (true) // 遍历并获取每一条记录
         {
             // Read next record
-            CDataStream ssKey(SER_DISK, CLIENT_VERSION);
-            CDataStream ssValue(SER_DISK, CLIENT_VERSION);
-            int ret = ReadAtCursor(pcursor, ssKey, ssValue);
+            CDataStream ssKey(SER_DISK, CLIENT_VERSION); // 键
+            CDataStream ssValue(SER_DISK, CLIENT_VERSION); // 值
+            int ret = ReadAtCursor(pcursor, ssKey, ssValue); // 从游标的位置获取一条记录（键值对）
             if (ret == DB_NOTFOUND)
                 break;
-            else if (ret != 0)
+            else if (ret != 0) // 0 表示读取成功
             {
                 LogPrintf("Error reading next record from wallet database\n");
                 return DB_CORRUPT;
             }
 
             // Try to be tolerant of single corrupt records:
-            string strType, strErr;
-            if (!ReadKeyValue(pwallet, ssKey, ssValue, wss, strType, strErr))
+            string strType, strErr; // 尽量容忍单一的错误记录
+            if (!ReadKeyValue(pwallet, ssKey, ssValue, wss, strType, strErr)) // 读键和值到钱包
             {
-                // losing keys is considered a catastrophic error, anything else
-                // we assume the user can live with:
-                if (IsKeyType(strType))
-                    result = DB_CORRUPT;
+                // losing keys is considered a catastrophic error, anything else // 丢失密钥被认为是灾难性的错误，
+                // we assume the user can live with: // 我们假设用户可忍受其他错误：
+                if (IsKeyType(strType)) // 若是密钥类型
+                    result = DB_CORRUPT; // 1 表示错误
                 else
                 {
                     // Leave other errors alone, if we try to fix them we might make things worse.
                     fNoncriticalErrors = true; // ... but do warn the user there is something wrong.
-                    if (strType == "tx")
+                    if (strType == "tx") // 如果这是一个坏交易记录
                         // Rescan if there is a bad transaction record:
-                        SoftSetBoolArg("-rescan", true);
+                        SoftSetBoolArg("-rescan", true); // 设置再索引
                 }
             }
-            if (!strErr.empty())
-                LogPrintf("%s\n", strErr);
+            if (!strErr.empty()) // 检查是否有错误
+                LogPrintf("%s\n", strErr); // 并记录
         }
-        pcursor->close();
+        pcursor->close(); // 关闭钱包数据库
     }
     catch (const boost::thread_interrupted&) {
         throw;
@@ -684,10 +684,10 @@ DBErrors CWalletDB::LoadWallet(CWallet* pwallet)
 
     // Any wallet corruption at all: skip any rewriting or
     // upgrading, we don't want to make it worse.
-    if (result != DB_LOAD_OK)
+    if (result != DB_LOAD_OK) // 任何钱包出错：跳过所有重写和升级，我们不想让它变得更糟
         return result;
 
-    LogPrintf("nFileVersion = %d\n", wss.nFileVersion);
+    LogPrintf("nFileVersion = %d\n", wss.nFileVersion); // 记录文件版本
 
     LogPrintf("Keys: %u plaintext, %u encrypted, %u w/ metadata, %u total\n",
            wss.nKeys, wss.nCKeys, wss.nKeyMeta, wss.nKeys + wss.nCKeys);

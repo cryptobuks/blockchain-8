@@ -292,8 +292,8 @@ bool CWallet::ChangeWalletPassphrase(const SecureString& strOldWalletPassphrase,
 
 void CWallet::SetBestChain(const CBlockLocator& loc)
 {
-    CWalletDB walletdb(strWalletFile);
-    walletdb.WriteBestBlock(loc);
+    CWalletDB walletdb(strWalletFile); // 创建钱包数据库局部对象
+    walletdb.WriteBestBlock(loc); // 写入最佳块位置到钱包数据库文件
 }
 
 bool CWallet::SetMinVersion(enum WalletFeature nVersion, CWalletDB* pwalletdbIn, bool fExplicit)
@@ -2330,29 +2330,29 @@ CAmount CWallet::GetMinimumFee(unsigned int nTxBytes, unsigned int nConfirmTarge
 
 DBErrors CWallet::LoadWallet(bool& fFirstRunRet)
 {
-    if (!fFileBacked)
-        return DB_LOAD_OK;
-    fFirstRunRet = false;
-    DBErrors nLoadWalletRet = CWalletDB(strWalletFile,"cr+").LoadWallet(this);
-    if (nLoadWalletRet == DB_NEED_REWRITE)
+    if (!fFileBacked) // 若非首次运行
+        return DB_LOAD_OK; // 返回 0，表示加载完毕
+    fFirstRunRet = false; // 首次运行，把该标志置为 false
+    DBErrors nLoadWalletRet = CWalletDB(strWalletFile,"cr+").LoadWallet(this); // 从钱包文件中加载钱包到内存
+    if (nLoadWalletRet == DB_NEED_REWRITE) // 5 需要重写
     {
         if (CDB::Rewrite(strWalletFile, "\x04pool"))
         {
-            LOCK(cs_wallet);
-            setKeyPool.clear();
-            // Note: can't top-up keypool here, because wallet is locked.
-            // User will be prompted to unlock wallet the next operation
+            LOCK(cs_wallet); // 对钱包上锁
+            setKeyPool.clear(); // 清空钥匙池
+            // Note: can't top-up keypool here, because wallet is locked. // 注：不能在这里充值钥匙池，因为钱包被锁了。
+            // User will be prompted to unlock wallet the next operation // 用户将被提示下一个操作需要一个新密钥来解锁钱包。
             // that requires a new key.
         }
     }
 
-    if (nLoadWalletRet != DB_LOAD_OK)
-        return nLoadWalletRet;
-    fFirstRunRet = !vchDefaultKey.IsValid();
+    if (nLoadWalletRet != DB_LOAD_OK) // 若加载错误
+        return nLoadWalletRet; // 直接返回加载状态
+    fFirstRunRet = !vchDefaultKey.IsValid(); // 否则验证默认公钥是否有效，若有效，设置第一次运行状态为 false
 
-    uiInterface.LoadWallet(this);
+    uiInterface.LoadWallet(this); // UI 交互，加载钱包
 
-    return DB_LOAD_OK;
+    return DB_LOAD_OK; // 0
 }
 
 
@@ -2385,15 +2385,15 @@ bool CWallet::SetAddressBook(const CTxDestination& address, const string& strNam
     bool fUpdated = false;
     {
         LOCK(cs_wallet); // mapAddressBook
-        std::map<CTxDestination, CAddressBookData>::iterator mi = mapAddressBook.find(address);
-        fUpdated = mi != mapAddressBook.end();
-        mapAddressBook[address].name = strName;
-        if (!strPurpose.empty()) /* update purpose only if requested */
-            mapAddressBook[address].purpose = strPurpose;
+        std::map<CTxDestination, CAddressBookData>::iterator mi = mapAddressBook.find(address); // 首先在地址簿中查找该地址
+        fUpdated = mi != mapAddressBook.end(); // 查找到的化，升级标志置为 true
+        mapAddressBook[address].name = strName; // 账户名
+        if (!strPurpose.empty()) /* update purpose only if requested */ // 目的非空
+            mapAddressBook[address].purpose = strPurpose; // 升级目的
     }
     NotifyAddressBookChanged(this, address, strName, ::IsMine(*this, address) != ISMINE_NO,
-                             strPurpose, (fUpdated ? CT_UPDATED : CT_NEW) );
-    if (!fFileBacked)
+                             strPurpose, (fUpdated ? CT_UPDATED : CT_NEW) ); // 通知地址簿已改变
+    if (!fFileBacked) // 
         return false;
     if (!strPurpose.empty() && !CWalletDB(strWalletFile).WritePurpose(CBitcoinAddress(address).ToString(), strPurpose))
         return false;
@@ -2429,10 +2429,10 @@ bool CWallet::SetDefaultKey(const CPubKey &vchPubKey)
 {
     if (fFileBacked)
     {
-        if (!CWalletDB(strWalletFile).WriteDefaultKey(vchPubKey))
+        if (!CWalletDB(strWalletFile).WriteDefaultKey(vchPubKey)) // 把默认公钥写入钱包数据库 wallet.dat 中
             return false;
     }
-    vchDefaultKey = vchPubKey;
+    vchDefaultKey = vchPubKey; // 设置该公钥为默认公钥
     return true;
 }
 

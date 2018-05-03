@@ -1456,11 +1456,11 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
 
         uiInterface.InitMessage(_("Loading wallet...")); // 开始加载钱包
 
-        nStart = GetTimeMillis();
-        bool fFirstRun = true;
-        pwalletMain = new CWallet(strWalletFile);
-        DBErrors nLoadWalletRet = pwalletMain->LoadWallet(fFirstRun);
-        if (nLoadWalletRet != DB_LOAD_OK)
+        nStart = GetTimeMillis(); // 获取当前时间
+        bool fFirstRun = true; // 首次运行标志，初始为 true
+        pwalletMain = new CWallet(strWalletFile); // 通过钱包文件名创建钱包对象
+        DBErrors nLoadWalletRet = pwalletMain->LoadWallet(fFirstRun); // 加载钱包到内存（键值对）
+        if (nLoadWalletRet != DB_LOAD_OK) // 加载钱包状态错误
         {
             if (nLoadWalletRet == DB_CORRUPT)
                 strErrors << _("Error loading wallet.dat: Wallet corrupted") << "\n";
@@ -1481,35 +1481,35 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
                 strErrors << _("Error loading wallet.dat") << "\n";
         }
 
-        if (GetBoolArg("-upgradewallet", fFirstRun))
+        if (GetBoolArg("-upgradewallet", fFirstRun)) // 升级钱包选项，若钱包加载成功，首次运行标志在这里应该为 false
         {
             int nMaxVersion = GetArg("-upgradewallet", 0);
             if (nMaxVersion == 0) // the -upgradewallet without argument case
             {
-                LogPrintf("Performing wallet upgrade to %i\n", FEATURE_LATEST);
-                nMaxVersion = CLIENT_VERSION;
-                pwalletMain->SetMinVersion(FEATURE_LATEST); // permanently upgrade the wallet immediately
+                LogPrintf("Performing wallet upgrade to %i\n", FEATURE_LATEST); // 60000
+                nMaxVersion = CLIENT_VERSION; // 最大版本为当前客户端版本
+                pwalletMain->SetMinVersion(FEATURE_LATEST); // permanently upgrade the wallet immediately // 这里设置的是最小版本
             }
             else
                 LogPrintf("Allowing wallet upgrade up to %i\n", nMaxVersion);
-            if (nMaxVersion < pwalletMain->GetVersion())
+            if (nMaxVersion < pwalletMain->GetVersion()) // 若最大版本小于当前钱包版本
                 strErrors << _("Cannot downgrade wallet") << "\n";
-            pwalletMain->SetMaxVersion(nMaxVersion);
+            pwalletMain->SetMaxVersion(nMaxVersion); // 设置最大版本
         }
 
-        if (fFirstRun)
+        if (fFirstRun) // 若是首次运行
         {
             // Create new keyUser and set as default key
-            RandAddSeedPerfmon();
+            RandAddSeedPerfmon(); // 随机数种子
 
-            CPubKey newDefaultKey;
-            if (pwalletMain->GetKeyFromPool(newDefaultKey)) {
-                pwalletMain->SetDefaultKey(newDefaultKey);
-                if (!pwalletMain->SetAddressBook(pwalletMain->vchDefaultKey.GetID(), "", "receive"))
+            CPubKey newDefaultKey; // 新公钥
+            if (pwalletMain->GetKeyFromPool(newDefaultKey)) { // 从钥匙池取一个公钥
+                pwalletMain->SetDefaultKey(newDefaultKey); // 设置该公钥为默认公钥
+                if (!pwalletMain->SetAddressBook(pwalletMain->vchDefaultKey.GetID(), "", "receive")) // 设置默认公钥到地址簿默认账户 "" 下，并设置目的为接收
                     strErrors << _("Cannot write default address") << "\n";
             }
 
-            pwalletMain->SetBestChain(chainActive.GetLocator());
+            pwalletMain->SetBestChain(chainActive.GetLocator()); // 
         }
 
         LogPrintf("%s", strErrors.str());

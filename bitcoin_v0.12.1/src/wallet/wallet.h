@@ -107,8 +107,8 @@ public:
 class CAddressBookData
 {
 public:
-    std::string name;
-    std::string purpose; // 用途
+    std::string name; // 所属账户名
+    std::string purpose; // 用途 / 目的
 
     CAddressBookData()
     {
@@ -562,7 +562,7 @@ public:
 
     std::map<CTxDestination, CAddressBookData> mapAddressBook;
 
-    CPubKey vchDefaultKey;
+    CPubKey vchDefaultKey; // 默认公钥
 
     std::set<COutPoint> setLockedCoins;
 
