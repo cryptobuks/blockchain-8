@@ -1509,52 +1509,52 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
                     strErrors << _("Cannot write default address") << "\n";
             }
 
-            pwalletMain->SetBestChain(chainActive.GetLocator()); // 
+            pwalletMain->SetBestChain(chainActive.GetLocator()); // 主钱包设置最佳链，记录最佳块的位置
         }
 
         LogPrintf("%s", strErrors.str());
-        LogPrintf(" wallet      %15dms\n", GetTimeMillis() - nStart);
+        LogPrintf(" wallet      %15dms\n", GetTimeMillis() - nStart); // 记录钱包加载的时间
 
-        RegisterValidationInterface(pwalletMain);
+        RegisterValidationInterface(pwalletMain); // 注册一个钱包用于接收 bitcoin core 的升级
 
-        CBlockIndex *pindexRescan = chainActive.Tip();
-        if (GetBoolArg("-rescan", false))
-            pindexRescan = chainActive.Genesis();
+        CBlockIndex *pindexRescan = chainActive.Tip(); // 获取链尖区块索引
+        if (GetBoolArg("-rescan", false)) // 再扫描选项，默认关闭
+            pindexRescan = chainActive.Genesis(); // 获取当前链的创世区块索引
         else
         {
-            CWalletDB walletdb(strWalletFile);
+            CWalletDB walletdb(strWalletFile); // 通过钱包文件名创建钱包数据库对象
             CBlockLocator locator;
-            if (walletdb.ReadBestBlock(locator))
-                pindexRescan = FindForkInGlobalIndex(chainActive, locator);
+            if (walletdb.ReadBestBlock(locator)) // 获取最佳区块的位置
+                pindexRescan = FindForkInGlobalIndex(chainActive, locator); // 在激活的链和最佳区块间找最新的一个公共块
             else
                 pindexRescan = chainActive.Genesis();
         }
-        if (chainActive.Tip() && chainActive.Tip() != pindexRescan)
+        if (chainActive.Tip() && chainActive.Tip() != pindexRescan) // 链尖非创世区块也非分叉区块
         {
             //We can't rescan beyond non-pruned blocks, stop and throw an error
             //this might happen if a user uses a old wallet within a pruned node
             // or if he ran -disablewallet for a longer time, then decided to re-enable
-            if (fPruneMode)
+            if (fPruneMode) // 如果一个用户在一个已修剪的节点使用一个旧版钱包或他长时间运行 -disablewallet 选项后决定再次开启钱包功能时，我们不能再扫描已修剪的区块，此时我们停止并抛出一个可能发生的错误
             {
-                CBlockIndex *block = chainActive.Tip();
-                while (block && block->pprev && (block->pprev->nStatus & BLOCK_HAVE_DATA) && block->pprev->nTx > 0 && pindexRescan != block)
+                CBlockIndex *block = chainActive.Tip(); // 获取激活的链尖区块索引
+                while (block && block->pprev && (block->pprev->nStatus & BLOCK_HAVE_DATA) && block->pprev->nTx > 0 && pindexRescan != block) // 找到 pindexRescan 所对应区块
                     block = block->pprev;
 
                 if (pindexRescan != block)
                     return InitError(_("Prune: last wallet synchronisation goes beyond pruned data. You need to -reindex (download the whole blockchain again in case of pruned node)"));
             }
 
-            uiInterface.InitMessage(_("Rescanning..."));
-            LogPrintf("Rescanning last %i blocks (from block %i)...\n", chainActive.Height() - pindexRescan->nHeight, pindexRescan->nHeight);
-            nStart = GetTimeMillis();
-            pwalletMain->ScanForWalletTransactions(pindexRescan, true);
-            LogPrintf(" rescan      %15dms\n", GetTimeMillis() - nStart);
-            pwalletMain->SetBestChain(chainActive.GetLocator());
-            nWalletDBUpdated++;
+            uiInterface.InitMessage(_("Rescanning...")); // 开始再扫描
+            LogPrintf("Rescanning last %i blocks (from block %i)...\n", chainActive.Height() - pindexRescan->nHeight, pindexRescan->nHeight); // 记录从 pindexRescan->nHeight 开始再扫描的区块个数
+            nStart = GetTimeMillis(); // 记录再扫描的开始时间
+            pwalletMain->ScanForWalletTransactions(pindexRescan, true); // 再扫描钱包交易
+            LogPrintf(" rescan      %15dms\n", GetTimeMillis() - nStart); // 记录再扫描的用时
+            pwalletMain->SetBestChain(chainActive.GetLocator()); // 设置最佳链（内存、数据库）
+            nWalletDBUpdated++; // 钱包数据库升级次数加 1
 
-            // Restore wallet transaction metadata after -zapwallettxes=1
+            // Restore wallet transaction metadata after -zapwallettxes=1 // 在 zapwallettxes 选项设置模式 1 后，恢复钱包交易元数据
             if (GetBoolArg("-zapwallettxes", false) && GetArg("-zapwallettxes", "1") != "2")
-            {
+            { // 该选项设置会删除所有钱包交易且只恢复在启动时通过使用 -rescan 再扫描选项的部分区块链（模式）
                 CWalletDB walletdb(strWalletFile);
 
                 BOOST_FOREACH(const CWalletTx& wtxOld, vWtx)

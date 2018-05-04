@@ -24,7 +24,7 @@
 using namespace std;
 
 
-unsigned int nWalletDBUpdated;
+unsigned int nWalletDBUpdated; // 钱包数据库升级次数计数器
 
 
 //

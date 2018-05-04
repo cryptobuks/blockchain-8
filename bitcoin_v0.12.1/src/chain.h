@@ -345,13 +345,13 @@ public:
 };
 
 /** An in-memory indexed chain of blocks. */
-class CChain {
+class CChain { // 一个内存中用于区块索引的链
 private:
     std::vector<CBlockIndex*> vChain; // 内存中区块的索引集
 
 public:
     /** Returns the index entry for the genesis block of this chain, or NULL if none. */
-    CBlockIndex *Genesis() const {
+    CBlockIndex *Genesis() const { // 返回当前链上创世区块的索引条目，如果没有则返回空。
         return vChain.size() > 0 ? vChain[0] : NULL;
     }
 
