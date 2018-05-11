@@ -98,21 +98,21 @@ void WalletTxToJSON(const CWalletTx& wtx, UniValue& entry)
         entry.push_back(Pair(item.first, item.second));
 }
 
-string AccountFromValue(const UniValue& value)
+string AccountFromValue(const UniValue& value) // 从参数中获取账户名
 {
-    string strAccount = value.get_str();
-    if (strAccount == "*")
+    string strAccount = value.get_str(); // 把 UniValue 类型的参数转化为 std::string 类型
+    if (strAccount == "*") // 账户名不能为 "*"
         throw JSONRPCError(RPC_WALLET_INVALID_ACCOUNT_NAME, "Invalid account name");
-    return strAccount;
+    return strAccount; // 返回获取的账户名，可能为空
 }
 
 UniValue getnewaddress(const UniValue& params, bool fHelp) // 在指定账户下新建一个地址，若不指定账户，默认添加到""空账户下
 {
-    if (!EnsureWalletIsAvailable(fHelp)) // 确保钱包可用，即钱包已创建成功
+    if (!EnsureWalletIsAvailable(fHelp)) // 1.确保钱包可用，即钱包已创建成功
         return NullUniValue;
     
     if (fHelp || params.size() > 1) // 参数个数为 0 或 1，即要么使用默认账户，要么指定账户
-        throw runtime_error( // 查看该命令的帮助或命令参数个数超过 1 个均返回该命令的帮助
+        throw runtime_error( // 2.查看该命令的帮助或命令参数个数超过 1 个均返回该命令的帮助
             "getnewaddress ( \"account\" )\n"
             "\nReturns a new Bitcoin address for receiving payments.\n"
             "If 'account' is specified (DEPRECATED), it is added to the address book \n"
@@ -126,18 +126,18 @@ UniValue getnewaddress(const UniValue& params, bool fHelp) // 在指定账户下新建一
             + HelpExampleRpc("getnewaddress", "")
         );
 
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 3.对钱包加锁
 
     // Parse the account first so we don't generate a key if there's an error
-    string strAccount;
-    if (params.size() > 0) // 加参数的情况（账户）
-        strAccount = AccountFromValue(params[0]);
+    string strAccount; // 用于保存帐户名
+    if (params.size() > 0) // 有 1 个参数的情况
+        strAccount = AccountFromValue(params[0]); // 4.解析第一个参数并将其作为账户名
 
-    if (!pwalletMain->IsLocked())
-        pwalletMain->TopUpKeyPool();
+    if (!pwalletMain->IsLocked()) // 检查钱包是否上锁（被用户加密）
+        pwalletMain->TopUpKeyPool(); // 5.填充密钥池
 
     // Generate a new key that is added to wallet
-    CPubKey newKey;
+    CPubKey newKey; // 6.生成一个新密钥并添加到钱包，返回一个对应的比特币地址
     if (!pwalletMain->GetKeyFromPool(newKey)) // 获取一个公钥
         throw JSONRPCError(RPC_WALLET_KEYPOOL_RAN_OUT, "Error: Keypool ran out, please call keypoolrefill first");
     CKeyID keyID = newKey.GetID(); // 对 65 bytes 的公钥调用 hash160(即先 sha256, 再 ripemd160)

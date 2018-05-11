@@ -83,11 +83,11 @@ enum WalletFeature
 
 
 /** A key pool entry */
-class CKeyPool
+class CKeyPool // 一个公钥池条目
 {
 public:
-    int64_t nTime;
-    CPubKey vchPubKey;
+    int64_t nTime; // 时间
+    CPubKey vchPubKey; // 公钥
 
     CKeyPool();
     CKeyPool(const CPubKey& vchPubKeyIn);
@@ -104,7 +104,7 @@ public:
 };
 
 /** Address book data */
-class CAddressBookData
+class CAddressBookData // 地址簿数据
 {
 public:
     std::string name; // 所属账户名
@@ -119,11 +119,11 @@ public:
     StringMap destdata;
 };
 
-struct CRecipient
+struct CRecipient // 接收者
 {
-    CScript scriptPubKey;
-    CAmount nAmount;
-    bool fSubtractFeeFromAmount;
+    CScript scriptPubKey; // 公钥脚本
+    CAmount nAmount; // 金额
+    bool fSubtractFeeFromAmount; // 该金额是否减去交易费的标志
 };
 
 typedef std::map<std::string, std::string> mapValue_t;
@@ -147,11 +147,11 @@ static void WriteOrderPos(const int64_t& nOrderPos, mapValue_t& mapValue)
     mapValue["n"] = i64tostr(nOrderPos);
 }
 
-struct COutputEntry
+struct COutputEntry // 输出条目
 {
-    CTxDestination destination;
-    CAmount amount;
-    int vout;
+    CTxDestination destination; // 交易目的地
+    CAmount amount; // 金额
+    int vout; // 输出索引
 };
 
 /** A transaction with a merkle branch linking it to the block chain. */
@@ -221,10 +221,10 @@ public:
  * A transaction with a bunch of additional info that only the owner cares about.
  * It includes any unrecorded transactions needed to link it back to the block chain.
  */
-class CWalletTx : public CMerkleTx
+class CWalletTx : public CMerkleTx // 钱包交易
 {
 private:
-    const CWallet* pwallet;
+    const CWallet* pwallet; // 钱包指针
 
 public:
     mapValue_t mapValue;
@@ -409,13 +409,13 @@ public:
 
 
 
-class COutput
+class COutput // 输出
 {
 public:
-    const CWalletTx *tx;
+    const CWalletTx *tx; // 钱包交易指针
     int i;
     int nDepth;
-    bool fSpendable;
+    bool fSpendable; // 是否可花费
 
     COutput(const CWalletTx *txIn, int iIn, int nDepthIn, bool fSpendableIn)
     {
@@ -429,7 +429,7 @@ public:
 
 
 /** Private key that includes an expiration date in case it never gets used. */
-class CWalletKey
+class CWalletKey // 包含一个有期限的私钥以防该私钥不会被使用
 {
 public:
     CPrivKey vchPrivKey;
@@ -459,7 +459,7 @@ public:
 /** 
  * A CWallet is an extension of a keystore, which also maintains a set of transactions and balances,
  * and provides the ability to create new transactions.
- */
+ */ // CWallet 是密钥库的扩展，可以维持一组交易和余额，并提供创建新交易的能力。
 class CWallet : public CCryptoKeyStore, public CValidationInterface
 {
 private:
@@ -473,26 +473,26 @@ private:
     CWalletDB *pwalletdbEncryption;
 
     //! the current wallet version: clients below this version are not able to load the wallet
-    int nWalletVersion;
+    int nWalletVersion; // 当前的钱包版本：客户端低于该版本时不能加载钱包
 
     //! the maximum wallet format version: memory-only variable that specifies to what version this wallet may be upgraded
-    int nWalletMaxVersion;
+    int nWalletMaxVersion; // 钱包的最大格式版本：内存中的变量，指定钱包可能升级的版本
 
     int64_t nNextResend;
     int64_t nLastResend;
-    bool fBroadcastTransactions;
+    bool fBroadcastTransactions; // 广播交易的标志
 
     /**
      * Used to keep track of spent outpoints, and
      * detect and report conflicts (double-spends or
      * mutated transactions where the mutant gets mined).
-     */
+     */ // 用于跟踪花费输出点，并侦测和报告冲突（双花 或 挖矿突变导致的可变的交易）
     typedef std::multimap<COutPoint, uint256> TxSpends;
     TxSpends mapTxSpends;
     void AddToSpends(const COutPoint& outpoint, const uint256& wtxid);
     void AddToSpends(const uint256& wtxid);
 
-    /* Mark a transaction (and its in-wallet descendants) as conflicting with a particular block. */
+    /* Mark a transaction (and its in-wallet descendants) as conflicting with a particular block. */ // 标记一笔交易（和其在钱包内的子交易）为与一个特殊块冲突
     void MarkConflicted(const uint256& hashBlock, const uint256& hashTx);
 
     void SyncMetaData(std::pair<TxSpends::iterator, TxSpends::iterator>);
@@ -505,10 +505,10 @@ public:
      *      fFileBacked (immutable after instantiation)
      *      strWalletFile (immutable after instantiation)
      */
-    mutable CCriticalSection cs_wallet;
+    mutable CCriticalSection cs_wallet; // 主钱包锁，保护除 CWallet 类中以下两个成员外添加到钱包的全部成员变量
 
-    bool fFileBacked;
-    std::string strWalletFile;
+    bool fFileBacked; // 文件是否已备份的标志
+    std::string strWalletFile; // 钱包文件的文件名
 
     std::set<int64_t> setKeyPool;
     std::map<CKeyID, CKeyMetadata> mapKeyMetadata;
@@ -673,8 +673,8 @@ public:
 
     bool AddAccountingEntry(const CAccountingEntry&, CWalletDB & pwalletdb);
 
-    static CFeeRate minTxFee;
-    static CFeeRate fallbackFee;
+    static CFeeRate minTxFee; // 最小交易费
+    static CFeeRate fallbackFee; // 撤销交易费
     /**
      * Estimate the minimum fee considering user set parameters
      * and the required fee
@@ -798,12 +798,12 @@ public:
 };
 
 /** A key allocated from the key pool. */
-class CReserveKey : public CReserveScript
+class CReserveKey : public CReserveScript // 一个密钥在密钥池中的位置
 {
 protected:
-    CWallet* pwallet;
+    CWallet* pwallet; // 钱包指针
     int64_t nIndex;
-    CPubKey vchPubKey;
+    CPubKey vchPubKey; // 对应公钥
 public:
     CReserveKey(CWallet* pwalletIn)
     {

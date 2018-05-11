@@ -101,7 +101,7 @@ void PrintLockContention(const char* pszName, const char* pszFile, int nLine);
 
 /** Wrapper around boost::unique_lock<Mutex> */
 template <typename Mutex>
-class SCOPED_LOCKABLE CMutexLock
+class SCOPED_LOCKABLE CMutexLock // boost::unique_lock<Mutex> µÄ°ü×°Æ÷
 {
 private:
     boost::unique_lock<Mutex> lock;
