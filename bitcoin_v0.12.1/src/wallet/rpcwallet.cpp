@@ -37,16 +37,16 @@ std::string HelpRequiringPassphrase()
         : "";
 }
 
-bool EnsureWalletIsAvailable(bool avoidException)
+bool EnsureWalletIsAvailable(bool avoidException) // 确保钱包可用
 {
-    if (!pwalletMain)
+    if (!pwalletMain) // 若当前钱包未创建
     {
         if (!avoidException)
             throw JSONRPCError(RPC_METHOD_NOT_FOUND, "Method not found (disabled)");
         else
             return false;
     }
-    return true;
+    return true; // 钱包创建了直接返回 true
 }
 
 void EnsureWalletIsUnlocked()
@@ -108,11 +108,11 @@ string AccountFromValue(const UniValue& value)
 
 UniValue getnewaddress(const UniValue& params, bool fHelp) // 在指定账户下新建一个地址，若不指定账户，默认添加到""空账户下
 {
-    if (!EnsureWalletIsAvailable(fHelp)) // 确保钱包可用
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保钱包可用，即钱包已创建成功
         return NullUniValue;
     
     if (fHelp || params.size() > 1) // 参数个数为 0 或 1，即要么使用默认账户，要么指定账户
-        throw runtime_error(
+        throw runtime_error( // 查看该命令的帮助或命令参数个数超过 1 个均返回该命令的帮助
             "getnewaddress ( \"account\" )\n"
             "\nReturns a new Bitcoin address for receiving payments.\n"
             "If 'account' is specified (DEPRECATED), it is added to the address book \n"

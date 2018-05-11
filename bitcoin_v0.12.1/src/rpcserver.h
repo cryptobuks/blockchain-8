@@ -111,15 +111,15 @@ void RPCUnregisterTimerInterface(RPCTimerInterface *iface);
  */
 void RPCRunLater(const std::string& name, boost::function<void(void)> func, int64_t nSeconds);
 
-typedef UniValue(*rpcfn_type)(const UniValue& params, bool fHelp);
+typedef UniValue(*rpcfn_type)(const UniValue& params, bool fHelp); // RPC 命令对应函数行为的回调函数
 
-class CRPCCommand
+class CRPCCommand // RPC 命令类
 {
 public:
-    std::string category;
-    std::string name;
-    rpcfn_type actor;
-    bool okSafeMode;
+    std::string category; // 所属类别
+    std::string name; // 名称
+    rpcfn_type actor; // 对应的函数行为
+    bool okSafeMode; // 是否打开安全模式
 };
 
 /**
