@@ -510,7 +510,7 @@ public:
     bool fFileBacked; // 文件是否已备份的标志
     std::string strWalletFile; // 钱包文件的文件名
 
-    std::set<int64_t> setKeyPool;
+    std::set<int64_t> setKeyPool; // 密钥池集合，用于记录密钥的数量（索引），从数字 1 开始递增
     std::map<CKeyID, CKeyMetadata> mapKeyMetadata;
 
     typedef std::map<unsigned int, CMasterKey> MasterKeyMap;

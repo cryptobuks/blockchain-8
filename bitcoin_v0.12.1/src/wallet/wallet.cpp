@@ -91,21 +91,21 @@ CPubKey CWallet::GenerateNewKey()
     secret.MakeNewKey(fCompressed); // 随机生成一个数来初始化私钥，注意边界，下界为 1
 
     // Compressed public keys were introduced in version 0.6.0
-    if (fCompressed)
+    if (fCompressed) // 是否压缩公钥，0.6.0 版引入
         SetMinVersion(FEATURE_COMPRPUBKEY);
 
     CPubKey pubkey = secret.GetPubKey(); // 获取与私钥对应的公钥（椭圆曲线加密算法）
     assert(secret.VerifyPubKey(pubkey)); // 验证私钥公钥对是否匹配
 
     // Create new metadata // 创建新元数据/中继数据
-    int64_t nCreationTime = GetTime();
+    int64_t nCreationTime = GetTime(); // 获取当前时间
     mapKeyMetadata[pubkey.GetID()] = CKeyMetadata(nCreationTime);
     if (!nTimeFirstKey || nCreationTime < nTimeFirstKey)
         nTimeFirstKey = nCreationTime;
 
     if (!AddKeyPubKey(secret, pubkey))
         throw std::runtime_error("CWallet::GenerateNewKey(): AddKey failed");
-    return pubkey;
+    return pubkey; // 返回对应的公钥
 }
 
 bool CWallet::AddKeyPubKey(const CKey& secret, const CPubKey &pubkey)
@@ -2469,26 +2469,26 @@ bool CWallet::TopUpKeyPool(unsigned int kpSize)
     {
         LOCK(cs_wallet);
 
-        if (IsLocked())
+        if (IsLocked()) // 再次检查钱包是否被锁
             return false;
 
-        CWalletDB walletdb(strWalletFile);
+        CWalletDB walletdb(strWalletFile); // 通过钱包文件名创建钱包数据库对象
 
         // Top up key pool
         unsigned int nTargetSize;
-        if (kpSize > 0)
+        if (kpSize > 0) // 这里的 kpSize 默认为 0
             nTargetSize = kpSize;
-        else
+        else // 所以走这里
             nTargetSize = max(GetArg("-keypool", DEFAULT_KEYPOOL_SIZE), (int64_t) 0); // 钥匙池大小，默认 100
 
-        while (setKeyPool.size() < (nTargetSize + 1))
+        while (setKeyPool.size() < (nTargetSize + 1)) // 这里可以看出密钥池实际上最多有 nTargetSize + 1 个密钥，默认为 100 + 1 即 101 个
         {
             int64_t nEnd = 1;
-            if (!setKeyPool.empty())
-                nEnd = *(--setKeyPool.end()) + 1;
-            if (!walletdb.WritePool(nEnd, CKeyPool(GenerateNewKey())))
+            if (!setKeyPool.empty()) // 若密钥集合为空，则从索引为 1 的密钥开始填充
+                nEnd = *(--setKeyPool.end()) + 1; // 获取当前密钥池中密钥的最大数量（索引）并加 1
+            if (!walletdb.WritePool(nEnd, CKeyPool(GenerateNewKey()))) // 创建一个密钥对并把公钥写入钱包数据库文件中
                 throw runtime_error("TopUpKeyPool(): writing generated key failed");
-            setKeyPool.insert(nEnd);
+            setKeyPool.insert(nEnd); // 将新密钥的索引插入密钥池集合
             LogPrintf("keypool added key %d, size=%u\n", nEnd, setKeyPool.size());
         }
     }

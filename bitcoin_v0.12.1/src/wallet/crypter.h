@@ -137,7 +137,7 @@ public:
     {
     }
 
-    bool IsCrypted() const
+    bool IsCrypted() const // 返回当前钱包是否被用户加密的状态
     {
         return fUseCrypto;
     }
