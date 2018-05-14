@@ -432,10 +432,10 @@ public:
 class CWalletKey // 包含一个有期限的私钥以防该私钥不会被使用
 {
 public:
-    CPrivKey vchPrivKey;
-    int64_t nTimeCreated;
-    int64_t nTimeExpires;
-    std::string strComment;
+    CPrivKey vchPrivKey; // 私钥
+    int64_t nTimeCreated; // 创建时间
+    int64_t nTimeExpires; // 过期时间
+    std::string strComment; // 备注
     //! todo: add something to note what created it (user, getnewaddress, change)
     //!   maybe should have a map<string, string> property map
 

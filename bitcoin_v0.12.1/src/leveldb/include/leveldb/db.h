@@ -21,9 +21,9 @@ struct ReadOptions;
 struct WriteOptions;
 class WriteBatch;
 
-// Abstract handle to particular state of a DB.
-// A Snapshot is an immutable object and can therefore be safely
-// accessed from multiple threads without any external synchronization.
+// Abstract handle to particular state of a DB. // 抽象处理一个数据库指定的状态。
+// A Snapshot is an immutable object and can therefore be safely // 快照是一个不可变的对象，
+// accessed from multiple threads without any external synchronization. // 所以在没有任何外部同步时可以从多线程访问
 class Snapshot {
  protected:
   virtual ~Snapshot();

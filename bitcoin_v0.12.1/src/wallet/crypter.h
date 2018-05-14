@@ -109,20 +109,20 @@ public:
 
 /** Keystore which keeps the private keys encrypted.
  * It derives from the basic key store, which is used if no encryption is active.
- */
+ */ // 用于存储加密私钥的密钥库。
 class CCryptoKeyStore : public CBasicKeyStore
 {
 private:
-    CryptedKeyMap mapCryptedKeys;
+    CryptedKeyMap mapCryptedKeys; // 加密的密钥索引列表
 
-    CKeyingMaterial vMasterKey;
+    CKeyingMaterial vMasterKey; // 主密钥
 
     //! if fUseCrypto is true, mapKeys must be empty
     //! if fUseCrypto is false, vMasterKey must be empty
-    bool fUseCrypto;
+    bool fUseCrypto; // 如果使用加密标志为 true，mapKeys 必须为空；如果为 false，vMasterKey 必须为空
 
     //! keeps track of whether Unlock has run a thorough check before
-    bool fDecryptionThoroughlyChecked;
+    bool fDecryptionThoroughlyChecked; // 跟踪 在解锁前是否运行过一个彻底的检查 的标志
 
 protected:
     bool SetCrypted();
@@ -144,9 +144,9 @@ public:
 
     bool IsLocked() const
     {
-        if (!IsCrypted())
+        if (!IsCrypted()) // fUseCrypto 为 false
             return false;
-        bool result;
+        bool result; // fUseCrypto 为 true
         {
             LOCK(cs_KeyStore);
             result = vMasterKey.empty();
