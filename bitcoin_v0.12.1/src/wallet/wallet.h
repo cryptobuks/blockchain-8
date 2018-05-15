@@ -83,7 +83,7 @@ enum WalletFeature
 
 
 /** A key pool entry */
-class CKeyPool // 一个公钥池条目
+class CKeyPool // 一个密钥池条目（保存公钥）
 {
 public:
     int64_t nTime; // 时间
@@ -571,7 +571,7 @@ public:
     const CWalletTx* GetWalletTx(const uint256& hash) const;
 
     //! check whether we are allowed to upgrade (or already support) to the named feature
-    bool CanSupportFeature(enum WalletFeature wf) { AssertLockHeld(cs_wallet); return nWalletMaxVersion >= wf; }
+    bool CanSupportFeature(enum WalletFeature wf) { AssertLockHeld(cs_wallet); return nWalletMaxVersion >= wf; } // 检查是否我们被允许升级（或已支持）到已知的特性
 
     /**
      * populate vCoins with vector of available COutputs.
