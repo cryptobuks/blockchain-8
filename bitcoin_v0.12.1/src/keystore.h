@@ -46,7 +46,7 @@ public:
     virtual bool HaveWatchOnly() const =0;
 };
 
-typedef std::map<CKeyID, CKey> KeyMap;
+typedef std::map<CKeyID, CKey> KeyMap; // √‹‘ø”≥…‰£¨π´‘ø ID ∂‘”¶ÀΩ‘ø
 typedef std::map<CKeyID, CPubKey> WatchKeyMap;
 typedef std::map<CScriptID, CScript > ScriptMap;
 typedef std::set<CScript> WatchOnlySet;

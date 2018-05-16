@@ -24,7 +24,7 @@
  */
 
 /** A reference to a CKey: the Hash160 of its serialized public key */
-class CKeyID : public uint160
+class CKeyID : public uint160 // 一个公钥的引用：其序列化的公钥的 Hash160，共 160 位二进制，20bytes
 {
 public:
     CKeyID() : uint160() {}
@@ -34,7 +34,7 @@ public:
 typedef uint256 ChainCode;
 
 /** An encapsulated public key. */
-class CPubKey
+class CPubKey // 一个封装的公钥
 {
 private:
 

@@ -2382,22 +2382,22 @@ DBErrors CWallet::ZapWalletTx(std::vector<CWalletTx>& vWtx)
 
 bool CWallet::SetAddressBook(const CTxDestination& address, const string& strName, const string& strPurpose)
 {
-    bool fUpdated = false;
+    bool fUpdated = false; // 标记钱包地址簿是否更新，指地址已存在更新其用途，新增地址不算
     {
         LOCK(cs_wallet); // mapAddressBook
         std::map<CTxDestination, CAddressBookData>::iterator mi = mapAddressBook.find(address); // 首先在地址簿中查找该地址
-        fUpdated = mi != mapAddressBook.end(); // 查找到的化，升级标志置为 true
-        mapAddressBook[address].name = strName; // 账户名
-        if (!strPurpose.empty()) /* update purpose only if requested */ // 目的非空
-            mapAddressBook[address].purpose = strPurpose; // 升级目的
+        fUpdated = mi != mapAddressBook.end(); // 查找到的话，升级标志置为 true
+        mapAddressBook[address].name = strName; // 账户名，若地址已存在，直接改变账户名，否则插入该地址
+        if (!strPurpose.empty()) /* update purpose only if requested */ // 用途非空
+            mapAddressBook[address].purpose = strPurpose; // 升级该已存在地址的用途
     }
     NotifyAddressBookChanged(this, address, strName, ::IsMine(*this, address) != ISMINE_NO,
                              strPurpose, (fUpdated ? CT_UPDATED : CT_NEW) ); // 通知地址簿已改变
-    if (!fFileBacked) // 
+    if (!fFileBacked) // 文件未备份
         return false;
-    if (!strPurpose.empty() && !CWalletDB(strWalletFile).WritePurpose(CBitcoinAddress(address).ToString(), strPurpose))
+    if (!strPurpose.empty() && !CWalletDB(strWalletFile).WritePurpose(CBitcoinAddress(address).ToString(), strPurpose)) // 用途非空时，写入钱包数据库该地址对应的用途
         return false;
-    return CWalletDB(strWalletFile).WriteName(CBitcoinAddress(address).ToString(), strName);
+    return CWalletDB(strWalletFile).WriteName(CBitcoinAddress(address).ToString(), strName); // 最后写入地址对应的账户名到钱包数据库
 }
 
 bool CWallet::DelAddressBook(const CTxDestination& address)
@@ -2500,35 +2500,35 @@ void CWallet::ReserveKeyFromKeyPool(int64_t& nIndex, CKeyPool& keypool)
     nIndex = -1;
     keypool.vchPubKey = CPubKey();
     {
-        LOCK(cs_wallet);
+        LOCK(cs_wallet); // 钱包上锁
 
-        if (!IsLocked())
-            TopUpKeyPool();
+        if (!IsLocked()) // 若钱包未被加密
+            TopUpKeyPool(); // 再次填充密钥池
 
-        // Get the oldest key
-        if(setKeyPool.empty())
-            return;
+        // Get the oldest key // 获取时间上最早的密钥
+        if(setKeyPool.empty()) // 若密钥池集合为空
+            return; // 直接返回
 
-        CWalletDB walletdb(strWalletFile);
+        CWalletDB walletdb(strWalletFile); // 根据钱包文件构造钱包数据库对象
 
-        nIndex = *(setKeyPool.begin());
-        setKeyPool.erase(setKeyPool.begin());
-        if (!walletdb.ReadPool(nIndex, keypool))
+        nIndex = *(setKeyPool.begin()); // 获取最先创建的密钥的索引，大于 0，最小为 1
+        setKeyPool.erase(setKeyPool.begin()); // 从密钥池集合中擦除该密钥的索引
+        if (!walletdb.ReadPool(nIndex, keypool)) // 根据密钥索引从钱包数据库中读取一个密钥池条目
             throw runtime_error("ReserveKeyFromKeyPool(): read failed");
-        if (!HaveKey(keypool.vchPubKey.GetID()))
+        if (!HaveKey(keypool.vchPubKey.GetID())) // 通过获取的公钥 ID
             throw runtime_error("ReserveKeyFromKeyPool(): unknown key in key pool");
-        assert(keypool.vchPubKey.IsValid());
+        assert(keypool.vchPubKey.IsValid()); // 检查公钥是否有效
         LogPrintf("keypool reserve %d\n", nIndex);
     }
 }
 
 void CWallet::KeepKey(int64_t nIndex)
 {
-    // Remove from key pool
-    if (fFileBacked)
+    // Remove from key pool // 从密钥池移除指定索引的
+    if (fFileBacked) // 若钱包文件已备份
     {
-        CWalletDB walletdb(strWalletFile);
-        walletdb.ErasePool(nIndex);
+        CWalletDB walletdb(strWalletFile); // 通过钱包文件名构造钱包数据库对象
+        walletdb.ErasePool(nIndex); // 根据索引擦除对应的密钥
     }
     LogPrintf("keypool keep %d\n", nIndex);
 }
@@ -2546,17 +2546,17 @@ void CWallet::ReturnKey(int64_t nIndex)
 bool CWallet::GetKeyFromPool(CPubKey& result)
 {
     int64_t nIndex = 0;
-    CKeyPool keypool;
+    CKeyPool keypool; // 密钥池条目
     {
         LOCK(cs_wallet);
-        ReserveKeyFromKeyPool(nIndex, keypool);
+        ReserveKeyFromKeyPool(nIndex, keypool); // 从密钥池中预定一个密钥，若获取失败，nIndex 为 -1
         if (nIndex == -1) // -1 表示当前 keypool 为空
         {
             if (IsLocked()) return false;
             result = GenerateNewKey(); // 创建新的私钥，并用椭圆曲线加密生成对应的公钥
             return true;
         }
-        KeepKey(nIndex);
+        KeepKey(nIndex); // 从钱包数据库的密钥池中移除该密钥
         result = keypool.vchPubKey;
     }
     return true;

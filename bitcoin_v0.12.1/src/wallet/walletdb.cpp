@@ -166,8 +166,8 @@ bool CWalletDB::WritePool(int64_t nPool, const CKeyPool& keypool)
 
 bool CWalletDB::ErasePool(int64_t nPool)
 {
-    nWalletDBUpdated++;
-    return Erase(std::make_pair(std::string("pool"), nPool));
+    nWalletDBUpdated++; // 升级次数加 1
+    return Erase(std::make_pair(std::string("pool"), nPool)); // 根据指定的索引移除钱包数据库中对应的密钥
 }
 
 bool CWalletDB::WriteMinVersion(int nVersion)

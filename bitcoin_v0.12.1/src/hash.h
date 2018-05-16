@@ -103,7 +103,7 @@ inline uint256 Hash(const T1 p1begin, const T1 p1end,
 }
 
 /** Compute the 160-bit hash an object. */
-template<typename T1>
+template<typename T1> // 计算一个对象的 160 位哈希值
 inline uint160 Hash160(const T1 pbegin, const T1 pend)
 {
     static unsigned char pblank[1] = {};

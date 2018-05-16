@@ -32,7 +32,7 @@
 typedef std::vector<unsigned char, secure_allocator<unsigned char> > CPrivKey;
 
 /** An encapsulated private key. */
-class CKey
+class CKey // 一个封装的私钥
 {
 private:
     //! Whether this private key is valid. We check for correctness when modifying the key

@@ -158,13 +158,13 @@ public:
 
     virtual bool AddCryptedKey(const CPubKey &vchPubKey, const std::vector<unsigned char> &vchCryptedSecret);
     bool AddKeyPubKey(const CKey& key, const CPubKey &pubkey);
-    bool HaveKey(const CKeyID &address) const
+    bool HaveKey(const CKeyID &address) const // 检查 KeyID 对应的密钥是否存在
     {
         {
             LOCK(cs_KeyStore);
-            if (!IsCrypted())
-                return CBasicKeyStore::HaveKey(address);
-            return mapCryptedKeys.count(address) > 0;
+            if (!IsCrypted()) // 若当前钱未被用户加密
+                return CBasicKeyStore::HaveKey(address); // 检查公钥 ID 对应的私钥是否存在
+            return mapCryptedKeys.count(address) > 0; // 存在 1 > 0，返回 true，反之，返回 false
         }
         return false;
     }
