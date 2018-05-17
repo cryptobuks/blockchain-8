@@ -67,8 +67,8 @@ inline bool DecodeBase58Check(const std::string& str, std::vector<unsigned char>
 
 /**
  * Base class for all base58-encoded data
- */
-class CBase58Data
+ */ // 所有 base58 编码数据的基类
+class CBase58Data // 包含一个版本号和一个编码
 {
 protected:
     //! the version byte(s)
@@ -76,7 +76,7 @@ protected:
 
     //! the actually encoded data
     typedef std::vector<unsigned char, zero_after_free_allocator<unsigned char> > vector_uchar;
-    vector_uchar vchData; // 真正要编码的数据
+    vector_uchar vchData; // 实际编码后的数据
 
     CBase58Data();
     void SetData(const std::vector<unsigned char> &vchVersionIn, const void* pdata, size_t nSize);

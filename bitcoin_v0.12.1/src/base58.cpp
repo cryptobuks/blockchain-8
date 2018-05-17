@@ -91,10 +91,10 @@ std::string EncodeBase58(const unsigned char* pbegin, const unsigned char* pend)
     while (it != b58.end() && *it == 0) // 4.跳过开头的 0
         it++;
     // Translate the result into a string.
-    std::string str; // 5.转换结果为字符串
+    std::string str;
     str.reserve(zeroes + (b58.end() - it)); // 1 + 33 or 0 + 34 = 34
-    str.assign(zeroes, '1'); // 在字符串前面的位置指派 zeroes 个字符 1
-    while (it != b58.end()) // Base58 转换
+    str.assign(zeroes, '1'); // 5.在字符串前面的位置指派 zeroes 个字符 1
+    while (it != b58.end()) // 6.查 Base58 字符表转换结果为对应的字符串
         str += pszBase58[*(it++)]; // append *it then ++it
     return str; // 前缀为 0x00 不参与 Base58 运算，地址长度固定为 34 bytes 且前缀位 '1'，其他不为 0x00 的前缀，均参与 Base58 运算，地址长度变换范围 33 - 35 bytes
 }
