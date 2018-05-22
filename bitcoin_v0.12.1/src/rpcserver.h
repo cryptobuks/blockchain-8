@@ -250,14 +250,14 @@ extern UniValue gettxoutproof(const UniValue& params, bool fHelp);
 extern UniValue verifytxoutproof(const UniValue& params, bool fHelp);
 
 extern UniValue getblockcount(const UniValue& params, bool fHelp); // in rpcblockchain.cpp
-extern UniValue getbestblockhash(const UniValue& params, bool fHelp);
+extern UniValue getbestblockhash(const UniValue& params, bool fHelp); // 获取当前最佳块的哈希
 extern UniValue getdifficulty(const UniValue& params, bool fHelp);
 extern UniValue settxfee(const UniValue& params, bool fHelp);
 extern UniValue getmempoolinfo(const UniValue& params, bool fHelp);
 extern UniValue getrawmempool(const UniValue& params, bool fHelp);
 extern UniValue getblockhash(const UniValue& params, bool fHelp);
 extern UniValue getblockheader(const UniValue& params, bool fHelp);
-extern UniValue getblock(const UniValue& params, bool fHelp);
+extern UniValue getblock(const UniValue& params, bool fHelp); // 获取指定区块的信息
 extern UniValue gettxoutsetinfo(const UniValue& params, bool fHelp);
 extern UniValue gettxout(const UniValue& params, bool fHelp);
 extern UniValue verifychain(const UniValue& params, bool fHelp);

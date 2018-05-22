@@ -146,8 +146,8 @@ UniValue getblockcount(const UniValue& params, bool fHelp)
 
 UniValue getbestblockhash(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() != 0)
-        throw runtime_error(
+    if (fHelp || params.size() != 0) // 该命令没有参数
+        throw runtime_error( // 命令帮助反馈
             "getbestblockhash\n"
             "\nReturns the hash of the best (tip) block in the longest block chain.\n"
             "\nResult\n"
@@ -158,7 +158,7 @@ UniValue getbestblockhash(const UniValue& params, bool fHelp)
         );
 
     LOCK(cs_main);
-    return chainActive.Tip()->GetBlockHash().GetHex();
+    return chainActive.Tip()->GetBlockHash().GetHex(); // 返回激活链尖区块哈希的 16 进制
 }
 
 UniValue getdifficulty(const UniValue& params, bool fHelp)
@@ -360,8 +360,8 @@ UniValue getblockheader(const UniValue& params, bool fHelp)
 
 UniValue getblock(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() < 1 || params.size() > 2)
-        throw runtime_error(
+    if (fHelp || params.size() < 1 || params.size() > 2) // 必须有 1 个参数（谋区块的哈希），最多 2 个
+        throw runtime_error( // 命令帮助反馈
             "getblock \"hash\" ( verbose )\n"
             "\nIf verbose is false, returns a string that is serialized, hex-encoded data for block 'hash'.\n"
             "If verbose is true, returns an Object with information about block <hash>.\n"
@@ -398,34 +398,34 @@ UniValue getblock(const UniValue& params, bool fHelp)
 
     LOCK(cs_main);
 
-    std::string strHash = params[0].get_str();
-    uint256 hash(uint256S(strHash));
+    std::string strHash = params[0].get_str(); // 把参数转换为字符串
+    uint256 hash(uint256S(strHash)); // 包装成 uint256 对象
 
-    bool fVerbose = true;
-    if (params.size() > 1)
-        fVerbose = params[1].get_bool();
+    bool fVerbose = true; // 详细标志，默认为 true
+    if (params.size() > 1) // 若有第 2 个参数
+        fVerbose = params[1].get_bool(); // 获取 verbose 的值（布尔型）
 
-    if (mapBlockIndex.count(hash) == 0)
+    if (mapBlockIndex.count(hash) == 0) // 检查指定哈希是否在区块索引映射中
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
 
-    CBlock block;
-    CBlockIndex* pblockindex = mapBlockIndex[hash];
+    CBlock block; // 创建一个局部的区块对象
+    CBlockIndex* pblockindex = mapBlockIndex[hash]; // 获取指定哈希对应的区块索引指针
 
-    if (fHavePruned && !(pblockindex->nStatus & BLOCK_HAVE_DATA) && pblockindex->nTx > 0)
+    if (fHavePruned && !(pblockindex->nStatus & BLOCK_HAVE_DATA) && pblockindex->nTx > 0) // 区块文件未被修剪过 或 区块状态为在区块文件中为完整区块 或 区块索引中的交易号为 0
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Block not available (pruned data)");
 
-    if(!ReadBlockFromDisk(block, pblockindex, Params().GetConsensus()))
+    if(!ReadBlockFromDisk(block, pblockindex, Params().GetConsensus())) // 从磁盘上的区块文件中读取区块信息
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Can't read block from disk");
 
-    if (!fVerbose)
+    if (!fVerbose) // false
     {
-        CDataStream ssBlock(SER_NETWORK, PROTOCOL_VERSION);
-        ssBlock << block;
-        std::string strHex = HexStr(ssBlock.begin(), ssBlock.end());
-        return strHex;
+        CDataStream ssBlock(SER_NETWORK, PROTOCOL_VERSION); // 序列化数据
+        ssBlock << block; // 导入区块数据
+        std::string strHex = HexStr(ssBlock.begin(), ssBlock.end()); // 16 进制化
+        return strHex; // 返回
     }
 
-    return blockToJSON(block, pblockindex);
+    return blockToJSON(block, pblockindex); // 打包区块信息为 JSON 格式并返回
 }
 
 UniValue gettxoutsetinfo(const UniValue& params, bool fHelp)

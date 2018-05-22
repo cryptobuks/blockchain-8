@@ -1534,21 +1534,21 @@ bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos, const Consensus:
 {
     block.SetNull();
 
-    // Open history file to read
+    // Open history file to read // 打开并读历史文件
     CAutoFile filein(OpenBlockFile(pos, true), SER_DISK, CLIENT_VERSION);
-    if (filein.IsNull())
+    if (filein.IsNull()) // 检查读取状态
         return error("ReadBlockFromDisk: OpenBlockFile failed for %s", pos.ToString());
 
     // Read block
     try {
-        filein >> block;
+        filein >> block; // 导入区块数据
     }
     catch (const std::exception& e) {
         return error("%s: Deserialize or I/O error - %s at %s", __func__, e.what(), pos.ToString());
     }
 
-    // Check the header
-    if (!CheckProofOfWork(block.GetHash(), block.nBits, consensusParams))
+    // Check the header // 检查区块头
+    if (!CheckProofOfWork(block.GetHash(), block.nBits, consensusParams)) // 通过区块哈希，区块难度和共识参数检查工作量证明
         return error("ReadBlockFromDisk: Errors in block header at %s", pos.ToString());
 
     return true;
@@ -1556,9 +1556,9 @@ bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos, const Consensus:
 
 bool ReadBlockFromDisk(CBlock& block, const CBlockIndex* pindex, const Consensus::Params& consensusParams)
 {
-    if (!ReadBlockFromDisk(block, pindex->GetBlockPos(), consensusParams))
+    if (!ReadBlockFromDisk(block, pindex->GetBlockPos(), consensusParams)) // 调用重载函数读取区块信息
         return false;
-    if (block.GetHash() != pindex->GetBlockHash())
+    if (block.GetHash() != pindex->GetBlockHash()) // 验证读取的区块哈希
         return error("ReadBlockFromDisk(CBlock&, CBlockIndex*): GetHash() doesn't match index for %s at %s",
                 pindex->ToString(), pindex->GetBlockPos().ToString());
     return true;

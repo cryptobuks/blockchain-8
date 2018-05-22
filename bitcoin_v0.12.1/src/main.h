@@ -120,7 +120,7 @@ static const bool DEFAULT_ENABLE_REPLACEMENT = true;
 /** Maximum number of headers to announce when relaying blocks with headers message.*/
 static const unsigned int MAX_BLOCKS_TO_ANNOUNCE = 8;
 
-struct BlockHasher
+struct BlockHasher // 区块哈希的函数对象
 {
     size_t operator()(const uint256& hash) const { return hash.GetCheapHash(); }
 };
@@ -129,7 +129,7 @@ extern CScript COINBASE_FLAGS;
 extern CCriticalSection cs_main;
 extern CTxMemPool mempool;
 typedef boost::unordered_map<uint256, CBlockIndex*, BlockHasher> BlockMap;
-extern BlockMap mapBlockIndex;
+extern BlockMap mapBlockIndex; // 区块索引映射 <区块哈希，区块索引指针，函数对象>
 extern uint64_t nLastBlockTx;
 extern uint64_t nLastBlockSize;
 extern const std::string strMessageMagic;
@@ -157,7 +157,7 @@ static const uint64_t nMinDiskSpace = 52428800; // 50MB
 
 /** Pruning-related variables and constants */
 /** True if any block files have ever been pruned. */
-extern bool fHavePruned;
+extern bool fHavePruned; // 如果全部区块文件被修剪过则为 true
 /** True if we're running in -prune mode. */
 extern bool fPruneMode;
 /** Number of MiB of block files that we're trying to stay below. */
@@ -421,7 +421,7 @@ public:
 };
 
 
-/** Functions for disk access for blocks */
+/** Functions for disk access for blocks */ // 访问磁盘上区块的函数
 bool WriteBlockToDisk(const CBlock& block, CDiskBlockPos& pos, const CMessageHeader::MessageStartChars& messageStart);
 bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos, const Consensus::Params& consensusParams);
 bool ReadBlockFromDisk(CBlock& block, const CBlockIndex* pindex, const Consensus::Params& consensusParams);
@@ -521,7 +521,7 @@ bool InvalidateBlock(CValidationState& state, const Consensus::Params& consensus
 bool ReconsiderBlock(CValidationState& state, CBlockIndex *pindex);
 
 /** The currently-connected chain of blocks (protected by cs_main). */
-extern CChain chainActive;
+extern CChain chainActive; // 当前连接的区块链（激活的链）
 
 /** Global variable that points to the active CCoinsView (protected by cs_main) */
 extern CCoinsViewCache *pcoinsTip;

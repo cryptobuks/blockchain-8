@@ -86,18 +86,18 @@ unsigned int CalculateNextWorkRequired(const CBlockIndex* pindexLast, int64_t nF
 
 bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params& params)
 {
-    bool fNegative;
-    bool fOverflow;
-    arith_uint256 bnTarget;
+    bool fNegative; // 负数标志
+    bool fOverflow; // 上溢标志
+    arith_uint256 bnTarget; // 难度目标值
 
-    bnTarget.SetCompact(nBits, &fNegative, &fOverflow);
+    bnTarget.SetCompact(nBits, &fNegative, &fOverflow); // 获取难度对应目标值
 
     // Check range
-    if (fNegative || bnTarget == 0 || fOverflow || bnTarget > UintToArith256(params.powLimit))
+    if (fNegative || bnTarget == 0 || fOverflow || bnTarget > UintToArith256(params.powLimit)) // 范围检查：不能为负数，难度目标值非 0，不能上溢，难度目标值要大于最低难度
         return error("CheckProofOfWork(): nBits below minimum work");
 
     // Check proof of work matches claimed amount
-    if (UintToArith256(hash) > bnTarget)
+    if (UintToArith256(hash) > bnTarget) // 区块哈希不能高于难度目标值
         return error("CheckProofOfWork(): hash doesn't match nBits");
 
     return true;

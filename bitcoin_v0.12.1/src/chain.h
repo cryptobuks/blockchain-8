@@ -96,27 +96,27 @@ enum BlockStatus {
  * genesis block at the root, with each block potentially having multiple
  * candidates to be the next block. A blockindex may have multiple pprev pointing
  * to it, but at most one of them can be part of the currently active branch.
- */
-class CBlockIndex
+ */ // 区块链是一个始于以创世区块为根的树状结构，每个区块可有多个候选作为下一个区块。一个区块索引可能有多个 pprev 指向它，但最多只能有一个能成为当前激活分支的一部分。
+class CBlockIndex // 区块索引
 {
 public:
     //! pointer to the hash of the block, if any. Memory is owned by this CBlockIndex
-    const uint256* phashBlock;
+    const uint256* phashBlock; // 指向区块的哈希。内存属于该区块索引
 
     //! pointer to the index of the predecessor of this block
-    CBlockIndex* pprev;
+    CBlockIndex* pprev; // 指向前一个区块索引的指针
 
     //! pointer to the index of some further predecessor of this block
-    CBlockIndex* pskip;
+    CBlockIndex* pskip; // 指向后一个区块索引的指针（可为空）
 
     //! height of the entry in the chain. The genesis block has height 0
-    int nHeight;
+    int nHeight; // 该区块在链上的高度。创世区块高度为 0
 
     //! Which # file this block is stored in (blk?????.dat)
-    int nFile;
+    int nFile; // 该区块存储的区块文件号
 
     //! Byte offset within blk?????.dat where this block's data is stored
-    unsigned int nDataPos;
+    unsigned int nDataPos; // 该区块存储在去快文件中的数据偏移量
 
     //! Byte offset within rev?????.dat where this block's undo data is stored
     unsigned int nUndoPos;
@@ -126,7 +126,7 @@ public:
 
     //! Number of transactions in this block.
     //! Note: in a potential headers-first mode, this number cannot be relied upon
-    unsigned int nTx;
+    unsigned int nTx; // 该区块中的交易号
 
     //! (memory only) Number of transactions in the chain up to and including this block.
     //! This value will be non-zero only if and only if transactions for this block and all its parents are available.
@@ -134,7 +134,7 @@ public:
     unsigned int nChainTx;
 
     //! Verification status of this block. See enum BlockStatus
-    unsigned int nStatus;
+    unsigned int nStatus; // 验证该区块的状态
 
     //! block header
     int nVersion;
@@ -184,7 +184,7 @@ public:
         nNonce         = block.nNonce;
     }
 
-    CDiskBlockPos GetBlockPos() const {
+    CDiskBlockPos GetBlockPos() const { // 获取区块所在文件数据的位置
         CDiskBlockPos ret;
         if (nStatus & BLOCK_HAVE_DATA) {
             ret.nFile = nFile;
@@ -215,7 +215,7 @@ public:
         return block;
     }
 
-    uint256 GetBlockHash() const
+    uint256 GetBlockHash() const // 获取区块哈希
     {
         return *phashBlock;
     }
@@ -347,7 +347,7 @@ public:
 /** An in-memory indexed chain of blocks. */
 class CChain { // 一个内存中用于区块索引的链
 private:
-    std::vector<CBlockIndex*> vChain; // 内存中区块的索引集
+    std::vector<CBlockIndex*> vChain; // 内存中区块的索引列表
 
 public:
     /** Returns the index entry for the genesis block of this chain, or NULL if none. */
@@ -356,8 +356,8 @@ public:
     }
 
     /** Returns the index entry for the tip of this chain, or NULL if none. */
-    CBlockIndex *Tip() const {
-        return vChain.size() > 0 ? vChain[vChain.size() - 1] : NULL;
+    CBlockIndex *Tip() const { // 返回该链尖的索引条目，或如果没有则为空
+        return vChain.size() > 0 ? vChain[vChain.size() - 1] : NULL; // 至少返回创世区块的索引
     }
 
     /** Returns the index entry at a particular height in this chain, or NULL if no such height exists. */

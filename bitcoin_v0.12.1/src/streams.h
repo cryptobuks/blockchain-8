@@ -26,12 +26,12 @@
  *
  * >> and << read and write unformatted data using the above serialization templates.
  * Fills with data in linear time; some stringstream implementations take N^2 time.
- */
+ */ // 结合向量和流式接口的双端缓冲区。使用上述序列化模板 >> 和 << 来读写未格式化的数据。以线性时间填充数据；一些 stringstream 实现需要 N^2 的时间。
 class CDataStream
 {
 protected:
     typedef CSerializeData vector_type;
-    vector_type vch;
+    vector_type vch; // 存储序列化数据
     unsigned int nReadPos;
 public:
     int nType;

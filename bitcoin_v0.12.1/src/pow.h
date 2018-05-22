@@ -18,7 +18,7 @@ class arith_uint256;
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, const Consensus::Params&);
 unsigned int CalculateNextWorkRequired(const CBlockIndex* pindexLast, int64_t nFirstBlockTime, const Consensus::Params&);
 
-/** Check whether a block hash satisfies the proof-of-work requirement specified by nBits */
+/** Check whether a block hash satisfies the proof-of-work requirement specified by nBits */ // 检查一个区块哈希是否满足特定难度的工作量证明
 bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params&);
 arith_uint256 GetBlockProof(const CBlockIndex& block);
 
