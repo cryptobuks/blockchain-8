@@ -716,12 +716,12 @@ void CTxMemPool::check(const CCoinsViewCache *pcoins) const
 
 void CTxMemPool::queryHashes(vector<uint256>& vtxid)
 {
-    vtxid.clear();
+    vtxid.clear(); // 先清空交易索引列表
 
     LOCK(cs);
-    vtxid.reserve(mapTx.size());
+    vtxid.reserve(mapTx.size()); // 预开辟交易总量大小的空间
     for (indexed_transaction_set::iterator mi = mapTx.begin(); mi != mapTx.end(); ++mi)
-        vtxid.push_back(mi->GetTx().GetHash());
+        vtxid.push_back(mi->GetTx().GetHash()); // 获取每条交易哈希并加入交易索引列表
 }
 
 bool CTxMemPool::lookup(uint256 hash, CTransaction& result) const

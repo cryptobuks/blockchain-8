@@ -231,7 +231,7 @@ extern UniValue encryptwallet(const UniValue& params, bool fHelp);
 extern UniValue validateaddress(const UniValue& params, bool fHelp);
 extern UniValue getinfo(const UniValue& params, bool fHelp);
 extern UniValue getwalletinfo(const UniValue& params, bool fHelp);
-extern UniValue getblockchaininfo(const UniValue& params, bool fHelp);
+extern UniValue getblockchaininfo(const UniValue& params, bool fHelp); // 获取区块链信息
 extern UniValue getnetworkinfo(const UniValue& params, bool fHelp);
 extern UniValue setmocktime(const UniValue& params, bool fHelp);
 extern UniValue resendwallettransactions(const UniValue& params, bool fHelp);
@@ -249,19 +249,19 @@ extern UniValue sendrawtransaction(const UniValue& params, bool fHelp);
 extern UniValue gettxoutproof(const UniValue& params, bool fHelp);
 extern UniValue verifytxoutproof(const UniValue& params, bool fHelp);
 
-extern UniValue getblockcount(const UniValue& params, bool fHelp); // in rpcblockchain.cpp
+extern UniValue getblockcount(const UniValue& params, bool fHelp); // 获取当前区块总数（或链高度）
 extern UniValue getbestblockhash(const UniValue& params, bool fHelp); // 获取当前最佳块的哈希
-extern UniValue getdifficulty(const UniValue& params, bool fHelp);
+extern UniValue getdifficulty(const UniValue& params, bool fHelp); // 获取当前挖矿难度
 extern UniValue settxfee(const UniValue& params, bool fHelp);
-extern UniValue getmempoolinfo(const UniValue& params, bool fHelp);
-extern UniValue getrawmempool(const UniValue& params, bool fHelp);
-extern UniValue getblockhash(const UniValue& params, bool fHelp);
-extern UniValue getblockheader(const UniValue& params, bool fHelp);
-extern UniValue getblock(const UniValue& params, bool fHelp); // 获取指定区块的信息
+extern UniValue getmempoolinfo(const UniValue& params, bool fHelp); // 获取交易内存池信息
+extern UniValue getrawmempool(const UniValue& params, bool fHelp); // 获取交易内存池元信息（未打包交易的哈希）
+extern UniValue getblockhash(const UniValue& params, bool fHelp); // 通过区块号获取区块哈希
+extern UniValue getblockheader(const UniValue& params, bool fHelp); // 获取指定哈希的区块头信息
+extern UniValue getblock(const UniValue& params, bool fHelp); // 获取指定哈希的区块信息
 extern UniValue gettxoutsetinfo(const UniValue& params, bool fHelp);
 extern UniValue gettxout(const UniValue& params, bool fHelp);
 extern UniValue verifychain(const UniValue& params, bool fHelp);
-extern UniValue getchaintips(const UniValue& params, bool fHelp);
+extern UniValue getchaintips(const UniValue& params, bool fHelp); // 获取链尖信息
 extern UniValue invalidateblock(const UniValue& params, bool fHelp);
 extern UniValue reconsiderblock(const UniValue& params, bool fHelp);
 

@@ -31,32 +31,32 @@ void ScriptPubKeyToJSON(const CScript& scriptPubKey, UniValue& out, bool fInclud
 double GetDifficulty(const CBlockIndex* blockindex)
 {
     // Floating point number that is a multiple of the minimum difficulty,
-    // minimum difficulty = 1.0.
+    // minimum difficulty = 1.0. // 最小难度倍数的浮点数
     if (blockindex == NULL)
     {
-        if (chainActive.Tip() == NULL)
-            return 1.0;
+        if (chainActive.Tip() == NULL) // 链尖为空
+            return 1.0; // 返回最小难度
         else
-            blockindex = chainActive.Tip();
+            blockindex = chainActive.Tip(); // 获取链尖区块索引
     }
 
-    int nShift = (blockindex->nBits >> 24) & 0xff;
+    int nShift = (blockindex->nBits >> 24) & 0xff; // 获取 nBits 的高 8 位 2 进制
 
     double dDiff =
-        (double)0x0000ffff / (double)(blockindex->nBits & 0x00ffffff);
+        (double)0x0000ffff / (double)(blockindex->nBits & 0x00ffffff); // 计算难度
 
-    while (nShift < 29)
+    while (nShift < 29) // 8 位的低 3 位非 0
     {
         dDiff *= 256.0;
-        nShift++;
+        nShift++; // +1
     }
-    while (nShift > 29)
+    while (nShift > 29) // 8 位高 3 位非 0
     {
         dDiff /= 256.0;
-        nShift--;
+        nShift--; // -1
     }
 
-    return dDiff;
+    return dDiff; // 返回难度
 }
 
 UniValue blockheaderToJSON(const CBlockIndex* blockindex)
@@ -129,8 +129,8 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool tx
 
 UniValue getblockcount(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() != 0)
-        throw runtime_error(
+    if (fHelp || params.size() != 0) // 没有参数
+        throw runtime_error( // 帮助信息反馈
             "getblockcount\n"
             "\nReturns the number of blocks in the longest block chain.\n"
             "\nResult:\n"
@@ -141,7 +141,7 @@ UniValue getblockcount(const UniValue& params, bool fHelp)
         );
 
     LOCK(cs_main);
-    return chainActive.Height();
+    return chainActive.Height(); // 返回激活的链高度
 }
 
 UniValue getbestblockhash(const UniValue& params, bool fHelp)
@@ -163,8 +163,8 @@ UniValue getbestblockhash(const UniValue& params, bool fHelp)
 
 UniValue getdifficulty(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() != 0)
-        throw runtime_error(
+    if (fHelp || params.size() != 0) // 没有参数
+        throw runtime_error( // 帮助信息反馈
             "getdifficulty\n"
             "\nReturns the proof-of-work difficulty as a multiple of the minimum difficulty.\n"
             "\nResult:\n"
@@ -175,52 +175,52 @@ UniValue getdifficulty(const UniValue& params, bool fHelp)
         );
 
     LOCK(cs_main);
-    return GetDifficulty();
+    return GetDifficulty(); // 返回获取的难度值
 }
 
 UniValue mempoolToJSON(bool fVerbose = false)
 {
     if (fVerbose)
-    {
+    { // 打包交易详细信息
         LOCK(mempool.cs);
         UniValue o(UniValue::VOBJ);
         BOOST_FOREACH(const CTxMemPoolEntry& e, mempool.mapTx)
-        {
+        { // 遍历获取交易池中的交易条目
             const uint256& hash = e.GetTx().GetHash();
             UniValue info(UniValue::VOBJ);
-            info.push_back(Pair("size", (int)e.GetTxSize()));
-            info.push_back(Pair("fee", ValueFromAmount(e.GetFee())));
-            info.push_back(Pair("modifiedfee", ValueFromAmount(e.GetModifiedFee())));
-            info.push_back(Pair("time", e.GetTime()));
-            info.push_back(Pair("height", (int)e.GetHeight()));
-            info.push_back(Pair("startingpriority", e.GetPriority(e.GetHeight())));
-            info.push_back(Pair("currentpriority", e.GetPriority(chainActive.Height())));
-            info.push_back(Pair("descendantcount", e.GetCountWithDescendants()));
-            info.push_back(Pair("descendantsize", e.GetSizeWithDescendants()));
-            info.push_back(Pair("descendantfees", e.GetModFeesWithDescendants()));
+            info.push_back(Pair("size", (int)e.GetTxSize())); // 交易大小
+            info.push_back(Pair("fee", ValueFromAmount(e.GetFee()))); // 交易费
+            info.push_back(Pair("modifiedfee", ValueFromAmount(e.GetModifiedFee()))); // 修改的交易费
+            info.push_back(Pair("time", e.GetTime())); // 当前时间
+            info.push_back(Pair("height", (int)e.GetHeight())); // 当前区块高度
+            info.push_back(Pair("startingpriority", e.GetPriority(e.GetHeight()))); // 起始优先级（通过链高度）
+            info.push_back(Pair("currentpriority", e.GetPriority(chainActive.Height()))); // 当前优先级
+            info.push_back(Pair("descendantcount", e.GetCountWithDescendants())); // 后裔数量
+            info.push_back(Pair("descendantsize", e.GetSizeWithDescendants())); // 后裔大小
+            info.push_back(Pair("descendantfees", e.GetModFeesWithDescendants())); // 后裔费用
             const CTransaction& tx = e.GetTx();
-            set<string> setDepends;
+            set<string> setDepends; // 交易输入的依赖
             BOOST_FOREACH(const CTxIn& txin, tx.vin)
             {
-                if (mempool.exists(txin.prevout.hash))
-                    setDepends.insert(txin.prevout.hash.ToString());
+                if (mempool.exists(txin.prevout.hash)) // 查询交易输入的输出哈希在内存池中是否存在
+                    setDepends.insert(txin.prevout.hash.ToString()); // 加入依赖集合
             }
 
             UniValue depends(UniValue::VARR);
-            BOOST_FOREACH(const string& dep, setDepends)
+            BOOST_FOREACH(const string& dep, setDepends) // 构建依赖目标对象
             {
                 depends.push_back(dep);
             }
 
-            info.push_back(Pair("depends", depends));
-            o.push_back(Pair(hash.ToString(), info));
+            info.push_back(Pair("depends", depends)); // 加入交易依赖
+            o.push_back(Pair(hash.ToString(), info)); // 交易索引 与 交易信息 配对
         }
         return o;
     }
     else
-    {
+    { // 只打包交易号（哈希）
         vector<uint256> vtxid;
-        mempool.queryHashes(vtxid);
+        mempool.queryHashes(vtxid); // 填充交易池中的交易哈希到 vtxid
 
         UniValue a(UniValue::VARR);
         BOOST_FOREACH(const uint256& hash, vtxid)
@@ -232,8 +232,8 @@ UniValue mempoolToJSON(bool fVerbose = false)
 
 UniValue getrawmempool(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() > 1)
-        throw runtime_error(
+    if (fHelp || params.size() > 1) // 参数至多为 1 个
+        throw runtime_error( // 帮助信息反馈
             "getrawmempool ( verbose )\n"
             "\nReturns all transaction ids in memory pool as a json array of string transaction ids.\n"
             "\nArguments:\n"
@@ -268,17 +268,17 @@ UniValue getrawmempool(const UniValue& params, bool fHelp)
 
     LOCK(cs_main);
 
-    bool fVerbose = false;
+    bool fVerbose = false; // 详细标志，默认为 false
     if (params.size() > 0)
-        fVerbose = params[0].get_bool();
+        fVerbose = params[0].get_bool(); // 获取详细参数
 
-    return mempoolToJSON(fVerbose);
+    return mempoolToJSON(fVerbose); // 把内存池交易打包为 JSON 格式并返回
 }
 
 UniValue getblockhash(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() != 1)
-        throw runtime_error(
+    if (fHelp || params.size() != 1) // 参数必须有 1 个（区块号）
+        throw runtime_error( // 帮助信息反馈
             "getblockhash index\n"
             "\nReturns hash of block in best-block-chain at index provided.\n"
             "\nArguments:\n"
@@ -292,18 +292,18 @@ UniValue getblockhash(const UniValue& params, bool fHelp)
 
     LOCK(cs_main);
 
-    int nHeight = params[0].get_int();
-    if (nHeight < 0 || nHeight > chainActive.Height())
+    int nHeight = params[0].get_int(); // 获取指定的高度（区块号）
+    if (nHeight < 0 || nHeight > chainActive.Height()) // 检测指定高度是否在该区块链高度范围内
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Block height out of range");
 
-    CBlockIndex* pblockindex = chainActive[nHeight];
-    return pblockindex->GetBlockHash().GetHex();
+    CBlockIndex* pblockindex = chainActive[nHeight]; // 获取激活链对应高度的区块索引
+    return pblockindex->GetBlockHash().GetHex(); // 获取该索引对应区块哈希，转换为 16 进制并返回
 }
 
 UniValue getblockheader(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() < 1 || params.size() > 2)
-        throw runtime_error(
+    if (fHelp || params.size() < 1 || params.size() > 2) // 参数至少为 1 个（区块哈希），至多 2 个
+        throw runtime_error( // 帮助信息反馈
             "getblockheader \"hash\" ( verbose )\n"
             "\nIf verbose is false, returns a string that is serialized, hex-encoded data for blockheader 'hash'.\n"
             "If verbose is true, returns an Object with information about blockheader <hash>.\n"
@@ -335,27 +335,27 @@ UniValue getblockheader(const UniValue& params, bool fHelp)
 
     LOCK(cs_main);
 
-    std::string strHash = params[0].get_str();
-    uint256 hash(uint256S(strHash));
+    std::string strHash = params[0].get_str(); // 获取区块哈希字符串
+    uint256 hash(uint256S(strHash)); // 构造 uint256 局部对象
 
-    bool fVerbose = true;
+    bool fVerbose = true; // 详细信息标志，默认为 true
     if (params.size() > 1)
-        fVerbose = params[1].get_bool();
+        fVerbose = params[1].get_bool(); // 获取是否显示详细信息
 
-    if (mapBlockIndex.count(hash) == 0)
+    if (mapBlockIndex.count(hash) == 0) // 判断哈希对应的区块是否存在于区块索引映射
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
 
-    CBlockIndex* pblockindex = mapBlockIndex[hash];
+    CBlockIndex* pblockindex = mapBlockIndex[hash]; // 获取指定哈希的区块索引
 
-    if (!fVerbose)
+    if (!fVerbose) // false
     {
-        CDataStream ssBlock(SER_NETWORK, PROTOCOL_VERSION);
-        ssBlock << pblockindex->GetBlockHeader();
-        std::string strHex = HexStr(ssBlock.begin(), ssBlock.end());
-        return strHex;
+        CDataStream ssBlock(SER_NETWORK, PROTOCOL_VERSION); // 序列化
+        ssBlock << pblockindex->GetBlockHeader(); // 通过区块索引获取并导入区块头数据
+        std::string strHex = HexStr(ssBlock.begin(), ssBlock.end()); // 16 进制化
+        return strHex; // 返回
     }
 
-    return blockheaderToJSON(pblockindex);
+    return blockheaderToJSON(pblockindex); // 分装区块头信息为 JSON 格式并返回
 }
 
 UniValue getblock(const UniValue& params, bool fHelp)
@@ -620,8 +620,8 @@ static UniValue BIP9SoftForkDesc(const std::string& name, const Consensus::Param
 
 UniValue getblockchaininfo(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() != 0)
-        throw runtime_error(
+    if (fHelp || params.size() != 0) // 该命令没有参数
+        throw runtime_error( // 帮助信息反馈
             "getblockchaininfo\n"
             "Returns an object containing various state info regarding block chain processing.\n"
             "\nResult:\n"
@@ -663,16 +663,16 @@ UniValue getblockchaininfo(const UniValue& params, bool fHelp)
 
     LOCK(cs_main);
 
-    UniValue obj(UniValue::VOBJ);
-    obj.push_back(Pair("chain",                 Params().NetworkIDString()));
-    obj.push_back(Pair("blocks",                (int)chainActive.Height()));
-    obj.push_back(Pair("headers",               pindexBestHeader ? pindexBestHeader->nHeight : -1));
-    obj.push_back(Pair("bestblockhash",         chainActive.Tip()->GetBlockHash().GetHex()));
-    obj.push_back(Pair("difficulty",            (double)GetDifficulty()));
-    obj.push_back(Pair("mediantime",            (int64_t)chainActive.Tip()->GetMedianTimePast()));
-    obj.push_back(Pair("verificationprogress",  Checkpoints::GuessVerificationProgress(Params().Checkpoints(), chainActive.Tip())));
-    obj.push_back(Pair("chainwork",             chainActive.Tip()->nChainWork.GetHex()));
-    obj.push_back(Pair("pruned",                fPruneMode));
+    UniValue obj(UniValue::VOBJ); // 构造一个目标对象
+    obj.push_back(Pair("chain",                 Params().NetworkIDString())); // 网络 ID，主网 或 测试网
+    obj.push_back(Pair("blocks",                (int)chainActive.Height())); // 当前区块高度
+    obj.push_back(Pair("headers",               pindexBestHeader ? pindexBestHeader->nHeight : -1)); // 当前最佳区块头高度，同区块高度
+    obj.push_back(Pair("bestblockhash",         chainActive.Tip()->GetBlockHash().GetHex())); // 最佳区块哈希（16 进制）
+    obj.push_back(Pair("difficulty",            (double)GetDifficulty())); // 挖矿难度
+    obj.push_back(Pair("mediantime",            (int64_t)chainActive.Tip()->GetMedianTimePast())); // 当前时间
+    obj.push_back(Pair("verificationprogress",  Checkpoints::GuessVerificationProgress(Params().Checkpoints(), chainActive.Tip()))); // 验证进度，与检查点和链尖有关
+    obj.push_back(Pair("chainwork",             chainActive.Tip()->nChainWork.GetHex())); // 当前的链工作量（16 进制）
+    obj.push_back(Pair("pruned",                fPruneMode)); // 是否开启修剪模式
 
     const Consensus::Params& consensusParams = Params().GetConsensus();
     CBlockIndex* tip = chainActive.Tip();
@@ -682,18 +682,18 @@ UniValue getblockchaininfo(const UniValue& params, bool fHelp)
     softforks.push_back(SoftForkDesc("bip66", 3, tip, consensusParams));
     softforks.push_back(SoftForkDesc("bip65", 4, tip, consensusParams));
     bip9_softforks.push_back(BIP9SoftForkDesc("csv", consensusParams, Consensus::DEPLOYMENT_CSV));
-    obj.push_back(Pair("softforks",             softforks));
-    obj.push_back(Pair("bip9_softforks", bip9_softforks));
+    obj.push_back(Pair("softforks",             softforks)); // 软分叉
+    obj.push_back(Pair("bip9_softforks", bip9_softforks)); // bip9_软分叉
 
-    if (fPruneMode)
+    if (fPruneMode) // 若开启了修剪模式
     {
         CBlockIndex *block = chainActive.Tip();
         while (block && block->pprev && (block->pprev->nStatus & BLOCK_HAVE_DATA))
             block = block->pprev;
 
-        obj.push_back(Pair("pruneheight",        block->nHeight));
+        obj.push_back(Pair("pruneheight",        block->nHeight)); // 加入修剪到的高度
     }
-    return obj;
+    return obj; // 返回目标对象
 }
 
 /** Comparison function for sorting the getchaintips heads.  */
@@ -713,8 +713,8 @@ struct CompareBlocksByHeight
 
 UniValue getchaintips(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() != 0)
-        throw runtime_error(
+    if (fHelp || params.size() != 0) // 没有参数
+        throw runtime_error( // 帮助信息反馈
             "getchaintips\n"
             "Return information about all known tips in the block tree,"
             " including the main chain as well as orphaned branches.\n"
@@ -748,7 +748,7 @@ UniValue getchaintips(const UniValue& params, bool fHelp)
 
     /* Build up a list of chain tips.  We start with the list of all
        known blocks, and successively remove blocks that appear as pprev
-       of another block.  */
+       of another block.  */ // 构建链尖列表。我们从已知块的列表开始，并连续移除另一个区块的 pprev 区块
     std::set<const CBlockIndex*, CompareBlocksByHeight> setTips;
     BOOST_FOREACH(const PAIRTYPE(const uint256, CBlockIndex*)& item, mapBlockIndex)
         setTips.insert(item.second);
@@ -759,7 +759,7 @@ UniValue getchaintips(const UniValue& params, bool fHelp)
             setTips.erase(pprev);
     }
 
-    // Always report the currently active tip.
+    // Always report the currently active tip. // 总是报告当前激活的链尖
     setTips.insert(chainActive.Tip());
 
     /* Construct the output array.  */
@@ -803,21 +803,21 @@ UniValue getchaintips(const UniValue& params, bool fHelp)
 
 UniValue mempoolInfoToJSON()
 {
-    UniValue ret(UniValue::VOBJ);
-    ret.push_back(Pair("size", (int64_t) mempool.size()));
-    ret.push_back(Pair("bytes", (int64_t) mempool.GetTotalTxSize()));
-    ret.push_back(Pair("usage", (int64_t) mempool.DynamicMemoryUsage()));
+    UniValue ret(UniValue::VOBJ); // 构造一个目标对象
+    ret.push_back(Pair("size", (int64_t) mempool.size())); // 内存池当前大小
+    ret.push_back(Pair("bytes", (int64_t) mempool.GetTotalTxSize())); // 内存池交易总大小
+    ret.push_back(Pair("usage", (int64_t) mempool.DynamicMemoryUsage())); // 动态内存用量
     size_t maxmempool = GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000;
-    ret.push_back(Pair("maxmempool", (int64_t) maxmempool));
-    ret.push_back(Pair("mempoolminfee", ValueFromAmount(mempool.GetMinFee(maxmempool).GetFeePerK())));
+    ret.push_back(Pair("maxmempool", (int64_t) maxmempool)); // 内存池的大小
+    ret.push_back(Pair("mempoolminfee", ValueFromAmount(mempool.GetMinFee(maxmempool).GetFeePerK()))); // 内存池最小费用
 
     return ret;
 }
 
 UniValue getmempoolinfo(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() != 0)
-        throw runtime_error(
+    if (fHelp || params.size() != 0) // 没有参数
+        throw runtime_error( // 帮助信息反馈
             "getmempoolinfo\n"
             "\nReturns details on the active state of the TX memory pool.\n"
             "\nResult:\n"
@@ -833,7 +833,7 @@ UniValue getmempoolinfo(const UniValue& params, bool fHelp)
             + HelpExampleRpc("getmempoolinfo", "")
         );
 
-    return mempoolInfoToJSON();
+    return mempoolInfoToJSON(); // 交易内存池信息打包位 JSON 格式并返回
 }
 
 UniValue invalidateblock(const UniValue& params, bool fHelp)

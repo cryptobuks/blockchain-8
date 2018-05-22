@@ -122,7 +122,7 @@ public:
     unsigned int nUndoPos;
 
     //! (memory only) Total amount of work (expected number of hashes) in the chain up to and including this block
-    arith_uint256 nChainWork;
+    arith_uint256 nChainWork; // （仅限内存中）上链并包含该区块的总工作量（预计的哈希数）
 
     //! Number of transactions in this block.
     //! Note: in a potential headers-first mode, this number cannot be relied upon
@@ -388,7 +388,7 @@ public:
 
     /** Return the maximal height in the chain. Is equal to chain.Tip() ? chain.Tip()->nHeight : -1. */
     int Height() const {
-        return vChain.size() - 1;
+        return vChain.size() - 1; // 返回区块链的最大高度（区块数减 1）。等价于 chain.Tip() ? chain.Tip()->nHeight : -1。
     }
 
     /** Set/initialize a chain with a given tip. */

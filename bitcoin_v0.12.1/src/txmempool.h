@@ -397,7 +397,7 @@ public:
     > indexed_transaction_set;
 
     mutable CCriticalSection cs;
-    indexed_transaction_set mapTx;
+    indexed_transaction_set mapTx; // 交易映射，映射较复杂
     typedef indexed_transaction_set::nth_index<0>::type::iterator txiter;
     struct CompareIteratorByHash {
         bool operator()(const txiter &a, const txiter &b) const {
@@ -457,7 +457,7 @@ public:
                         std::list<CTransaction>& conflicts, bool fCurrentEstimate = true);
     void clear();
     void _clear(); //lock free
-    void queryHashes(std::vector<uint256>& vtxid);
+    void queryHashes(std::vector<uint256>& vtxid); // 填充交易池中的交易哈希到 vtxid
     void pruneSpent(const uint256& hash, CCoins &coins);
     unsigned int GetTransactionsUpdated() const;
     void AddTransactionsUpdated(unsigned int n);
