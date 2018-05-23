@@ -468,8 +468,8 @@ UniValue gettxoutsetinfo(const UniValue& params, bool fHelp)
 
 UniValue gettxout(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() < 2 || params.size() > 3)
-        throw runtime_error(
+    if (fHelp || params.size() < 2 || params.size() > 3) // 参数至少为 2 个（交易索引、交易输出号）
+        throw runtime_error( // 帮助信息反馈
             "gettxout \"txid\" n ( includemempool )\n"
             "\nReturns details about an unspent transaction output.\n"
             "\nArguments:\n"
@@ -506,19 +506,19 @@ UniValue gettxout(const UniValue& params, bool fHelp)
 
     LOCK(cs_main);
 
-    UniValue ret(UniValue::VOBJ);
+    UniValue ret(UniValue::VOBJ); // 目标对象
 
-    std::string strHash = params[0].get_str();
-    uint256 hash(uint256S(strHash));
-    int n = params[1].get_int();
-    bool fMempool = true;
+    std::string strHash = params[0].get_str(); // 获取交易索引哈希字符串
+    uint256 hash(uint256S(strHash)); // 构建 uint256 字符串
+    int n = params[1].get_int(); // 获取交易输出号
+    bool fMempool = true; // 内存池标志，默认为 true
     if (params.size() > 2)
-        fMempool = params[2].get_bool();
+        fMempool = params[2].get_bool(); // 获取指定的内存池标志
 
-    CCoins coins;
+    CCoins coins; // 创建一个被修剪得交易版本对象（只包含元数据和交易输出）
     if (fMempool) {
         LOCK(mempool.cs);
-        CCoinsViewMemPool view(pcoinsTip, mempool);
+        CCoinsViewMemPool view(pcoinsTip, mempool); // 传入内存池对象创建其引用查看对象
         if (!view.GetCoins(hash, coins))
             return NullUniValue;
         mempool.pruneSpent(hash, coins); // TODO: this should be done by the CCoinsViewMemPool

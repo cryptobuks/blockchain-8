@@ -34,7 +34,7 @@ inline bool AllowFree(double dPriority)
 }
 
 /** Fake height value used in CCoins to signify they are only in the memory pool (since 0.8) */
-static const unsigned int MEMPOOL_HEIGHT = 0x7FFFFFFF;
+static const unsigned int MEMPOOL_HEIGHT = 0x7FFFFFFF; // 在 CCoins 中使用虚假高度意味着它们只存在于内存池（从 0.8 开始）
 
 struct LockPoints
 {
@@ -609,11 +609,11 @@ private:
 /** 
  * CCoinsView that brings transactions from a memorypool into view.
  * It does not check for spendings by memory pool transactions.
- */
+ */ // CCoinView 把来自交易内存池的交易引入查看。它不检查内存池交易的花费。
 class CCoinsViewMemPool : public CCoinsViewBacked
 {
 protected:
-    CTxMemPool &mempool;
+    CTxMemPool &mempool; // 交易内存池的引用
 
 public:
     CCoinsViewMemPool(CCoinsView *baseIn, CTxMemPool &mempoolIn);

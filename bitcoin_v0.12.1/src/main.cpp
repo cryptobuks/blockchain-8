@@ -81,7 +81,7 @@ bool fEnableReplacement = DEFAULT_ENABLE_REPLACEMENT;
 /** Fees smaller than this (in satoshi) are considered zero fee (for relaying, mining and transaction creation) */
 CFeeRate minRelayTxFee = CFeeRate(DEFAULT_MIN_RELAY_TX_FEE);
 
-CTxMemPool mempool(::minRelayTxFee);
+CTxMemPool mempool(::minRelayTxFee); // 交易内存池全局对象，通过最小中继交易费创建
 
 struct COrphanTx {
     CTransaction tx;

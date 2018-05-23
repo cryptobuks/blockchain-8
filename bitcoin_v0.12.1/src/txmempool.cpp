@@ -727,10 +727,10 @@ void CTxMemPool::queryHashes(vector<uint256>& vtxid)
 bool CTxMemPool::lookup(uint256 hash, CTransaction& result) const
 {
     LOCK(cs);
-    indexed_transaction_set::const_iterator i = mapTx.find(hash);
-    if (i == mapTx.end()) return false;
-    result = i->GetTx();
-    return true;
+    indexed_transaction_set::const_iterator i = mapTx.find(hash); // 在交易映射中通过哈希获取交易索引
+    if (i == mapTx.end()) return false; // 未找到，返回 false
+    result = i->GetTx(); // 找到则获取该交易
+    return true; // 并返回 true
 }
 
 CFeeRate CTxMemPool::estimateFee(int nBlocks) const
@@ -844,9 +844,9 @@ bool CCoinsViewMemPool::GetCoins(const uint256 &txid, CCoins &coins) const {
     // conflict with the underlying cache, and it cannot have pruned entries (as it contains full)
     // transactions. First checking the underlying cache risks returning a pruned entry instead.
     CTransaction tx;
-    if (mempool.lookup(txid, tx)) {
-        coins = CCoins(tx, MEMPOOL_HEIGHT);
-        return true;
+    if (mempool.lookup(txid, tx)) { // 在内存池中通过交易哈希查询并获取对应交易
+        coins = CCoins(tx, MEMPOOL_HEIGHT); // 创建交易的修剪版本对象
+        return true; // 并返回 true
     }
     return (base->GetCoins(txid, coins) && !coins.IsPruned());
 }

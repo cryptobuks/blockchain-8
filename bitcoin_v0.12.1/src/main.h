@@ -524,7 +524,7 @@ bool ReconsiderBlock(CValidationState& state, CBlockIndex *pindex);
 extern CChain chainActive; // 当前连接的区块链（激活的链）
 
 /** Global variable that points to the active CCoinsView (protected by cs_main) */
-extern CCoinsViewCache *pcoinsTip;
+extern CCoinsViewCache *pcoinsTip; // 指向激活的 CCoinsView 的全局变量
 
 /** Global variable that points to the active block tree (protected by cs_main) */
 extern CBlockTreeDB *pblocktree;

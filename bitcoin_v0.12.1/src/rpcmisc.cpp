@@ -38,11 +38,11 @@ using namespace std;
  * - `getwalletinfo`
  *
  * Or alternatively, create a specific query method for the information.
- **/
+ **/ // 在该信息通过此方式返回时不添加或改变任何东西
 UniValue getinfo(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() != 0)
-        throw runtime_error(
+    if (fHelp || params.size() != 0) // 该方法没有参数
+        throw runtime_error( // 帮助信息反馈
             "getinfo\n"
             "Returns an object containing various state info.\n"
             "\nResult:\n"
@@ -69,8 +69,8 @@ UniValue getinfo(const UniValue& params, bool fHelp)
             + HelpExampleRpc("getinfo", "")
         );
 
-#ifdef ENABLE_WALLET
-    LOCK2(cs_main, pwalletMain ? &pwalletMain->cs_wallet : NULL);
+#ifdef ENABLE_WALLET // 开启钱包功能
+    LOCK2(cs_main, pwalletMain ? &pwalletMain->cs_wallet : NULL); // 钱包上锁
 #else
     LOCK(cs_main);
 #endif
@@ -78,32 +78,32 @@ UniValue getinfo(const UniValue& params, bool fHelp)
     proxyType proxy;
     GetProxy(NET_IPV4, proxy);
 
-    UniValue obj(UniValue::VOBJ);
-    obj.push_back(Pair("version", CLIENT_VERSION));
-    obj.push_back(Pair("protocolversion", PROTOCOL_VERSION));
-#ifdef ENABLE_WALLET
+    UniValue obj(UniValue::VOBJ); // 创建 VOBJ 类型对象
+    obj.push_back(Pair("version", CLIENT_VERSION)); // 追加客户端版本号
+    obj.push_back(Pair("protocolversion", PROTOCOL_VERSION)); // 协议版本号
+#ifdef ENABLE_WALLET // 若开启钱包功能
     if (pwalletMain) {
-        obj.push_back(Pair("walletversion", pwalletMain->GetVersion()));
-        obj.push_back(Pair("balance",       ValueFromAmount(pwalletMain->GetBalance())));
+        obj.push_back(Pair("walletversion", pwalletMain->GetVersion())); // 钱包版本号
+        obj.push_back(Pair("balance",       ValueFromAmount(pwalletMain->GetBalance()))); // 钱包可用余额
     }
 #endif
-    obj.push_back(Pair("blocks",        (int)chainActive.Height()));
-    obj.push_back(Pair("timeoffset",    GetTimeOffset()));
-    obj.push_back(Pair("connections",   (int)vNodes.size()));
-    obj.push_back(Pair("proxy",         (proxy.IsValid() ? proxy.proxy.ToStringIPPort() : string())));
-    obj.push_back(Pair("difficulty",    (double)GetDifficulty()));
-    obj.push_back(Pair("testnet",       Params().TestnetToBeDeprecatedFieldRPC()));
+    obj.push_back(Pair("blocks",        (int)chainActive.Height())); // 激活的链高度（总区块数，不算创世区块）
+    obj.push_back(Pair("timeoffset",    GetTimeOffset())); // 时间偏移
+    obj.push_back(Pair("connections",   (int)vNodes.size())); // 已建立的连接数（连入、连出）
+    obj.push_back(Pair("proxy",         (proxy.IsValid() ? proxy.proxy.ToStringIPPort() : string()))); // 代理 IP 和端口
+    obj.push_back(Pair("difficulty",    (double)GetDifficulty())); // 挖矿难度
+    obj.push_back(Pair("testnet",       Params().TestnetToBeDeprecatedFieldRPC())); // 是否为测试网
 #ifdef ENABLE_WALLET
     if (pwalletMain) {
-        obj.push_back(Pair("keypoololdest", pwalletMain->GetOldestKeyPoolTime()));
-        obj.push_back(Pair("keypoolsize",   (int)pwalletMain->GetKeyPoolSize()));
+        obj.push_back(Pair("keypoololdest", pwalletMain->GetOldestKeyPoolTime())); // 密钥池中最早密钥的创建时间
+        obj.push_back(Pair("keypoolsize",   (int)pwalletMain->GetKeyPoolSize())); // 密钥池的大小，比默认大小多 1
     }
-    if (pwalletMain && pwalletMain->IsCrypted())
-        obj.push_back(Pair("unlocked_until", nWalletUnlockTime));
-    obj.push_back(Pair("paytxfee",      ValueFromAmount(payTxFee.GetFeePerK())));
+    if (pwalletMain && pwalletMain->IsCrypted()) // 钱包是否被用户加密
+        obj.push_back(Pair("unlocked_until", nWalletUnlockTime)); // 解锁结束的时间，0 表示未解锁
+    obj.push_back(Pair("paytxfee",      ValueFromAmount(payTxFee.GetFeePerK()))); // 交易费（每 KB）
 #endif
-    obj.push_back(Pair("relayfee",      ValueFromAmount(::minRelayTxFee.GetFeePerK())));
-    obj.push_back(Pair("errors",        GetWarnings("statusbar")));
+    obj.push_back(Pair("relayfee",      ValueFromAmount(::minRelayTxFee.GetFeePerK()))); // 中继费（每 KB）
+    obj.push_back(Pair("errors",        GetWarnings("statusbar"))); // 错误信息
     return obj;
 }
 

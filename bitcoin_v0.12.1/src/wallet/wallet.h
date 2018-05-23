@@ -740,10 +740,10 @@ public:
         mapRequestCount[hash] = 0;
     };
     
-    unsigned int GetKeyPoolSize()
+    unsigned int GetKeyPoolSize() // 获取密钥池大小
     {
         AssertLockHeld(cs_wallet); // setKeyPool
-        return setKeyPool.size();
+        return setKeyPool.size(); // 返回密钥池集合的大小
     }
 
     bool SetDefaultKey(const CPubKey &vchPubKey);

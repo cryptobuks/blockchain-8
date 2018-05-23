@@ -70,21 +70,21 @@
  *              * 8c988f1a4a4de2161e0f50aac7f17e7f9555caa4: address uint160
  *  - height = 120891
  */
-class CCoins
+class CCoins // 交易的修剪版本：仅保留元数据和未花费的交易输出
 {
 public:
     //! whether transaction is a coinbase
-    bool fCoinBase;
+    bool fCoinBase; // 该交易是否未创币交易
 
     //! unspent transaction outputs; spent outputs are .IsNull(); spent outputs at the end of the array are dropped
-    std::vector<CTxOut> vout;
+    std::vector<CTxOut> vout; // 未花费的交易输出；花费的输出是.IsNull()；花费的输出在数组额末端被抛弃
 
     //! at which height this transaction was included in the active block chain
-    int nHeight;
+    int nHeight; // 该交易被包含在激活区块链的高度
 
     //! version of the CTransaction; accesses to this value should probably check for nHeight as well,
     //! as new tx version will probably only be introduced at certain heights
-    int nVersion;
+    int nVersion; // 交易版本号；访问该值很有可能会检查高度，因为新的交易版本可能在某个高度被引入
 
     void FromTx(const CTransaction &tx, int nHeightIn) {
         fCoinBase = tx.IsCoinBase();

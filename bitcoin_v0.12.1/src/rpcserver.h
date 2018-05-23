@@ -229,7 +229,7 @@ extern UniValue walletpassphrasechange(const UniValue& params, bool fHelp);
 extern UniValue walletlock(const UniValue& params, bool fHelp);
 extern UniValue encryptwallet(const UniValue& params, bool fHelp);
 extern UniValue validateaddress(const UniValue& params, bool fHelp);
-extern UniValue getinfo(const UniValue& params, bool fHelp);
+extern UniValue getinfo(const UniValue& params, bool fHelp); // »ñÈ¡±ÈÌØ±ÒºËÐÄÐÅÏ¢
 extern UniValue getwalletinfo(const UniValue& params, bool fHelp);
 extern UniValue getblockchaininfo(const UniValue& params, bool fHelp); // »ñÈ¡Çø¿éÁ´ÐÅÏ¢
 extern UniValue getnetworkinfo(const UniValue& params, bool fHelp);
@@ -259,7 +259,7 @@ extern UniValue getblockhash(const UniValue& params, bool fHelp); // Í¨¹ýÇø¿éºÅ»
 extern UniValue getblockheader(const UniValue& params, bool fHelp); // »ñÈ¡Ö¸¶¨¹þÏ£µÄÇø¿éÍ·ÐÅÏ¢
 extern UniValue getblock(const UniValue& params, bool fHelp); // »ñÈ¡Ö¸¶¨¹þÏ£µÄÇø¿éÐÅÏ¢
 extern UniValue gettxoutsetinfo(const UniValue& params, bool fHelp);
-extern UniValue gettxout(const UniValue& params, bool fHelp);
+extern UniValue gettxout(const UniValue& params, bool fHelp); // »ñÈ¡ÄÚ´æ³ØÖÐÒ»±Ê½»Ò×Êä³öµÄÐÅÏ¢
 extern UniValue verifychain(const UniValue& params, bool fHelp);
 extern UniValue getchaintips(const UniValue& params, bool fHelp); // »ñÈ¡Á´¼âÐÅÏ¢
 extern UniValue invalidateblock(const UniValue& params, bool fHelp);
