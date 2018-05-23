@@ -160,66 +160,66 @@ vector<unsigned char> ParseHexO(const UniValue& o, string strKey)
 /**
  * Note: This interface may still be subject to change.
  */
-
+// 该接口可能会改变
 std::string CRPCTable::help(const std::string& strCommand) const
 {
-    string strRet;
-    string category;
-    set<rpcfn_type> setDone;
-    vector<pair<string, const CRPCCommand*> > vCommands;
+    string strRet; // 保存最终的返回结果
+    string category; // 类别
+    set<rpcfn_type> setDone; // 方法对应的回调函数
+    vector<pair<string, const CRPCCommand*> > vCommands; // 命令列表
 
     for (map<string, const CRPCCommand*>::const_iterator mi = mapCommands.begin(); mi != mapCommands.end(); ++mi)
-        vCommands.push_back(make_pair(mi->second->category + mi->first, mi->second));
-    sort(vCommands.begin(), vCommands.end());
+        vCommands.push_back(make_pair(mi->second->category + mi->first, mi->second)); // <category+name, const CRPCCommand*>
+    sort(vCommands.begin(), vCommands.end()); // 按 key 升序排序
 
     BOOST_FOREACH(const PAIRTYPE(string, const CRPCCommand*)& command, vCommands)
-    {
-        const CRPCCommand *pcmd = command.second;
-        string strMethod = pcmd->name;
+    { // 遍历列表中的命令
+        const CRPCCommand *pcmd = command.second; // 取得 RPC 命令指针
+        string strMethod = pcmd->name; // 获得方法名
         // We already filter duplicates, but these deprecated screw up the sort order
-        if (strMethod.find("label") != string::npos)
-            continue;
-        if ((strCommand != "" || pcmd->category == "hidden") && strMethod != strCommand)
-            continue;
+        if (strMethod.find("label") != string::npos) // 方法名中含有 "label"
+            continue; // 则跳过
+        if ((strCommand != "" || pcmd->category == "hidden") && strMethod != strCommand) // 指定的命令非空 或 类别为 "hidden" 且 方法名不等于指定命令名
+            continue; // 则跳过
         try
         {
             UniValue params;
-            rpcfn_type pfn = pcmd->actor;
-            if (setDone.insert(pfn).second)
-                (*pfn)(params, true);
+            rpcfn_type pfn = pcmd->actor; // 注册对应回调函数
+            if (setDone.insert(pfn).second) // 若执行列表插入回调成功
+                (*pfn)(params, true); // 传入参数并执行该回调，同时标记 fHelp 为 true
         }
         catch (const std::exception& e)
         {
             // Help text is returned in an exception
-            string strHelp = string(e.what());
-            if (strCommand == "")
+            string strHelp = string(e.what()); // 拿到回掉函数抛出的异常（帮助）信息
+            if (strCommand == "") // 如果指定命令为空即未指定命令
             {
-                if (strHelp.find('\n') != string::npos)
-                    strHelp = strHelp.substr(0, strHelp.find('\n'));
+                if (strHelp.find('\n') != string::npos) // 若帮助信息中存在 '\n'
+                    strHelp = strHelp.substr(0, strHelp.find('\n')); // 截取第一个 '\n' 之前的的字符串（命令名）
 
-                if (category != pcmd->category)
+                if (category != pcmd->category) // 类别不同，category 初始化为空
                 {
-                    if (!category.empty())
-                        strRet += "\n";
-                    category = pcmd->category;
-                    string firstLetter = category.substr(0,1);
-                    boost::to_upper(firstLetter);
-                    strRet += "== " + firstLetter + category.substr(1) + " ==\n";
+                    if (!category.empty()) // category 非空
+                        strRet += "\n"; // 加入换行（初始类别为空）
+                    category = pcmd->category; // 拿到类别
+                    string firstLetter = category.substr(0,1); // 截取类别首字母
+                    boost::to_upper(firstLetter); // 转换为大写字母
+                    strRet += "== " + firstLetter + category.substr(1) + " ==\n"; // 拼接首字母大写的类别到返回的结果
                 }
             }
-            strRet += strHelp + "\n";
+            strRet += strHelp + "\n"; // 拼接 RPC 命令名
         }
-    }
-    if (strRet == "")
-        strRet = strprintf("help: unknown command: %s\n", strCommand);
-    strRet = strRet.substr(0,strRet.size()-1);
-    return strRet;
+    } // 重复以上过程，直至遍历完每一个注册的 RPC 命令
+    if (strRet == "") // 返回值为空表示指定了未知命令
+        strRet = strprintf("help: unknown command: %s\n", strCommand); // 拼接错误信息
+    strRet = strRet.substr(0,strRet.size()-1); // 去除结尾的 '\n'
+    return strRet; // 返回结果
 }
 
 UniValue help(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() > 1)
-        throw runtime_error(
+    if (fHelp || params.size() > 1) // 参数最多为 1 个（RPC 命令）
+        throw runtime_error( // 命令帮助反馈
             "help ( \"command\" )\n"
             "\nList all commands, or get help for a specified command.\n"
             "\nArguments:\n"
@@ -229,10 +229,10 @@ UniValue help(const UniValue& params, bool fHelp)
         );
 
     string strCommand;
-    if (params.size() > 0)
-        strCommand = params[0].get_str();
+    if (params.size() > 0) // 若带有参数
+        strCommand = params[0].get_str(); // 获取命令参数的字符串
 
-    return tableRPC.help(strCommand);
+    return tableRPC.help(strCommand); // 传入命令（可能为空）并返回
 }
 
 
@@ -251,7 +251,7 @@ UniValue stop(const UniValue& params, bool fHelp)
 
 /**
  * Call Table
- */
+ */ // 调用列表
 static const CRPCCommand vRPCCommands[] =
 { //  category              name                      actor (function)         okSafeMode
   //  --------------------- ------------------------  -----------------------  ----------
@@ -380,11 +380,11 @@ CRPCTable::CRPCTable()
 {
     unsigned int vcidx;
     for (vcidx = 0; vcidx < (sizeof(vRPCCommands) / sizeof(vRPCCommands[0])); vcidx++)
-    {
-        const CRPCCommand *pcmd;
+    { // 遍历上面定义的 RPC 调用列表
+        const CRPCCommand *pcmd; // RPC 命令指针
 
-        pcmd = &vRPCCommands[vcidx];
-        mapCommands[pcmd->name] = pcmd;
+        pcmd = &vRPCCommands[vcidx]; // 指向一条 RPC 命令
+        mapCommands[pcmd->name] = pcmd; // 把该命令注册到 RPC 命令列表中
     }
 }
 

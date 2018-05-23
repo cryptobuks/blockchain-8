@@ -124,13 +124,13 @@ public:
 
 /**
  * Bitcoin RPC command dispatcher.
- */
-class CRPCTable
+ */ // 比特币 RPC 命令调度器
+class CRPCTable // RPC 列表类
 {
 private:
-    std::map<std::string, const CRPCCommand*> mapCommands;
+    std::map<std::string, const CRPCCommand*> mapCommands; // RPC 命令列表
 public:
-    CRPCTable();
+    CRPCTable(); // 注册所有定义的 RPC 命令到 RPC 命令列表
     const CRPCCommand* operator[](const std::string& name) const;
     std::string help(const std::string& name) const;
 
@@ -141,10 +141,10 @@ public:
      * @returns Result of the call.
      * @throws an exception (UniValue) when an error happens.
      */
-    UniValue execute(const std::string &method, const UniValue &params) const;
+    UniValue execute(const std::string &method, const UniValue &params) const; // 执行一个方法
 };
 
-extern const CRPCTable tableRPC;
+extern const CRPCTable tableRPC; // 在 rpcserver.cpp 中创建的一个全局的常量对象
 
 /**
  * Utilities: convert hex-encoded Values
