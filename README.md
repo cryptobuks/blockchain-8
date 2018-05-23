@@ -11,6 +11,10 @@
 * [精通比特币（第二版） \| 巴比特图书](http://book.8btc.com/masterbitcoin2cn)
 * [区块链技术指南](https://yeasy.gitbooks.io/blockchain_guide/content)
 * [比特币开发者指南-巴比特图书](http://book.8btc.com/books/6/bitcoin-developer-guide/_book)
+#### 官方网站
+* [Bitcoin - Open source P2P money](https://bitcoin.org/en)
+#### 官方开发者文档
+* [Developer Documentation - Bitcoin](https://bitcoin.org/en/developer-documentation)
 #### 官方源码
 * [fkysly/bitcoin0.1.0](https://github.com/fkysly/bitcoin0.1.0) the legendary Satoshi version
 * [bitcoin/bitcoin](https://github.com/bitcoin/bitcoin/tree/v0.12.1) v0.12.1
@@ -19,3 +23,4 @@
 * [比特币源码解析 - 呼，是出一口气；吸，是争一口气!](https://blog.csdn.net/pure_lady/article/category/7131199/2)
 * [比特币源码解读 - ttblack](https://www.jianshu.com/u/ef215107c407) v0.9.5rc2
 * [比特币源码研读 - 菜菜子_forest](https://www.jianshu.com/u/30081a05cf95) 0.14
+* [比特币源码剖析 - mistydew](https://mistydew.github.io) v0.12.1
