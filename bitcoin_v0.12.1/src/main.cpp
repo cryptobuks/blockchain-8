@@ -57,7 +57,7 @@ using namespace std;
 CCriticalSection cs_main;
 
 BlockMap mapBlockIndex; // 保存区块链上区块的索引
-CChain chainActive;
+CChain chainActive; // 当前连接的区块链（激活的链）
 CBlockIndex *pindexBestHeader = NULL;
 int64_t nTimeBestReceived = 0;
 CWaitableCriticalSection csBestBlock;

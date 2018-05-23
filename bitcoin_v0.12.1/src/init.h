@@ -18,8 +18,8 @@ class thread_group;
 
 extern CWallet* pwalletMain; // 钱包对象指针
 
-void StartShutdown();
-bool ShutdownRequested();
+void StartShutdown(); // 关闭比特币核心服务
+bool ShutdownRequested(); // 获取当前是否请求关闭的状态
 /** Interrupt threads */
 void Interrupt(boost::thread_group& threadGroup);
 void Shutdown();

@@ -127,15 +127,15 @@ CClientUIInterface uiInterface; // Declared but not defined in ui_interface.h
 // shutdown thing.
 //
 
-volatile bool fRequestShutdown = false;
+volatile bool fRequestShutdown = false; // 请求关闭标志，初始为 false
 
 void StartShutdown()
 {
-    fRequestShutdown = true;
+    fRequestShutdown = true; // 把请求关闭标志置为 true
 }
 bool ShutdownRequested()
 {
-    return fRequestShutdown;
+    return fRequestShutdown; // 返回当前的请求关闭标志
 }
 
 class CCoinsViewErrorCatcher : public CCoinsViewBacked

@@ -239,14 +239,14 @@ UniValue help(const UniValue& params, bool fHelp)
 UniValue stop(const UniValue& params, bool fHelp)
 {
     // Accept the deprecated and ignored 'detach' boolean argument
-    if (fHelp || params.size() > 1)
+    if (fHelp || params.size() > 1) // 参数最多为 1 个，这里已经过时，现无参数
         throw runtime_error(
             "stop\n"
             "\nStop Bitcoin server.");
     // Event loop will exit after current HTTP requests have been handled, so
-    // this reply will get back to the client.
-    StartShutdown();
-    return "Bitcoin server stopping";
+    // this reply will get back to the client. // 在当前 HTTP 请求被处理后时间循环才会退出
+    StartShutdown(); // 关闭比特币核心服务
+    return "Bitcoin server stopping"; // 返回停止信息
 }
 
 /**
