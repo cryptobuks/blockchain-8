@@ -259,11 +259,11 @@ public:
         return *this;
     }
 
-    size_type size() const {
+    size_type size() const { // N Îª 28
         return is_direct() ? _size : _size - N - 1;
     }
 
-    bool empty() const {
+    bool empty() const { // _size == 29 Îª¿Õ
         return size() == 0;
     }
 

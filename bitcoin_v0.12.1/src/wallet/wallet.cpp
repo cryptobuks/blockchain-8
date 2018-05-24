@@ -2515,7 +2515,7 @@ void CWallet::ReserveKeyFromKeyPool(int64_t& nIndex, CKeyPool& keypool)
         setKeyPool.erase(setKeyPool.begin()); // 从密钥池集合中擦除该密钥的索引
         if (!walletdb.ReadPool(nIndex, keypool)) // 根据密钥索引从钱包数据库中读取一个密钥池条目
             throw runtime_error("ReserveKeyFromKeyPool(): read failed");
-        if (!HaveKey(keypool.vchPubKey.GetID())) // 通过获取的公钥 ID
+        if (!HaveKey(keypool.vchPubKey.GetID())) // 通过获取的公钥 ID 检测对应的密钥是否存在
             throw runtime_error("ReserveKeyFromKeyPool(): unknown key in key pool");
         assert(keypool.vchPubKey.IsValid()); // 检查公钥是否有效
         LogPrintf("keypool reserve %d\n", nIndex);
@@ -2720,9 +2720,9 @@ std::set<CTxDestination> CWallet::GetAccountAddresses(const std::string& strAcco
     return result;
 }
 
-bool CReserveKey::GetReservedKey(CPubKey& pubkey)
+bool CReserveKey::GetReservedKey(CPubKey& pubkey) // 从密钥池中取一个公钥
 {
-    if (nIndex == -1)
+    if (nIndex == -1) // 初始化为 -1
     {
         CKeyPool keypool;
         pwallet->ReserveKeyFromKeyPool(nIndex, keypool);
@@ -2732,7 +2732,7 @@ bool CReserveKey::GetReservedKey(CPubKey& pubkey)
             return false;
         }
     }
-    assert(vchPubKey.IsValid());
+    assert(vchPubKey.IsValid()); // 检测公钥的有效性
     pubkey = vchPubKey;
     return true;
 }
@@ -2786,13 +2786,13 @@ void CWallet::UpdatedTransaction(const uint256 &hashTx)
 
 void CWallet::GetScriptForMining(boost::shared_ptr<CReserveScript> &script)
 {
-    boost::shared_ptr<CReserveKey> rKey(new CReserveKey(this));
+    boost::shared_ptr<CReserveKey> rKey(new CReserveKey(this)); // 新建一个派生类对象
     CPubKey pubkey;
-    if (!rKey->GetReservedKey(pubkey))
+    if (!rKey->GetReservedKey(pubkey)) // 从密钥池中取一个公钥
         return;
 
-    script = rKey;
-    script->reserveScript = CScript() << ToByteVector(pubkey) << OP_CHECKSIG;
+    script = rKey; // 把派生类对象赋值给基类对象（派生类 -> 基类）
+    script->reserveScript = CScript() << ToByteVector(pubkey) << OP_CHECKSIG; // 把公钥导入脚本
 }
 
 void CWallet::LockCoin(COutPoint& output)

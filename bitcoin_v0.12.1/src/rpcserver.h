@@ -257,7 +257,7 @@ extern UniValue getmempoolinfo(const UniValue& params, bool fHelp); // »ñÈ¡½»Ò×Ä
 extern UniValue getrawmempool(const UniValue& params, bool fHelp); // »ñÈ¡½»Ò×ÄÚ´æ³ØÔªĞÅÏ¢£¨Î´´ò°ü½»Ò×µÄ¹şÏ££©
 extern UniValue getblockhash(const UniValue& params, bool fHelp); // Í¨¹ıÇø¿éºÅ»ñÈ¡Çø¿é¹şÏ£
 extern UniValue getblockheader(const UniValue& params, bool fHelp); // »ñÈ¡Ö¸¶¨¹şÏ£µÄÇø¿éÍ·ĞÅÏ¢
-extern UniValue getblock(const UniValue& params, bool fHelp); // »ñÈ¡Ö¸¶¨¹şÏ£µÄÇø¿éĞÅÏ¢
+extern UniValue getblock(const UniValue& params, bool fHelp); // »ñÈ¡Çø¿éĞÅÏ¢
 extern UniValue gettxoutsetinfo(const UniValue& params, bool fHelp);
 extern UniValue gettxout(const UniValue& params, bool fHelp); // »ñÈ¡ÄÚ´æ³ØÖĞÒ»±Ê½»Ò×Êä³öµÄĞÅÏ¢
 extern UniValue verifychain(const UniValue& params, bool fHelp);

@@ -5,9 +5,9 @@
 
 #include "validationinterface.h"
 
-static CMainSignals g_signals;
+static CMainSignals g_signals; // 静态全局信号对象
 
-CMainSignals& GetMainSignals()
+CMainSignals& GetMainSignals() // 获取主信号对象的引用
 {
     return g_signals;
 }

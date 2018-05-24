@@ -88,43 +88,43 @@ UniValue blockheaderToJSON(const CBlockIndex* blockindex)
 
 UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool txDetails = false)
 {
-    UniValue result(UniValue::VOBJ);
-    result.push_back(Pair("hash", block.GetHash().GetHex()));
-    int confirmations = -1;
+    UniValue result(UniValue::VOBJ); // 创建对象类型的返回结果
+    result.push_back(Pair("hash", block.GetHash().GetHex())); // 先加入区块的哈希（16 进制形式）
+    int confirmations = -1; // 记录该区块的确认数
     // Only report confirmations if the block is on the main chain
-    if (chainActive.Contains(blockindex))
-        confirmations = chainActive.Height() - blockindex->nHeight + 1;
-    result.push_back(Pair("confirmations", confirmations));
-    result.push_back(Pair("size", (int)::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION)));
-    result.push_back(Pair("height", blockindex->nHeight));
-    result.push_back(Pair("version", block.nVersion));
-    result.push_back(Pair("merkleroot", block.hashMerkleRoot.GetHex()));
-    UniValue txs(UniValue::VARR);
+    if (chainActive.Contains(blockindex)) // 若该区块在链上
+        confirmations = chainActive.Height() - blockindex->nHeight + 1; // 计算确认数，注：刚上链的确认数为 1
+    result.push_back(Pair("confirmations", confirmations)); // 加入确认数
+    result.push_back(Pair("size", (int)::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION))); // 区块大小（单位字节）
+    result.push_back(Pair("height", blockindex->nHeight)); // 区块高度
+    result.push_back(Pair("version", block.nVersion)); // 区块版本
+    result.push_back(Pair("merkleroot", block.hashMerkleRoot.GetHex())); // 默克树根
+    UniValue txs(UniValue::VARR); // 数组类型的交易对象
     BOOST_FOREACH(const CTransaction&tx, block.vtx)
-    {
-        if(txDetails)
-        {
+    { // 遍历交易列表
+        if(txDetails) // false
+        { // 交易细节
             UniValue objTx(UniValue::VOBJ);
-            TxToJSON(tx, uint256(), objTx);
+            TxToJSON(tx, uint256(), objTx); // 把交易信息转换为 JSON 格式输入到 objTx
             txs.push_back(objTx);
         }
-        else
+        else // 加入交易哈希
             txs.push_back(tx.GetHash().GetHex());
     }
-    result.push_back(Pair("tx", txs));
-    result.push_back(Pair("time", block.GetBlockTime()));
+    result.push_back(Pair("tx", txs)); // 交易集
+    result.push_back(Pair("time", block.GetBlockTime())); // 获取区块创建时间
     result.push_back(Pair("mediantime", (int64_t)blockindex->GetMedianTimePast()));
-    result.push_back(Pair("nonce", (uint64_t)block.nNonce));
-    result.push_back(Pair("bits", strprintf("%08x", block.nBits)));
-    result.push_back(Pair("difficulty", GetDifficulty(blockindex)));
-    result.push_back(Pair("chainwork", blockindex->nChainWork.GetHex()));
+    result.push_back(Pair("nonce", (uint64_t)block.nNonce)); // 随机数
+    result.push_back(Pair("bits", strprintf("%08x", block.nBits))); // 难度对应值
+    result.push_back(Pair("difficulty", GetDifficulty(blockindex))); // 难度
+    result.push_back(Pair("chainwork", blockindex->nChainWork.GetHex())); // 链工作量
 
-    if (blockindex->pprev)
-        result.push_back(Pair("previousblockhash", blockindex->pprev->GetBlockHash().GetHex()));
+    if (blockindex->pprev) // 如果有前一个区块
+        result.push_back(Pair("previousblockhash", blockindex->pprev->GetBlockHash().GetHex())); // 加入前一个区块的哈希
     CBlockIndex *pnext = chainActive.Next(blockindex);
-    if (pnext)
-        result.push_back(Pair("nextblockhash", pnext->GetBlockHash().GetHex()));
-    return result;
+    if (pnext) // 如果后后一个区块
+        result.push_back(Pair("nextblockhash", pnext->GetBlockHash().GetHex())); // 加入后一个区块的哈希
+    return result; // 返回结果
 }
 
 UniValue getblockcount(const UniValue& params, bool fHelp)
@@ -360,7 +360,7 @@ UniValue getblockheader(const UniValue& params, bool fHelp)
 
 UniValue getblock(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() < 1 || params.size() > 2) // 必须有 1 个参数（谋区块的哈希），最多 2 个
+    if (fHelp || params.size() < 1 || params.size() > 2) // 1.必须有 1 个参数（谋区块的哈希），最多 2 个
         throw runtime_error( // 命令帮助反馈
             "getblock \"hash\" ( verbose )\n"
             "\nIf verbose is false, returns a string that is serialized, hex-encoded data for block 'hash'.\n"
@@ -398,26 +398,26 @@ UniValue getblock(const UniValue& params, bool fHelp)
 
     LOCK(cs_main);
 
-    std::string strHash = params[0].get_str(); // 把参数转换为字符串
+    std::string strHash = params[0].get_str(); // 2.把参数转换为字符串
     uint256 hash(uint256S(strHash)); // 包装成 uint256 对象
 
-    bool fVerbose = true; // 详细标志，默认为 true
+    bool fVerbose = true; // 3.详细标志，默认为 true
     if (params.size() > 1) // 若有第 2 个参数
         fVerbose = params[1].get_bool(); // 获取 verbose 的值（布尔型）
 
-    if (mapBlockIndex.count(hash) == 0) // 检查指定哈希是否在区块索引映射中
+    if (mapBlockIndex.count(hash) == 0) // 4.检查指定哈希是否在区块索引映射中
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
 
     CBlock block; // 创建一个局部的区块对象
     CBlockIndex* pblockindex = mapBlockIndex[hash]; // 获取指定哈希对应的区块索引指针
 
-    if (fHavePruned && !(pblockindex->nStatus & BLOCK_HAVE_DATA) && pblockindex->nTx > 0) // 区块文件未被修剪过 或 区块状态为在区块文件中为完整区块 或 区块索引中的交易号为 0
+    if (fHavePruned && !(pblockindex->nStatus & BLOCK_HAVE_DATA) && pblockindex->nTx > 0) // 5.区块文件未被修剪过 或 区块状态为在区块文件中为完整区块 或 区块索引中的交易号为 0
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Block not available (pruned data)");
 
-    if(!ReadBlockFromDisk(block, pblockindex, Params().GetConsensus())) // 从磁盘上的区块文件中读取区块信息
+    if(!ReadBlockFromDisk(block, pblockindex, Params().GetConsensus())) // 6.从磁盘上的文件中读取区块信息
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Can't read block from disk");
 
-    if (!fVerbose) // false
+    if (!fVerbose) // 7.false
     {
         CDataStream ssBlock(SER_NETWORK, PROTOCOL_VERSION); // 序列化数据
         ssBlock << block; // 导入区块数据
@@ -425,7 +425,7 @@ UniValue getblock(const UniValue& params, bool fHelp)
         return strHex; // 返回
     }
 
-    return blockToJSON(block, pblockindex); // 打包区块信息为 JSON 格式并返回
+    return blockToJSON(block, pblockindex); // 8.打包区块信息为 JSON 格式并返回
 }
 
 UniValue gettxoutsetinfo(const UniValue& params, bool fHelp)

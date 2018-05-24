@@ -21,7 +21,7 @@ class uint256;
 // These functions dispatch to one or all registered wallets
 
 /** Register a wallet to receive updates from core */
-void RegisterValidationInterface(CValidationInterface* pwalletIn);
+void RegisterValidationInterface(CValidationInterface* pwalletIn); // 注册一个用来接收内核升级的钱包
 /** Unregister a wallet from core */
 void UnregisterValidationInterface(CValidationInterface* pwalletIn);
 /** Unregister all wallets from core */
@@ -29,7 +29,7 @@ void UnregisterAllValidationInterfaces();
 /** Push an updated transaction to all registered wallets */
 void SyncWithWallets(const CTransaction& tx, const CBlock* pblock = NULL);
 
-class CValidationInterface {
+class CValidationInterface { // 验证接口
 protected:
     virtual void UpdatedBlockTip(const CBlockIndex *pindex) {}
     virtual void SyncTransaction(const CTransaction &tx, const CBlock *pblock) {}
@@ -45,7 +45,7 @@ protected:
     friend void ::UnregisterAllValidationInterfaces();
 };
 
-struct CMainSignals {
+struct CMainSignals { // 主信号类
     /** Notifies listeners of updated block chain tip */
     boost::signals2::signal<void (const CBlockIndex *)> UpdatedBlockTip;
     /** Notifies listeners of updated transaction data (transaction, and optionally the block it is found in. */

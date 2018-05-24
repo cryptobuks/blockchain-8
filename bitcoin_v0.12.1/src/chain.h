@@ -97,7 +97,7 @@ enum BlockStatus {
  * candidates to be the next block. A blockindex may have multiple pprev pointing
  * to it, but at most one of them can be part of the currently active branch.
  */ // 区块链是一个始于以创世区块为根的树状结构，每个区块可有多个候选作为下一个区块。一个区块索引可能有多个 pprev 指向它，但最多只能有一个能成为当前激活分支的一部分。
-class CBlockIndex // 区块索引
+class CBlockIndex // 区块索引类
 {
 public:
     //! pointer to the hash of the block, if any. Memory is owned by this CBlockIndex
@@ -361,7 +361,7 @@ public:
     }
 
     /** Returns the index entry at a particular height in this chain, or NULL if no such height exists. */
-    CBlockIndex *operator[](int nHeight) const {
+    CBlockIndex *operator[](int nHeight) const { // 返回该链指定高度的索引条目，或若该高度不存在则为空
         if (nHeight < 0 || nHeight >= (int)vChain.size())
             return NULL;
         return vChain[nHeight];
@@ -374,12 +374,12 @@ public:
     }
 
     /** Efficiently check whether a block is present in this chain. */
-    bool Contains(const CBlockIndex *pindex) const {
+    bool Contains(const CBlockIndex *pindex) const { // 有效检测该链中是否存在某个块
         return (*this)[pindex->nHeight] == pindex;
     }
 
     /** Find the successor of a block in this chain, or NULL if the given index is not found or is the tip. */
-    CBlockIndex *Next(const CBlockIndex *pindex) const {
+    CBlockIndex *Next(const CBlockIndex *pindex) const { // 在该链找到某个区块的后继者，或若给定区块未找到或是链尖则为空
         if (Contains(pindex))
             return (*this)[pindex->nHeight + 1];
         else

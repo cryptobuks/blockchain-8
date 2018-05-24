@@ -798,17 +798,17 @@ public:
 };
 
 /** A key allocated from the key pool. */
-class CReserveKey : public CReserveScript // 一个密钥在密钥池中的位置
+class CReserveKey : public CReserveScript // 一个从密钥池分配的密钥
 {
 protected:
-    CWallet* pwallet; // 钱包指针
-    int64_t nIndex;
+    CWallet* pwallet; // 钱包指针，指向主钱包
+    int64_t nIndex; // 密钥池中密钥的索引，初始化为 -1
     CPubKey vchPubKey; // 对应公钥
 public:
     CReserveKey(CWallet* pwalletIn)
     {
         nIndex = -1;
-        pwallet = pwalletIn;
+        pwallet = pwalletIn; // 主钱包
     }
 
     ~CReserveKey()
@@ -817,7 +817,7 @@ public:
     }
 
     void ReturnKey();
-    bool GetReservedKey(CPubKey &pubkey);
+    bool GetReservedKey(CPubKey &pubkey); // 从密钥池中获取一个公钥
     void KeepKey();
     void KeepScript() { KeepKey(); }
 };

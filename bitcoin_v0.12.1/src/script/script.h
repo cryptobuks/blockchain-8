@@ -370,7 +370,7 @@ private:
 typedef prevector<28, unsigned char> CScriptBase;
 
 /** Serialized script, used inside transaction inputs and outputs */
-class CScript : public CScriptBase
+class CScript : public CScriptBase // 序列化的脚本，用于交易输入输出的内部
 {
 protected:
     CScript& push_int64(int64_t n)
@@ -434,7 +434,7 @@ public:
 
     CScript& operator<<(const std::vector<unsigned char>& b)
     {
-        if (b.size() < OP_PUSHDATA1)
+        if (b.size() < OP_PUSHDATA1) // 4 种导入方式
         {
             insert(end(), (unsigned char)b.size());
         }

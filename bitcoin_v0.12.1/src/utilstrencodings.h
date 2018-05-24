@@ -83,14 +83,14 @@ std::string HexStr(const T itbegin, const T itend, bool fSpaces=false)
     std::string rv;
     static const char hexmap[16] = { '0', '1', '2', '3', '4', '5', '6', '7',
                                      '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
-    rv.reserve((itend-itbegin)*3);
+    rv.reserve((itend-itbegin)*3); // 3 倍的原因：一个字节 8 位，对应 16 进制的 2 位，再加上中间的空格
     for(T it = itbegin; it < itend; ++it)
     {
         unsigned char val = (unsigned char)(*it);
-        if(fSpaces && it != itbegin)
+        if(fSpaces && it != itbegin) // 空格隔开每一个 16 进制字符，默认不加空格
             rv.push_back(' ');
-        rv.push_back(hexmap[val>>4]);
-        rv.push_back(hexmap[val&15]);
+        rv.push_back(hexmap[val>>4]); // 高 4 位
+        rv.push_back(hexmap[val&15]); // 低 4 位
     }
 
     return rv;

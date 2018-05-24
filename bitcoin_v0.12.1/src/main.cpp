@@ -1556,7 +1556,7 @@ bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos, const Consensus:
 
 bool ReadBlockFromDisk(CBlock& block, const CBlockIndex* pindex, const Consensus::Params& consensusParams)
 {
-    if (!ReadBlockFromDisk(block, pindex->GetBlockPos(), consensusParams)) // 调用重载函数读取区块信息
+    if (!ReadBlockFromDisk(block, pindex->GetBlockPos(), consensusParams)) // 调用重载函数读取区块信息到 block 对象
         return false;
     if (block.GetHash() != pindex->GetBlockHash()) // 验证读取的区块哈希
         return error("ReadBlockFromDisk(CBlock&, CBlockIndex*): GetHash() doesn't match index for %s at %s",
