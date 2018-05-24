@@ -19,7 +19,7 @@ static const unsigned char REJECT_INSUFFICIENTFEE = 0x42;
 static const unsigned char REJECT_CHECKPOINT = 0x43;
 
 /** Capture information about block/transaction validation */
-class CValidationState {
+class CValidationState { // 验证状态类，捕获关于区块/交易验证的信息
 private:
     enum mode_state {
         MODE_VALID,   //! everything ok

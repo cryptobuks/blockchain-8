@@ -146,7 +146,7 @@ UniValue getblockcount(const UniValue& params, bool fHelp)
 
 UniValue getbestblockhash(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() != 0) // 该命令没有参数
+    if (fHelp || params.size() != 0) // 1.该命令没有参数
         throw runtime_error( // 命令帮助反馈
             "getbestblockhash\n"
             "\nReturns the hash of the best (tip) block in the longest block chain.\n"
@@ -158,7 +158,7 @@ UniValue getbestblockhash(const UniValue& params, bool fHelp)
         );
 
     LOCK(cs_main);
-    return chainActive.Tip()->GetBlockHash().GetHex(); // 返回激活链尖区块哈希的 16 进制
+    return chainActive.Tip()->GetBlockHash().GetHex(); // 2.返回激活链尖区块哈希的 16 进制
 }
 
 UniValue getdifficulty(const UniValue& params, bool fHelp)

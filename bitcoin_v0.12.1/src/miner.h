@@ -25,9 +25,9 @@ static const int DEFAULT_GENERATE_THREADS = 1;
 
 static const bool DEFAULT_PRINTPRIORITY = false;
 
-struct CBlockTemplate
+struct CBlockTemplate // 区块模板类
 {
-    CBlock block;
+    CBlock block; // 区块对象
     std::vector<CAmount> vTxFees; // 交易手续费
     std::vector<int64_t> vTxSigOps; // 交易签名操作
 };

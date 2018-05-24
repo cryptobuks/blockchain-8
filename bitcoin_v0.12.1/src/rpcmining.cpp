@@ -114,8 +114,8 @@ UniValue getgenerate(const UniValue& params, bool fHelp)
 
 UniValue generate(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() < 1 || params.size() > 1)
-        throw runtime_error(
+    if (fHelp || params.size() < 1 || params.size() > 1) // 1.参数只能为 1 个（要生成区块的个数）
+        throw runtime_error( // 帮助信息反馈
             "generate numblocks\n"
             "\nMine blocks immediately (before the RPC call returns)\n"
             "\nNote: this function can only be used on the regtest network\n"
@@ -128,58 +128,58 @@ UniValue generate(const UniValue& params, bool fHelp)
             + HelpExampleCli("generate", "11")
         );
 
-    if (!Params().MineBlocksOnDemand())
-        throw JSONRPCError(RPC_METHOD_NOT_FOUND, "This method can only be used on regtest");
+    if (!Params().MineBlocksOnDemand()) // 2.检测网络，只有回归测试网返回 true
+        throw JSONRPCError(RPC_METHOD_NOT_FOUND, "This method can only be used on regtest"); // 提示
 
-    int nHeightStart = 0;
-    int nHeightEnd = 0;
-    int nHeight = 0;
-    int nGenerate = params[0].get_int();
+    int nHeightStart = 0; // 产生块前的高度
+    int nHeightEnd = 0; // 产生块后的高度
+    int nHeight = 0; // 当前区块链高度
+    int nGenerate = params[0].get_int(); // 3.获取要产生区块的数目
 
-    boost::shared_ptr<CReserveScript> coinbaseScript;
+    boost::shared_ptr<CReserveScript> coinbaseScript; // 4.创建创币交易脚本
     GetMainSignals().ScriptForMining(coinbaseScript);
 
     // If the keypool is exhausted, no script is returned at all.  Catch this.
-    if (!coinbaseScript)
+    if (!coinbaseScript) // 5.若密钥池耗尽，根本不会返回脚本。抓住它。
         throw JSONRPCError(RPC_WALLET_KEYPOOL_RAN_OUT, "Error: Keypool ran out, please call keypoolrefill first");
 
     //throw an error if no script was provided
-    if (coinbaseScript->reserveScript.empty())
+    if (coinbaseScript->reserveScript.empty()) // 6.如果脚本为空，未被提供，则抛出一个错误
         throw JSONRPCError(RPC_INTERNAL_ERROR, "No coinbase script available (mining requires a wallet)");
 
     {   // Don't keep cs_main locked
-        LOCK(cs_main);
-        nHeightStart = chainActive.Height();
-        nHeight = nHeightStart;
-        nHeightEnd = nHeightStart+nGenerate;
+        LOCK(cs_main); // 缩小加锁的范围
+        nHeightStart = chainActive.Height(); // 7.获取当前激活链高度
+        nHeight = nHeightStart; // 记录当前高度
+        nHeightEnd = nHeightStart+nGenerate; // 得到产生指定块数后的高度
     }
     unsigned int nExtraNonce = 0;
-    UniValue blockHashes(UniValue::VARR);
+    UniValue blockHashes(UniValue::VARR); // 数组类型的区块哈希对象
     while (nHeight < nHeightEnd)
-    {
-        auto_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock(Params(), coinbaseScript->reserveScript));
-        if (!pblocktemplate.get())
+    { // 8.循环产生指定数目的区块
+        auto_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock(Params(), coinbaseScript->reserveScript)); // 创建区块模板
+        if (!pblocktemplate.get()) // 验证是否创建成功
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Couldn't create new block");
-        CBlock *pblock = &pblocktemplate->block;
+        CBlock *pblock = &pblocktemplate->block; // 获取区块指针
         {
             LOCK(cs_main);
-            IncrementExtraNonce(pblock, chainActive.Tip(), nExtraNonce);
+            IncrementExtraNonce(pblock, chainActive.Tip(), nExtraNonce); // 增加额外的随机数
         }
-        while (!CheckProofOfWork(pblock->GetHash(), pblock->nBits, Params().GetConsensus())) {
+        while (!CheckProofOfWork(pblock->GetHash(), pblock->nBits, Params().GetConsensus())) { // 检测区块是否满足工作量证明
             // Yes, there is a chance every nonce could fail to satisfy the -regtest
-            // target -- 1 in 2^(2^32). That ain't gonna happen.
-            ++pblock->nNonce;
+            // target -- 1 in 2^(2^32). That ain't gonna happen. // 每个随机数都有可能无法满足 -regtest 目标值 -- 2^(2^32) 分之 1。这不会发生的。
+            ++pblock->nNonce; // 区块头内随机数加 1
         }
         CValidationState state;
         if (!ProcessNewBlock(state, Params(), NULL, pblock, true, NULL))
             throw JSONRPCError(RPC_INTERNAL_ERROR, "ProcessNewBlock, block not accepted");
-        ++nHeight;
-        blockHashes.push_back(pblock->GetHash().GetHex());
+        ++nHeight; // 增加当前高度
+        blockHashes.push_back(pblock->GetHash().GetHex()); // 追加区块哈希
 
         //mark script as important because it was used at least for one coinbase output
-        coinbaseScript->KeepScript();
+        coinbaseScript->KeepScript(); // 标记该脚本为重要，因为它至少用作一个创币输出
     }
-    return blockHashes;
+    return blockHashes; // 9.返回产生所有区块的哈希
 }
 
 UniValue setgenerate(const UniValue& params, bool fHelp)

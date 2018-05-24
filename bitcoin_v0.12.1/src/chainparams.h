@@ -38,7 +38,7 @@ struct CCheckpointData {
  * and services, the public test network which gets reset from time to time and
  * a regression test mode which is intended for private networks only. It has
  * minimal difficulty to ensure that blocks can be found instantly.
- */
+ */ // 类 CChainParams 定义了比特币系统给定实例的各种可调用参数。有三种：人们交易商品和服务的主网，不时重置的公共测试网和仅限私有网络的回归测试模式。它有确保立刻找到块的最小难度。
 class CChainParams
 {
 public:
@@ -67,7 +67,7 @@ public:
     int64_t MaxTipAge() const { return nMaxTipAge; }
     uint64_t PruneAfterHeight() const { return nPruneAfterHeight; }
     /** Make miner stop after a block is found. In RPC, don't return until nGenProcLimit blocks are generated */
-    bool MineBlocksOnDemand() const { return fMineBlocksOnDemand; }
+    bool MineBlocksOnDemand() const { return fMineBlocksOnDemand; } // 返回挖矿需求标志
     /** In the future use NetworkIDString() for RPC fields */
     bool TestnetToBeDeprecatedFieldRPC() const { return fTestnetToBeDeprecatedFieldRPC; }
     /** Return the BIP70 network string (main, test or regtest) */
@@ -94,7 +94,7 @@ protected:
     bool fMiningRequiresPeers;
     bool fDefaultConsistencyChecks;
     bool fRequireStandard;
-    bool fMineBlocksOnDemand;
+    bool fMineBlocksOnDemand; // 挖矿需求标志，只有回归测试网中为 true
     bool fTestnetToBeDeprecatedFieldRPC;
     CCheckpointData checkpointData;
 };
@@ -102,7 +102,7 @@ protected:
 /**
  * Return the currently selected parameters. This won't change after app
  * startup, except for unit tests.
- */
+ */ // 返回当前选择的链参数。除了单元测试，在应用程序启动后不会改变。
 const CChainParams &Params();
 
 /**

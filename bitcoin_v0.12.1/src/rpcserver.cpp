@@ -218,7 +218,7 @@ std::string CRPCTable::help(const std::string& strCommand) const
 
 UniValue help(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() > 1) // 参数最多为 1 个（RPC 命令）
+    if (fHelp || params.size() > 1) // 1.参数最多为 1 个（RPC 命令）
         throw runtime_error( // 命令帮助反馈
             "help ( \"command\" )\n"
             "\nList all commands, or get help for a specified command.\n"
@@ -229,24 +229,24 @@ UniValue help(const UniValue& params, bool fHelp)
         );
 
     string strCommand;
-    if (params.size() > 0) // 若带有参数
+    if (params.size() > 0) // 2.若带有参数
         strCommand = params[0].get_str(); // 获取命令参数的字符串
 
-    return tableRPC.help(strCommand); // 传入命令（可能为空）并返回
+    return tableRPC.help(strCommand); // 3.传入命令（可能为空）并返回
 }
 
 
 UniValue stop(const UniValue& params, bool fHelp)
 {
     // Accept the deprecated and ignored 'detach' boolean argument
-    if (fHelp || params.size() > 1) // 参数最多为 1 个，这里已经过时，现无参数
+    if (fHelp || params.size() > 1) // 1.参数最多为 1 个，这里已经过时，现无参数
         throw runtime_error(
             "stop\n"
             "\nStop Bitcoin server.");
     // Event loop will exit after current HTTP requests have been handled, so
     // this reply will get back to the client. // 在当前 HTTP 请求被处理后时间循环才会退出
-    StartShutdown(); // 关闭比特币核心服务
-    return "Bitcoin server stopping"; // 返回停止信息
+    StartShutdown(); // 2.关闭比特币核心服务
+    return "Bitcoin server stopping"; // 3.返回停止信息
 }
 
 /**

@@ -138,7 +138,7 @@ public:
         fMiningRequiresPeers = true; // 挖矿是否需要伙伴，即是否单机挖矿，默认关闭，回归测试打开
         fDefaultConsistencyChecks = false; // 检查交易内存池完整性 和 区块索引的标志
         fRequireStandard = true;
-        fMineBlocksOnDemand = false; // 矿/区块 一次需求，默认关闭，回归测试打开
+        fMineBlocksOnDemand = false; // 挖矿需求标志，默认关闭，回归测试打开
         fTestnetToBeDeprecatedFieldRPC = false;
 
         checkpointData = (CCheckpointData) {

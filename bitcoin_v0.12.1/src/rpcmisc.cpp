@@ -41,7 +41,7 @@ using namespace std;
  **/ // 在该信息通过此方式返回时不添加或改变任何东西
 UniValue getinfo(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() != 0) // 该方法没有参数
+    if (fHelp || params.size() != 0) // 1.该方法没有参数
         throw runtime_error( // 帮助信息反馈
             "getinfo\n"
             "Returns an object containing various state info.\n"
@@ -70,7 +70,7 @@ UniValue getinfo(const UniValue& params, bool fHelp)
         );
 
 #ifdef ENABLE_WALLET // 开启钱包功能
-    LOCK2(cs_main, pwalletMain ? &pwalletMain->cs_wallet : NULL); // 钱包上锁
+    LOCK2(cs_main, pwalletMain ? &pwalletMain->cs_wallet : NULL); // 2.钱包上锁
 #else
     LOCK(cs_main);
 #endif
@@ -78,7 +78,7 @@ UniValue getinfo(const UniValue& params, bool fHelp)
     proxyType proxy;
     GetProxy(NET_IPV4, proxy);
 
-    UniValue obj(UniValue::VOBJ); // 创建 VOBJ 类型对象
+    UniValue obj(UniValue::VOBJ); // 3.创建 VOBJ 类型对象
     obj.push_back(Pair("version", CLIENT_VERSION)); // 追加客户端版本号
     obj.push_back(Pair("protocolversion", PROTOCOL_VERSION)); // 协议版本号
 #ifdef ENABLE_WALLET // 若开启钱包功能
