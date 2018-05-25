@@ -68,10 +68,10 @@ public:
     uint64_t PruneAfterHeight() const { return nPruneAfterHeight; }
     /** Make miner stop after a block is found. In RPC, don't return until nGenProcLimit blocks are generated */
     bool MineBlocksOnDemand() const { return fMineBlocksOnDemand; } // 返回挖矿需求标志
-    /** In the future use NetworkIDString() for RPC fields */
+    /** In the future use NetworkIDString() for RPC fields */ // 以后再 RPC 区域使用 NetworkIDString()
     bool TestnetToBeDeprecatedFieldRPC() const { return fTestnetToBeDeprecatedFieldRPC; }
     /** Return the BIP70 network string (main, test or regtest) */
-    std::string NetworkIDString() const { return strNetworkID; }
+    std::string NetworkIDString() const { return strNetworkID; } // 返回 BIP70 网络名（main, test 或 regtest）
     const std::vector<CDNSSeedData>& DNSSeeds() const { return vSeeds; }
     const std::vector<unsigned char>& Base58Prefix(Base58Type type) const { return base58Prefixes[type]; }
     const std::vector<SeedSpec6>& FixedSeeds() const { return vFixedSeeds; }

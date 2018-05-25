@@ -33,22 +33,22 @@ using namespace std;
  * Return average network hashes per second based on the last 'lookup' blocks,
  * or from the last difficulty change if 'lookup' is nonpositive.
  * If 'height' is nonnegative, compute the estimate at the time when a given block was found.
- */
+ */ // 返回基于最新发现的块每秒的平均网络哈希，或若发现是非正则返回最新的难度改变。若高度非负，计算找到一个给定区块时的估计值
 UniValue GetNetworkHashPS(int lookup, int height) {
-    CBlockIndex *pb = chainActive.Tip();
+    CBlockIndex *pb = chainActive.Tip(); // 获取链尖区块索引
 
-    if (height >= 0 && height < chainActive.Height())
-        pb = chainActive[height];
+    if (height >= 0 && height < chainActive.Height()) // 若指定高度符合当前链高度范围
+        pb = chainActive[height]; // 获取对应高度的区块索引
 
-    if (pb == NULL || !pb->nHeight)
+    if (pb == NULL || !pb->nHeight) // 索引为空 或 为创世区块索引
         return 0;
 
     // If lookup is -1, then use blocks since last difficulty change.
-    if (lookup <= 0)
+    if (lookup <= 0) // 若发现是 -1，则使用从上次难度改变后的区块
         lookup = pb->nHeight % Params().GetConsensus().DifficultyAdjustmentInterval() + 1;
 
     // If lookup is larger than chain, then set it to chain length.
-    if (lookup > pb->nHeight)
+    if (lookup > pb->nHeight) // 若发现大于链高度
         lookup = pb->nHeight;
 
     CBlockIndex *pb0 = pb;
@@ -73,8 +73,8 @@ UniValue GetNetworkHashPS(int lookup, int height) {
 
 UniValue getnetworkhashps(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() > 2)
-        throw runtime_error(
+    if (fHelp || params.size() > 2) // 参数个数最多为 2 个
+        throw runtime_error( // 命令帮助反馈
             "getnetworkhashps ( blocks height )\n"
             "\nReturns the estimated network hashes per second based on the last n blocks.\n"
             "Pass in [blocks] to override # of blocks, -1 specifies since last difficulty change.\n"
@@ -95,8 +95,8 @@ UniValue getnetworkhashps(const UniValue& params, bool fHelp)
 
 UniValue getgenerate(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() != 0)
-        throw runtime_error(
+    if (fHelp || params.size() != 0) // 没有参数
+        throw runtime_error( // 命令帮助反馈
             "getgenerate\n"
             "\nReturn if the server is set to generate coins or not. The default is false.\n"
             "It is set with the command line argument -gen (or " + std::string(BITCOIN_CONF_FILENAME) + " setting gen)\n"
@@ -109,7 +109,7 @@ UniValue getgenerate(const UniValue& params, bool fHelp)
         );
 
     LOCK(cs_main);
-    return GetBoolArg("-gen", DEFAULT_GENERATE);
+    return GetBoolArg("-gen", DEFAULT_GENERATE); // 获取 "-gen" 选项的值并返回
 }
 
 UniValue generate(const UniValue& params, bool fHelp)
@@ -184,8 +184,8 @@ UniValue generate(const UniValue& params, bool fHelp)
 
 UniValue setgenerate(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() < 1 || params.size() > 2)
-        throw runtime_error(
+    if (fHelp || params.size() < 1 || params.size() > 2) // 参数至少为 1 个，至多为 2 个
+        throw runtime_error( // 命令帮助反馈
             "setgenerate generate ( genproclimit )\n"
             "\nSet 'generate' true or false to turn generation on or off.\n"
             "Generation is limited to 'genproclimit' processors, -1 is unlimited.\n"
@@ -204,32 +204,32 @@ UniValue setgenerate(const UniValue& params, bool fHelp)
             + HelpExampleRpc("setgenerate", "true, 1")
         );
 
-    if (Params().MineBlocksOnDemand())
+    if (Params().MineBlocksOnDemand()) // 若是回归测试网络，此方法不适用，使用 "generate" 代替
         throw JSONRPCError(RPC_METHOD_NOT_FOUND, "Use the generate method instead of setgenerate on this network");
 
-    bool fGenerate = true;
+    bool fGenerate = true; // 挖矿开关标志
     if (params.size() > 0)
-        fGenerate = params[0].get_bool();
+        fGenerate = params[0].get_bool(); // 获取指定的挖矿状态
 
-    int nGenProcLimit = GetArg("-genproclimit", DEFAULT_GENERATE_THREADS);
+    int nGenProcLimit = GetArg("-genproclimit", DEFAULT_GENERATE_THREADS); // 初始化默认挖矿线程数
     if (params.size() > 1)
     {
-        nGenProcLimit = params[1].get_int();
-        if (nGenProcLimit == 0)
-            fGenerate = false;
+        nGenProcLimit = params[1].get_int(); // 获取指定的挖矿线程数
+        if (nGenProcLimit == 0) // 若指定线程数为 0
+            fGenerate = false; // 关闭挖矿功能
     }
 
-    mapArgs["-gen"] = (fGenerate ? "1" : "0");
-    mapArgs ["-genproclimit"] = itostr(nGenProcLimit);
-    GenerateBitcoins(fGenerate, nGenProcLimit, Params());
+    mapArgs["-gen"] = (fGenerate ? "1" : "0"); // 改变挖矿选项的值
+    mapArgs ["-genproclimit"] = itostr(nGenProcLimit); // 修改挖矿线程数
+    GenerateBitcoins(fGenerate, nGenProcLimit, Params()); // 创建指定数量的挖矿线程
 
-    return NullUniValue;
+    return NullUniValue; // 返回空值
 }
 
 UniValue getmininginfo(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() != 0)
-        throw runtime_error(
+    if (fHelp || params.size() != 0) // 没有参数
+        throw runtime_error( // 命令帮助反馈
             "getmininginfo\n"
             "\nReturns a json object containing mining-related information."
             "\nResult:\n"
@@ -253,18 +253,18 @@ UniValue getmininginfo(const UniValue& params, bool fHelp)
 
     LOCK(cs_main);
 
-    UniValue obj(UniValue::VOBJ);
-    obj.push_back(Pair("blocks",           (int)chainActive.Height()));
-    obj.push_back(Pair("currentblocksize", (uint64_t)nLastBlockSize));
-    obj.push_back(Pair("currentblocktx",   (uint64_t)nLastBlockTx));
-    obj.push_back(Pair("difficulty",       (double)GetDifficulty()));
-    obj.push_back(Pair("errors",           GetWarnings("statusbar")));
-    obj.push_back(Pair("genproclimit",     (int)GetArg("-genproclimit", DEFAULT_GENERATE_THREADS)));
-    obj.push_back(Pair("networkhashps",    getnetworkhashps(params, false)));
-    obj.push_back(Pair("pooledtx",         (uint64_t)mempool.size()));
-    obj.push_back(Pair("testnet",          Params().TestnetToBeDeprecatedFieldRPC()));
-    obj.push_back(Pair("chain",            Params().NetworkIDString()));
-    obj.push_back(Pair("generate",         getgenerate(params, false)));
+    UniValue obj(UniValue::VOBJ); // 创建对象类型的返回结果
+    obj.push_back(Pair("blocks",           (int)chainActive.Height())); // 加入激活的链高度
+    obj.push_back(Pair("currentblocksize", (uint64_t)nLastBlockSize)); // 最新区块的大小
+    obj.push_back(Pair("currentblocktx",   (uint64_t)nLastBlockTx)); // 最新区块的交易数
+    obj.push_back(Pair("difficulty",       (double)GetDifficulty())); // 当前挖矿难度
+    obj.push_back(Pair("errors",           GetWarnings("statusbar"))); // 错误
+    obj.push_back(Pair("genproclimit",     (int)GetArg("-genproclimit", DEFAULT_GENERATE_THREADS))); // 矿工线程数
+    obj.push_back(Pair("networkhashps",    getnetworkhashps(params, false))); // 全网算力
+    obj.push_back(Pair("pooledtx",         (uint64_t)mempool.size())); // 交易内存池大小
+    obj.push_back(Pair("testnet",          Params().TestnetToBeDeprecatedFieldRPC())); // 是否为测试网
+    obj.push_back(Pair("chain",            Params().NetworkIDString())); // 链名
+    obj.push_back(Pair("generate",         getgenerate(params, false))); // 挖矿状态
     return obj;
 }
 

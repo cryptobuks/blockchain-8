@@ -102,7 +102,7 @@ using namespace std;
 const char * const BITCOIN_CONF_FILENAME = "bitcoin.conf";
 const char * const BITCOIN_PID_FILENAME = "bitcoind.pid";
 
-map<string, string> mapArgs;
+map<string, string> mapArgs; // 命令行参数（启动选项）映射列表
 map<string, vector<string> > mapMultiArgs;
 bool fDebug = false;
 bool fPrintToConsole = false;
@@ -325,11 +325,11 @@ int LogPrintStr(const std::string &str)
 }
 
 /** Interpret string as boolean, for argument parsing */
-static bool InterpretBool(const std::string& strValue)
+static bool InterpretBool(const std::string& strValue) // 把字符串转换为布尔型，用于参数解析
 {
-    if (strValue.empty())
-        return true;
-    return (atoi(strValue) != 0);
+    if (strValue.empty()) // 若字符串为空
+        return true; // 返回 true，表示指定的选项未指定值时，该值默认为 true
+    return (atoi(strValue) != 0); // 否则，在返回时转换为对应布尔型
 }
 
 /** Turn -noX into -X=0 */
@@ -393,9 +393,9 @@ int64_t GetArg(const std::string& strArg, int64_t nDefault)
 
 bool GetBoolArg(const std::string& strArg, bool fDefault)
 {
-    if (mapArgs.count(strArg))
-        return InterpretBool(mapArgs[strArg]);
-    return fDefault;
+    if (mapArgs.count(strArg)) // 若该选项存在
+        return InterpretBool(mapArgs[strArg]); // 返回其对应的值（转换为布尔型）
+    return fDefault; // 否则返回默认值
 }
 
 bool SoftSetArg(const std::string& strArg, const std::string& strValue)

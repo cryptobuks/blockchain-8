@@ -114,7 +114,7 @@ static inline bool error(const char* format)
 }
 
 void PrintExceptionContinue(const std::exception *pex, const char* pszThread);
-void ParseParameters(int argc, const char*const argv[]);
+void ParseParameters(int argc, const char*const argv[]); // 解析命令行参数（启动选项）
 void FileCommit(FILE *fileout);
 bool TruncateFile(FILE *file, unsigned int length);
 int RaiseFileDescriptorLimit(int nMinFD);
@@ -129,7 +129,7 @@ boost::filesystem::path GetConfigFile();
 boost::filesystem::path GetPidFile();
 void CreatePidFile(const boost::filesystem::path &path, pid_t pid);
 #endif
-void ReadConfigFile(std::map<std::string, std::string>& mapSettingsRet, std::map<std::string, std::vector<std::string> >& mapMultiSettingsRet);
+void ReadConfigFile(std::map<std::string, std::string>& mapSettingsRet, std::map<std::string, std::vector<std::string> >& mapMultiSettingsRet); // 读取配置文件，加载启动选项
 #ifdef WIN32
 boost::filesystem::path GetSpecialFolderPath(int nFolder, bool fCreate = true);
 #endif
@@ -171,8 +171,8 @@ int64_t GetArg(const std::string& strArg, int64_t nDefault);
  * @param strArg Argument to get (e.g. "-foo")
  * @param default (true or false)
  * @return command-line argument or default value
- */
-bool GetBoolArg(const std::string& strArg, bool fDefault);
+ */ // 返回布尔型参数或默认值
+bool GetBoolArg(const std::string& strArg, bool fDefault); // 获取指定选项的值
 
 /**
  * Set an argument if it doesn't already have a value

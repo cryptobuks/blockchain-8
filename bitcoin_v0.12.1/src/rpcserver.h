@@ -183,11 +183,11 @@ extern UniValue importpubkey(const UniValue& params, bool fHelp);
 extern UniValue dumpwallet(const UniValue& params, bool fHelp);
 extern UniValue importwallet(const UniValue& params, bool fHelp);
 
-extern UniValue getgenerate(const UniValue& params, bool fHelp); // in rpcmining.cpp
-extern UniValue setgenerate(const UniValue& params, bool fHelp);
+extern UniValue getgenerate(const UniValue& params, bool fHelp); // 获取挖矿状态
+extern UniValue setgenerate(const UniValue& params, bool fHelp); // 设置挖矿状态，挖矿开关
 extern UniValue generate(const UniValue& params, bool fHelp); // 产生指定数目个区块（回归测试网用）
 extern UniValue getnetworkhashps(const UniValue& params, bool fHelp);
-extern UniValue getmininginfo(const UniValue& params, bool fHelp);
+extern UniValue getmininginfo(const UniValue& params, bool fHelp); // 获取挖矿信息
 extern UniValue prioritisetransaction(const UniValue& params, bool fHelp);
 extern UniValue getblocktemplate(const UniValue& params, bool fHelp);
 extern UniValue submitblock(const UniValue& params, bool fHelp);
