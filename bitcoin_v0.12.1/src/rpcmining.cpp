@@ -34,7 +34,7 @@ using namespace std;
  * or from the last difficulty change if 'lookup' is nonpositive.
  * If 'height' is nonnegative, compute the estimate at the time when a given block was found.
  */ // 返回基于最新发现的块每秒的平均网络哈希，或若发现是非正则返回最新的难度改变。若高度非负，计算找到一个给定区块时的估计值
-UniValue GetNetworkHashPS(int lookup, int height) {
+UniValue GetNetworkHashPS(int lookup, int height) { // 默认 (120, -1)
     CBlockIndex *pb = chainActive.Tip(); // 获取链尖区块索引
 
     if (height >= 0 && height < chainActive.Height()) // 若指定高度符合当前链高度范围
@@ -48,27 +48,27 @@ UniValue GetNetworkHashPS(int lookup, int height) {
         lookup = pb->nHeight % Params().GetConsensus().DifficultyAdjustmentInterval() + 1;
 
     // If lookup is larger than chain, then set it to chain length.
-    if (lookup > pb->nHeight) // 若发现大于链高度
+    if (lookup > pb->nHeight) // 若发现大于链高度，则设置为链高度
         lookup = pb->nHeight;
 
     CBlockIndex *pb0 = pb;
-    int64_t minTime = pb0->GetBlockTime();
+    int64_t minTime = pb0->GetBlockTime(); // 获取最小创建区块时间
     int64_t maxTime = minTime;
     for (int i = 0; i < lookup; i++) {
         pb0 = pb0->pprev;
         int64_t time = pb0->GetBlockTime();
         minTime = std::min(time, minTime);
-        maxTime = std::max(time, maxTime);
+        maxTime = std::max(time, maxTime); // 获取最大创建区块时间
     }
 
     // In case there's a situation where minTime == maxTime, we don't want a divide by zero exception.
-    if (minTime == maxTime)
+    if (minTime == maxTime) // 最小和最大不能相等
         return 0;
 
-    arith_uint256 workDiff = pb->nChainWork - pb0->nChainWork;
-    int64_t timeDiff = maxTime - minTime;
+    arith_uint256 workDiff = pb->nChainWork - pb0->nChainWork; // 区间首尾区块的工作量之差
+    int64_t timeDiff = maxTime - minTime; // 时间差
 
-    return workDiff.getdouble() / timeDiff;
+    return workDiff.getdouble() / timeDiff; // 转换为浮点数求平均值并返回
 }
 
 UniValue getnetworkhashps(const UniValue& params, bool fHelp)
@@ -90,7 +90,7 @@ UniValue getnetworkhashps(const UniValue& params, bool fHelp)
        );
 
     LOCK(cs_main);
-    return GetNetworkHashPS(params.size() > 0 ? params[0].get_int() : 120, params.size() > 1 ? params[1].get_int() : -1);
+    return GetNetworkHashPS(params.size() > 0 ? params[0].get_int() : 120, params.size() > 1 ? params[1].get_int() : -1); // 获取网络算力（哈希次数/秒）并返回
 }
 
 UniValue getgenerate(const UniValue& params, bool fHelp)
