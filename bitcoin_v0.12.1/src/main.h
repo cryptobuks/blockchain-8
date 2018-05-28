@@ -194,7 +194,7 @@ void UnregisterNodeSignals(CNodeSignals& nodeSignals); // 解注册
  * @param[in]   fForceProcessing Process this block even if unrequested; used for non-network block sources and whitelisted peers.
  * @param[out]  dbp     If pblock is stored to disk (or already there), this will be set to its location.
  * @return True if state.IsValid()
- */
+ */ // 处理传入的区块。只有在已知最有效的区块被激活后返回。但它无法保证拿到的块已经被检查过有效性。
 bool ProcessNewBlock(CValidationState& state, const CChainParams& chainparams, const CNode* pfrom, const CBlock* pblock, bool fForceProcessing, CDiskBlockPos* dbp);
 /** Check whether enough disk space is available for an incoming block */
 bool CheckDiskSpace(uint64_t nAdditionalBytes = 0);

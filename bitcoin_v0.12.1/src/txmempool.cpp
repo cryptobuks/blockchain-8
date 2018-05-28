@@ -792,20 +792,20 @@ CTxMemPool::ReadFeeEstimates(CAutoFile& filein)
 void CTxMemPool::PrioritiseTransaction(const uint256 hash, const string strHash, double dPriorityDelta, const CAmount& nFeeDelta)
 {
     {
-        LOCK(cs);
-        std::pair<double, CAmount> &deltas = mapDeltas[hash];
-        deltas.first += dPriorityDelta;
-        deltas.second += nFeeDelta;
+        LOCK(cs); // 上锁
+        std::pair<double, CAmount> &deltas = mapDeltas[hash]; // 获取指定交易哈希对应优先级和交易费
+        deltas.first += dPriorityDelta; // 增加优先级
+        deltas.second += nFeeDelta; // 增加交易费
         txiter it = mapTx.find(hash);
-        if (it != mapTx.end()) {
-            mapTx.modify(it, update_fee_delta(deltas.second));
+        if (it != mapTx.end()) { // 若在交易映射中找到该交易
+            mapTx.modify(it, update_fee_delta(deltas.second)); // 更新该交易的费用
             // Now update all ancestors' modified fees with descendants
-            setEntries setAncestors;
+            setEntries setAncestors; // 更新该交易所有的祖先交易的费用
             uint64_t nNoLimit = std::numeric_limits<uint64_t>::max();
             std::string dummy;
-            CalculateMemPoolAncestors(*it, setAncestors, nNoLimit, nNoLimit, nNoLimit, nNoLimit, dummy, false);
-            BOOST_FOREACH(txiter ancestorIt, setAncestors) {
-                mapTx.modify(ancestorIt, update_descendant_state(0, nFeeDelta, 0));
+            CalculateMemPoolAncestors(*it, setAncestors, nNoLimit, nNoLimit, nNoLimit, nNoLimit, dummy, false); // 计算交易内存池中该交易的祖先
+            BOOST_FOREACH(txiter ancestorIt, setAncestors) { // 遍历祖先交易
+                mapTx.modify(ancestorIt, update_descendant_state(0, nFeeDelta, 0)); // 更新交易费用
             }
         }
     }

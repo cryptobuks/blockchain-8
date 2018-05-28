@@ -270,10 +270,10 @@ UniValue getmininginfo(const UniValue& params, bool fHelp)
 
 
 // NOTE: Unlike wallet RPC (which use BTC values), mining RPCs follow GBT (BIP 22) in using satoshi amounts
-UniValue prioritisetransaction(const UniValue& params, bool fHelp)
+UniValue prioritisetransaction(const UniValue& params, bool fHelp) // 注：与钱包 RPC （使用 BTC）不同，挖矿 RPC 使用 satoshi 作为单位
 {
-    if (fHelp || params.size() != 3)
-        throw runtime_error(
+    if (fHelp || params.size() != 3) // 必须为 3 个参数
+        throw runtime_error( // 命令帮助反馈
             "prioritisetransaction <txid> <priority delta> <fee delta>\n"
             "Accepts the transaction into mined blocks at a higher (or lower) priority\n"
             "\nArguments:\n"
@@ -293,10 +293,10 @@ UniValue prioritisetransaction(const UniValue& params, bool fHelp)
 
     LOCK(cs_main);
 
-    uint256 hash = ParseHashStr(params[0].get_str(), "txid");
-    CAmount nAmount = params[2].get_int64();
+    uint256 hash = ParseHashStr(params[0].get_str(), "txid"); // 获取指定的交易哈希并创建 uint256 对象
+    CAmount nAmount = params[2].get_int64(); // 获取交易金额
 
-    mempool.PrioritiseTransaction(hash, params[0].get_str(), params[1].get_real(), nAmount);
+    mempool.PrioritiseTransaction(hash, params[0].get_str(), params[1].get_real(), nAmount); // 调整指定交易优先级
     return true;
 }
 
@@ -610,8 +610,8 @@ protected:
 
 UniValue submitblock(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() < 1 || params.size() > 2)
-        throw runtime_error(
+    if (fHelp || params.size() < 1 || params.size() > 2) // 参数只有 1 个
+        throw runtime_error( // 命令帮助反馈
             "submitblock \"hexdata\" ( \"jsonparametersobject\" )\n"
             "\nAttempts to submit new block to network.\n"
             "The 'jsonparametersobject' parameter is currently ignored.\n"
@@ -630,16 +630,16 @@ UniValue submitblock(const UniValue& params, bool fHelp)
         );
 
     CBlock block;
-    if (!DecodeHexBlk(block, params[0].get_str()))
+    if (!DecodeHexBlk(block, params[0].get_str())) // 解码 16 进制的区块数据
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block decode failed");
 
-    uint256 hash = block.GetHash();
+    uint256 hash = block.GetHash(); // 获取区块哈希
     bool fBlockPresent = false;
     {
         LOCK(cs_main);
-        BlockMap::iterator mi = mapBlockIndex.find(hash);
-        if (mi != mapBlockIndex.end()) {
-            CBlockIndex *pindex = mi->second;
+        BlockMap::iterator mi = mapBlockIndex.find(hash); // 通过区块索引得到该区块对应迭代器
+        if (mi != mapBlockIndex.end()) { // 如果找到了
+            CBlockIndex *pindex = mi->second; // 获取其区块索引
             if (pindex->IsValid(BLOCK_VALID_SCRIPTS))
                 return "duplicate";
             if (pindex->nStatus & BLOCK_FAILED_MASK)

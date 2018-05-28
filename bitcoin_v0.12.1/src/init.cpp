@@ -195,7 +195,7 @@ void Shutdown()
     if (pwalletMain)
         pwalletMain->Flush(false);
 #endif
-    GenerateBitcoins(false, 0, Params());
+    GenerateBitcoins(false, 0, Params()); // 关闭矿工线程
     StopNode();
     StopTorControl();
     UnregisterNodeSignals(GetNodeSignals());

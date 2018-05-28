@@ -350,7 +350,7 @@ public:
  * the entry as "dirty", and set the feerate for sorting purposes to be equal
  * the feerate of the transaction without any descendants.
  *
- */
+ */ // CTxMemPool 存储可能包含在下一个区块的基于当前最佳链的有效交易。
 class CTxMemPool
 {
 private:
@@ -424,7 +424,7 @@ private:
 
 public:
     std::map<COutPoint, CInPoint> mapNextTx;
-    std::map<uint256, std::pair<double, CAmount> > mapDeltas;
+    std::map<uint256, std::pair<double, CAmount> > mapDeltas; // 交易三角映射（哈希、优先级、交易费）
 
     /** Create a new CTxMemPool.
      *  minReasonableRelayFee should be a feerate which is, roughly, somewhere

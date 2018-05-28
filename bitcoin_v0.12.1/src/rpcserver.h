@@ -188,9 +188,9 @@ extern UniValue setgenerate(const UniValue& params, bool fHelp); // 设置挖矿状态
 extern UniValue generate(const UniValue& params, bool fHelp); // 产生指定数目个区块（回归测试网用）
 extern UniValue getnetworkhashps(const UniValue& params, bool fHelp); // 获取全网算力
 extern UniValue getmininginfo(const UniValue& params, bool fHelp); // 获取挖矿信息
-extern UniValue prioritisetransaction(const UniValue& params, bool fHelp);
+extern UniValue prioritisetransaction(const UniValue& params, bool fHelp); // 设置交易的优先级
 extern UniValue getblocktemplate(const UniValue& params, bool fHelp);
-extern UniValue submitblock(const UniValue& params, bool fHelp);
+extern UniValue submitblock(const UniValue& params, bool fHelp); // 提交区块
 extern UniValue estimatefee(const UniValue& params, bool fHelp);
 extern UniValue estimatepriority(const UniValue& params, bool fHelp);
 extern UniValue estimatesmartfee(const UniValue& params, bool fHelp);
