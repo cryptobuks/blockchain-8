@@ -168,7 +168,7 @@ extern void EnsureWalletIsUnlocked();
 extern UniValue getconnectioncount(const UniValue& params, bool fHelp); // in rpcnet.cpp
 extern UniValue getpeerinfo(const UniValue& params, bool fHelp);
 extern UniValue ping(const UniValue& params, bool fHelp);
-extern UniValue addnode(const UniValue& params, bool fHelp);
+extern UniValue addnode(const UniValue& params, bool fHelp); // 添加节点
 extern UniValue disconnectnode(const UniValue& params, bool fHelp);
 extern UniValue getaddednodeinfo(const UniValue& params, bool fHelp);
 extern UniValue getnettotals(const UniValue& params, bool fHelp);
@@ -249,7 +249,7 @@ extern UniValue sendrawtransaction(const UniValue& params, bool fHelp);
 extern UniValue gettxoutproof(const UniValue& params, bool fHelp);
 extern UniValue verifytxoutproof(const UniValue& params, bool fHelp);
 
-extern UniValue getblockcount(const UniValue& params, bool fHelp); // 获取当前区块总数（或链高度）
+extern UniValue getblockcount(const UniValue& params, bool fHelp); // 获取当前区块总数
 extern UniValue getbestblockhash(const UniValue& params, bool fHelp); // 获取当前最佳块的哈希
 extern UniValue getdifficulty(const UniValue& params, bool fHelp); // 获取当前挖矿难度
 extern UniValue settxfee(const UniValue& params, bool fHelp);

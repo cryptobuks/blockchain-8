@@ -388,7 +388,7 @@ public:
 
     /** Return the maximal height in the chain. Is equal to chain.Tip() ? chain.Tip()->nHeight : -1. */
     int Height() const {
-        return vChain.size() - 1; // 返回区块链的最大高度（区块数减 1）。等价于 chain.Tip() ? chain.Tip()->nHeight : -1。
+        return vChain.size() - 1; // 返回区块链的最大高度（总区块数减 1）。等价于 chain.Tip() ? chain.Tip()->nHeight : -1。
     }
 
     /** Set/initialize a chain with a given tip. */

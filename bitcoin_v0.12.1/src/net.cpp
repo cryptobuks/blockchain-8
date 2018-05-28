@@ -100,7 +100,7 @@ CCriticalSection cs_vOneShots;
 set<CNetAddr> setservAddNodeAddresses;
 CCriticalSection cs_setservAddNodeAddresses;
 
-vector<std::string> vAddedNodes;
+vector<std::string> vAddedNodes; // 通过 "addnode" 命令添加的节点列表
 CCriticalSection cs_vAddedNodes;
 
 NodeId nLastNodeId = 0;
@@ -382,50 +382,50 @@ CNode* FindNode(const CService& addr)
 CNode* ConnectNode(CAddress addrConnect, const char *pszDest)
 {
     if (pszDest == NULL) {
-        if (IsLocal(addrConnect))
+        if (IsLocal(addrConnect)) // 本地连接
             return NULL;
 
         // Look for an existing connection
-        CNode* pnode = FindNode((CService)addrConnect);
+        CNode* pnode = FindNode((CService)addrConnect); // 发现一个已存在的连接
         if (pnode)
         {
-            pnode->AddRef();
+            pnode->AddRef(); // 引用计数加 1
             return pnode;
         }
     }
 
     /// debug print
-    LogPrint("net", "trying connection %s lastseen=%.1fhrs\n",
+    LogPrint("net", "trying connection %s lastseen=%.1fhrs\n", // 调试打印
         pszDest ? pszDest : addrConnect.ToString(),
         pszDest ? 0.0 : (double)(GetAdjustedTime() - addrConnect.nTime)/3600.0);
 
-    // Connect
+    // Connect // 开始连接
     SOCKET hSocket;
     bool proxyConnectionFailed = false;
     if (pszDest ? ConnectSocketByName(addrConnect, hSocket, pszDest, Params().GetDefaultPort(), nConnectTimeout, &proxyConnectionFailed) :
-                  ConnectSocket(addrConnect, hSocket, nConnectTimeout, &proxyConnectionFailed))
+                  ConnectSocket(addrConnect, hSocket, nConnectTimeout, &proxyConnectionFailed)) // 进行连接
     {
-        if (!IsSelectableSocket(hSocket)) {
+        if (!IsSelectableSocket(hSocket)) { // 若连接创建不成功
             LogPrintf("Cannot create connection: non-selectable socket created (fd >= FD_SETSIZE ?)\n");
-            CloseSocket(hSocket);
+            CloseSocket(hSocket); // 关闭套接字
             return NULL;
         }
 
-        addrman.Attempt(addrConnect);
+        addrman.Attempt(addrConnect); // 接收该连接的连入请求
 
         // Add node
-        CNode* pnode = new CNode(hSocket, addrConnect, pszDest ? pszDest : "", false);
-        pnode->AddRef();
+        CNode* pnode = new CNode(hSocket, addrConnect, pszDest ? pszDest : "", false); // 创建一个对应的节点对象
+        pnode->AddRef(); // 引用计数加 1
 
         {
             LOCK(cs_vNodes);
-            vNodes.push_back(pnode);
+            vNodes.push_back(pnode); // 加入成功建立连接的节点列表
         }
 
-        pnode->nTimeConnected = GetTime();
+        pnode->nTimeConnected = GetTime(); // 记录建立连接的时间
 
         return pnode;
-    } else if (!proxyConnectionFailed) {
+    } else if (!proxyConnectionFailed) { // 若连接节点失败，且失败是由连接到代理的问题导致，标记该连接为尝试
         // If connecting to the node failed, and failure is not caused by a problem connecting to
         // the proxy, mark this as an attempt.
         addrman.Attempt(addrConnect);
@@ -1677,27 +1677,27 @@ void ThreadOpenAddedConnections()
     }
 }
 
-// if successful, this moves the passed grant to the constructed node
+// if successful, this moves the passed grant to the constructed node // 如果连接成功，这将通过授权移动到构造的节点
 bool OpenNetworkConnection(const CAddress& addrConnect, CSemaphoreGrant *grantOutbound, const char *pszDest, bool fOneShot)
 {
     //
-    // Initiate outbound network connection
+    // Initiate outbound network connection // 初始化向外的网络连接
     //
     boost::this_thread::interruption_point();
     if (!pszDest) {
-        if (IsLocal(addrConnect) ||
-            FindNode((CNetAddr)addrConnect) || CNode::IsBanned(addrConnect) ||
+        if (IsLocal(addrConnect) || // 检查是否为本地节点
+            FindNode((CNetAddr)addrConnect) || CNode::IsBanned(addrConnect) || // 是否被禁止连接
             FindNode(addrConnect.ToStringIPPort()))
             return false;
     } else if (FindNode(std::string(pszDest)))
         return false;
 
-    CNode* pnode = ConnectNode(addrConnect, pszDest);
+    CNode* pnode = ConnectNode(addrConnect, pszDest); // 连接到指定节点
     boost::this_thread::interruption_point();
 
     if (!pnode)
         return false;
-    if (grantOutbound)
+    if (grantOutbound) // NULL
         grantOutbound->MoveTo(pnode->grantOutbound);
     pnode->fNetworkNode = true;
     if (fOneShot)

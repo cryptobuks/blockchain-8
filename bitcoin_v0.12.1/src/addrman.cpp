@@ -325,8 +325,8 @@ void CAddrMan::Attempt_(const CService& addr, int64_t nTime)
         return;
 
     // update info
-    info.nLastTry = nTime;
-    info.nAttempts++;
+    info.nLastTry = nTime; // 更新最后一次尝试的时间
+    info.nAttempts++; // 增加尝试次数
 }
 
 CAddrInfo CAddrMan::Select_(bool newOnly)

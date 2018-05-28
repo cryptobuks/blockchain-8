@@ -229,7 +229,7 @@ protected:
     //! Add an entry to the "new" table.
     bool Add_(const CAddress &addr, const CNetAddr& source, int64_t nTimePenalty);
 
-    //! Mark an entry as attempted to connect.
+    //! Mark an entry as attempted to connect. // 标记一个条目作为尝试的连接
     void Attempt_(const CService &addr, int64_t nTime);
 
     //! Select an address to connect to, if newOnly is set to true, only the new table is selected from.
@@ -520,12 +520,12 @@ public:
         }
     }
 
-    //! Mark an entry as connection attempted to.
+    //! Mark an entry as connection attempted to. // 标记一个条目为尝试的连接
     void Attempt(const CService &addr, int64_t nTime = GetAdjustedTime())
     {
         {
-            LOCK(cs);
-            Check();
+            LOCK(cs); // 上锁
+            Check(); // 一致性检查
             Attempt_(addr, nTime);
             Check();
         }

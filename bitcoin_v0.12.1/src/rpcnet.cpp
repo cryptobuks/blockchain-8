@@ -174,11 +174,11 @@ UniValue getpeerinfo(const UniValue& params, bool fHelp)
 UniValue addnode(const UniValue& params, bool fHelp)
 {
     string strCommand;
-    if (params.size() == 2)
-        strCommand = params[1].get_str();
+    if (params.size() == 2) // 若有 2 个参数
+        strCommand = params[1].get_str(); // 获取第二个参数作为命令
     if (fHelp || params.size() != 2 ||
-        (strCommand != "onetry" && strCommand != "add" && strCommand != "remove"))
-        throw runtime_error(
+        (strCommand != "onetry" && strCommand != "add" && strCommand != "remove")) // 参数必须为 2 个，命令必须为 "onetry" "add" "remove" 这 3 个中的一个
+        throw runtime_error( // 命令帮助反馈
             "addnode \"node\" \"add|remove|onetry\"\n"
             "\nAttempts add or remove a node from the addnode list.\n"
             "Or try a connection to a node once.\n"
@@ -190,35 +190,35 @@ UniValue addnode(const UniValue& params, bool fHelp)
             + HelpExampleRpc("addnode", "\"192.168.0.6:8333\", \"onetry\"")
         );
 
-    string strNode = params[0].get_str();
+    string strNode = params[0].get_str(); // 获取指定节点
 
-    if (strCommand == "onetry")
+    if (strCommand == "onetry") // 尝试连接操作
     {
         CAddress addr;
-        OpenNetworkConnection(addr, NULL, strNode.c_str());
+        OpenNetworkConnection(addr, NULL, strNode.c_str()); // 尝试连接一次
         return NullUniValue;
     }
 
     LOCK(cs_vAddedNodes);
     vector<string>::iterator it = vAddedNodes.begin();
-    for(; it != vAddedNodes.end(); it++)
+    for(; it != vAddedNodes.end(); it++) // 检查列表中是否存在该节点，若存在，则迭代器指向该节点，否则，指向列表末尾
         if (strNode == *it)
             break;
 
-    if (strCommand == "add")
+    if (strCommand == "add") // 添加节点操作
     {
-        if (it != vAddedNodes.end())
+        if (it != vAddedNodes.end()) // 若列表中已存在该节点
             throw JSONRPCError(RPC_CLIENT_NODE_ALREADY_ADDED, "Error: Node already added");
-        vAddedNodes.push_back(strNode);
+        vAddedNodes.push_back(strNode); // 添加该节点到列表
     }
-    else if(strCommand == "remove")
+    else if(strCommand == "remove") // 移除节点操作
     {
-        if (it == vAddedNodes.end())
+        if (it == vAddedNodes.end()) // 若列表中不存在该节点
             throw JSONRPCError(RPC_CLIENT_NODE_NOT_ADDED, "Error: Node has not been added.");
-        vAddedNodes.erase(it);
+        vAddedNodes.erase(it); // 从列表中擦除该节点
     }
 
-    return NullUniValue;
+    return NullUniValue; // 无返回值
 }
 
 UniValue disconnectnode(const UniValue& params, bool fHelp)
