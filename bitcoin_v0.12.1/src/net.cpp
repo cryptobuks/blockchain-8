@@ -469,15 +469,15 @@ void CNode::PushVersion()
 
 
 
-banmap_t CNode::setBanned;
+banmap_t CNode::setBanned; // 设置屏蔽地址列表
 CCriticalSection CNode::cs_setBanned;
-bool CNode::setBannedIsDirty;
+bool CNode::setBannedIsDirty; // 标志禁止列表已被清空过
 
 void CNode::ClearBanned()
 {
-    LOCK(cs_setBanned);
-    setBanned.clear();
-    setBannedIsDirty = true;
+    LOCK(cs_setBanned); // 上锁
+    setBanned.clear(); // 清空列表
+    setBannedIsDirty = true; // 标志置为 true
 }
 
 bool CNode::IsBanned(CNetAddr ip)
@@ -514,25 +514,25 @@ bool CNode::IsBanned(CSubNet subnet)
 }
 
 void CNode::Ban(const CNetAddr& addr, const BanReason &banReason, int64_t bantimeoffset, bool sinceUnixEpoch) {
-    CSubNet subNet(addr);
-    Ban(subNet, banReason, bantimeoffset, sinceUnixEpoch);
+    CSubNet subNet(addr); // 船舰子网对象
+    Ban(subNet, banReason, bantimeoffset, sinceUnixEpoch); // 添加禁止列表
 }
 
 void CNode::Ban(const CSubNet& subNet, const BanReason &banReason, int64_t bantimeoffset, bool sinceUnixEpoch) {
-    CBanEntry banEntry(GetTime());
-    banEntry.banReason = banReason;
-    if (bantimeoffset <= 0)
+    CBanEntry banEntry(GetTime()); // 建立一个禁止条目
+    banEntry.banReason = banReason; // 禁止原因
+    if (bantimeoffset <= 0) // 禁止时间若（未指定）为 0 或小于 0
     {
-        bantimeoffset = GetArg("-bantime", DEFAULT_MISBEHAVING_BANTIME);
-        sinceUnixEpoch = false;
+        bantimeoffset = GetArg("-bantime", DEFAULT_MISBEHAVING_BANTIME); // 则使用默认禁止时间 24h
+        sinceUnixEpoch = false; // 相对时间
     }
-    banEntry.nBanUntil = (sinceUnixEpoch ? 0 : GetTime() )+bantimeoffset;
+    banEntry.nBanUntil = (sinceUnixEpoch ? 0 : GetTime() )+bantimeoffset; // 根据绝对时间标志设置到期时间
 
     LOCK(cs_setBanned);
     if (setBanned[subNet].nBanUntil < banEntry.nBanUntil)
-        setBanned[subNet] = banEntry;
+        setBanned[subNet] = banEntry; // 加入禁止列表 map
 
-    setBannedIsDirty = true;
+    setBannedIsDirty = true; // 列表改动标志置为 true
 }
 
 bool CNode::Unban(const CNetAddr &addr) {
@@ -565,19 +565,19 @@ void CNode::SetBanned(const banmap_t &banMap)
 
 void CNode::SweepBanned()
 {
-    int64_t now = GetTime();
+    int64_t now = GetTime(); // 获取当前时间
 
     LOCK(cs_setBanned);
     banmap_t::iterator it = setBanned.begin();
     while(it != setBanned.end())
-    {
+    { // 遍历禁止列表
         CBanEntry banEntry = (*it).second;
-        if(now > banEntry.nBanUntil)
-        {
-            setBanned.erase(it++);
+        if(now > banEntry.nBanUntil) // 若过期时间小于当前时间
+        { // 说明已过期
+            setBanned.erase(it++); // 清除该条目
             setBannedIsDirty = true;
         }
-        else
+        else // 跳过该条目
             ++it;
     }
 }
@@ -2609,13 +2609,13 @@ void DumpBanlist()
 
     CNode::SweepBanned(); //clean unused entries (if bantime has expired)
 
-    CBanDB bandb;
-    banmap_t banmap;
-    CNode::GetBanned(banmap);
-    bandb.Write(banmap);
+    CBanDB bandb; // 创建禁止列表数据库对象
+    banmap_t banmap; // 局部禁止映射列表
+    CNode::GetBanned(banmap); // 获取映射列表
+    bandb.Write(banmap); // 写入数据库文件
 
     LogPrint("net", "Flushed %d banned node ips/subnets to banlist.dat  %dms\n",
-             banmap.size(), GetTimeMillis() - nStart);
+             banmap.size(), GetTimeMillis() - nStart); // 记录大小及用时
 }
 
 int64_t PoissonNextSend(int64_t nNow, int average_interval_seconds) {

@@ -496,8 +496,8 @@ UniValue setban(const UniValue& params, bool fHelp)
     if (params.size() >= 2)
         strCommand = params[1].get_str();
     if (fHelp || params.size() < 2 ||
-        (strCommand != "add" && strCommand != "remove"))
-        throw runtime_error(
+        (strCommand != "add" && strCommand != "remove")) // 参数至少为 2 个
+        throw runtime_error( // 命令帮助反馈
                             "setban \"ip(/netmask)\" \"add|remove\" (bantime) (absolute)\n"
                             "\nAttempts add or remove a IP/Subnet from the banned list.\n"
                             "\nArguments:\n"
@@ -513,41 +513,41 @@ UniValue setban(const UniValue& params, bool fHelp)
 
     CSubNet subNet;
     CNetAddr netAddr;
-    bool isSubnet = false;
+    bool isSubnet = false; // 子网标志，默认为 false
 
-    if (params[0].get_str().find("/") != string::npos)
+    if (params[0].get_str().find("/") != string::npos) // 检查指定的 ip 地址中是否包含子网
         isSubnet = true;
 
-    if (!isSubnet)
+    if (!isSubnet) // 无子网
         netAddr = CNetAddr(params[0].get_str());
-    else
+    else // 含子网
         subNet = CSubNet(params[0].get_str());
 
-    if (! (isSubnet ? subNet.IsValid() : netAddr.IsValid()) )
+    if (! (isSubnet ? subNet.IsValid() : netAddr.IsValid()) ) // 检查网络有效性
         throw JSONRPCError(RPC_CLIENT_NODE_ALREADY_ADDED, "Error: Invalid IP/Subnet");
 
     if (strCommand == "add")
-    {
-        if (isSubnet ? CNode::IsBanned(subNet) : CNode::IsBanned(netAddr))
+    { // 添加选项
+        if (isSubnet ? CNode::IsBanned(subNet) : CNode::IsBanned(netAddr)) // 检查是否已经禁止
             throw JSONRPCError(RPC_CLIENT_NODE_ALREADY_ADDED, "Error: IP/Subnet already banned");
 
         int64_t banTime = 0; //use standard bantime if not specified
-        if (params.size() >= 3 && !params[2].isNull())
-            banTime = params[2].get_int64();
+        if (params.size() >= 3 && !params[2].isNull()) // 若有 3 个参数且第 3 个参数非空
+            banTime = params[2].get_int64(); // 获取禁止时间
 
-        bool absolute = false;
-        if (params.size() == 4 && params[3].isTrue())
-            absolute = true;
+        bool absolute = false; // 绝对时间，默认关闭
+        if (params.size() == 4 && params[3].isTrue()) // 若有 4 个参数且第 4 个参数为 true
+            absolute = true; // 绝对时间标志置为 true
 
-        isSubnet ? CNode::Ban(subNet, BanReasonManuallyAdded, banTime, absolute) : CNode::Ban(netAddr, BanReasonManuallyAdded, banTime, absolute);
+        isSubnet ? CNode::Ban(subNet, BanReasonManuallyAdded, banTime, absolute) : CNode::Ban(netAddr, BanReasonManuallyAdded, banTime, absolute); // 禁止指定地址
 
         //disconnect possible nodes
-        while(CNode *bannedNode = (isSubnet ? FindNode(subNet) : FindNode(netAddr)))
-            bannedNode->fDisconnect = true;
+        while(CNode *bannedNode = (isSubnet ? FindNode(subNet) : FindNode(netAddr))) // 查找节点列表
+            bannedNode->fDisconnect = true; // 把存在的节点的断开连接标志置为 true
     }
     else if(strCommand == "remove")
-    {
-        if (!( isSubnet ? CNode::Unban(subNet) : CNode::Unban(netAddr) ))
+    { // 移除选项
+        if (!( isSubnet ? CNode::Unban(subNet) : CNode::Unban(netAddr) )) // 解禁网络
             throw JSONRPCError(RPC_MISC_ERROR, "Error: Unban failed");
     }
 
@@ -559,8 +559,8 @@ UniValue setban(const UniValue& params, bool fHelp)
 
 UniValue listbanned(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() != 0)
-        throw runtime_error(
+    if (fHelp || params.size() != 0) // 没有参数
+        throw runtime_error( // 命令帮助反馈
                             "listbanned\n"
                             "\nList all banned IPs/Subnets.\n"
                             "\nExamples:\n"
@@ -569,28 +569,28 @@ UniValue listbanned(const UniValue& params, bool fHelp)
                             );
 
     banmap_t banMap;
-    CNode::GetBanned(banMap);
+    CNode::GetBanned(banMap); // 获取禁止列表
 
-    UniValue bannedAddresses(UniValue::VARR);
+    UniValue bannedAddresses(UniValue::VARR); // 创建数组类型的禁止地址
     for (banmap_t::iterator it = banMap.begin(); it != banMap.end(); it++)
-    {
-        CBanEntry banEntry = (*it).second;
+    { // 遍历禁止列表
+        CBanEntry banEntry = (*it).second; // 获取禁止条目
         UniValue rec(UniValue::VOBJ);
-        rec.push_back(Pair("address", (*it).first.ToString()));
-        rec.push_back(Pair("banned_until", banEntry.nBanUntil));
-        rec.push_back(Pair("ban_created", banEntry.nCreateTime));
-        rec.push_back(Pair("ban_reason", banEntry.banReasonToString()));
+        rec.push_back(Pair("address", (*it).first.ToString())); // 子网地址
+        rec.push_back(Pair("banned_until", banEntry.nBanUntil)); // 禁止结束时间
+        rec.push_back(Pair("ban_created", banEntry.nCreateTime)); // 创建禁止时间
+        rec.push_back(Pair("ban_reason", banEntry.banReasonToString())); // 禁止原因
 
-        bannedAddresses.push_back(rec);
+        bannedAddresses.push_back(rec); // 加入结果集
     }
 
-    return bannedAddresses;
+    return bannedAddresses; // 返回禁止列表
 }
 
 UniValue clearbanned(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() != 0)
-        throw runtime_error(
+    if (fHelp || params.size() != 0) // 没有参数
+        throw runtime_error( // 命令帮助反馈
                             "clearbanned\n"
                             "\nClear all banned IPs.\n"
                             "\nExamples:\n"
@@ -598,8 +598,8 @@ UniValue clearbanned(const UniValue& params, bool fHelp)
                             + HelpExampleRpc("clearbanned", "")
                             );
 
-    CNode::ClearBanned();
-    DumpBanlist(); //store banlist to disk
+    CNode::ClearBanned(); // 清空禁止列表
+    DumpBanlist(); //store banlist to disk // 导出禁止列表到硬盘
     uiInterface.BannedListChanged();
 
     return NullUniValue;

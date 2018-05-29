@@ -70,7 +70,7 @@ static const bool DEFAULT_FORCEDNSSEED = false;
 static const size_t DEFAULT_MAXRECEIVEBUFFER = 5 * 1000;
 static const size_t DEFAULT_MAXSENDBUFFER    = 1 * 1000;
 
-// NOTE: When adjusting this, update rpcnet:setban's help ("24h")
+// NOTE: When adjusting this, update rpcnet:setban's help ("24h") // 当调整该项，更新 rpcnet:setban 的帮助信息（"24h"）
 static const unsigned int DEFAULT_MISBEHAVING_BANTIME = 60 * 60 * 24;  // Default 24-hour ban
 
 unsigned int ReceiveFloodSize();
@@ -249,21 +249,21 @@ public:
 };
 
 
-typedef enum BanReason
+typedef enum BanReason // 禁止原因枚举
 {
-    BanReasonUnknown          = 0,
-    BanReasonNodeMisbehaving  = 1,
-    BanReasonManuallyAdded    = 2
+    BanReasonUnknown          = 0, // 未知原因
+    BanReasonNodeMisbehaving  = 1, // 错误行为
+    BanReasonManuallyAdded    = 2 // 手动添加
 } BanReason;
 
-class CBanEntry
+class CBanEntry // 禁止条目类
 {
 public:
-    static const int CURRENT_VERSION=1;
-    int nVersion;
-    int64_t nCreateTime;
-    int64_t nBanUntil;
-    uint8_t banReason;
+    static const int CURRENT_VERSION=1; // 当前版本号
+    int nVersion; // 版本号
+    int64_t nCreateTime; // 创建禁止时间
+    int64_t nBanUntil; // 禁止结束时间
+    uint8_t banReason; // 禁止原因
 
     CBanEntry()
     {
@@ -308,10 +308,10 @@ public:
     }
 };
 
-typedef std::map<CSubNet, CBanEntry> banmap_t;
+typedef std::map<CSubNet, CBanEntry> banmap_t; // 禁止列表：子网与禁止条目的映射
 
 /** Information about a peer */
-class CNode
+class CNode // 关于同辈的信息
 {
 public:
     // socket
@@ -710,9 +710,9 @@ public:
     static void ClearBanned(); // needed for unit testing
     static bool IsBanned(CNetAddr ip);
     static bool IsBanned(CSubNet subnet);
-    static void Ban(const CNetAddr &ip, const BanReason &banReason, int64_t bantimeoffset = 0, bool sinceUnixEpoch = false);
+    static void Ban(const CNetAddr &ip, const BanReason &banReason, int64_t bantimeoffset = 0, bool sinceUnixEpoch = false); // 转调下面添加子网的重载函数
     static void Ban(const CSubNet &subNet, const BanReason &banReason, int64_t bantimeoffset = 0, bool sinceUnixEpoch = false);
-    static bool Unban(const CNetAddr &ip);
+    static bool Unban(const CNetAddr &ip); // 调用下面的解禁子网的重载函数
     static bool Unban(const CSubNet &ip);
     static void GetBanned(banmap_t &banmap);
     static void SetBanned(const banmap_t &banmap);
@@ -722,7 +722,7 @@ public:
     //!set the "dirty" flag for the banlist
     static void SetBannedSetDirty(bool dirty=true);
     //!clean unused entries (if bantime has expired)
-    static void SweepBanned();
+    static void SweepBanned(); // 清除无用的条目（若禁止时间已过期）
 
     void copyStats(CNodeStats &stats);
 
@@ -776,10 +776,10 @@ public:
 };
 
 /** Access to the banlist database (banlist.dat) */
-class CBanDB
+class CBanDB // 访问禁止列表数据库（banlist.dat）
 {
 private:
-    boost::filesystem::path pathBanlist;
+    boost::filesystem::path pathBanlist; // 保存数据库文件路径
 public:
     CBanDB(); // 路径拼接，数据目录 + "banlist.dat"
     bool Write(const banmap_t& banSet);

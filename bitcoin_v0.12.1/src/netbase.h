@@ -40,7 +40,7 @@ enum Network
 };
 
 /** IP address (IPv6, or IPv4 using mapped IPv6 range (::FFFF:0:0/96)) */
-class CNetAddr
+class CNetAddr // IP 地址类
 {
     protected:
         unsigned char ip[16]; // in network byte order
@@ -106,15 +106,15 @@ class CNetAddr
         friend class CSubNet;
 };
 
-class CSubNet
+class CSubNet // 子网类
 {
     protected:
         /// Network (base) address
-        CNetAddr network;
+        CNetAddr network; // 网络地址（IP）
         /// Netmask, in network byte order
-        uint8_t netmask[16];
+        uint8_t netmask[16]; // 网络掩码，网络字节序（大端模式）
         /// Is this value valid? (only used to signal parse errors)
-        bool valid;
+        bool valid; // 该值是否有效？（仅用于信号解析错误）
 
     public:
         CSubNet();

@@ -172,9 +172,9 @@ extern UniValue addnode(const UniValue& params, bool fHelp); // 添加节点
 extern UniValue disconnectnode(const UniValue& params, bool fHelp);
 extern UniValue getaddednodeinfo(const UniValue& params, bool fHelp);
 extern UniValue getnettotals(const UniValue& params, bool fHelp);
-extern UniValue setban(const UniValue& params, bool fHelp);
-extern UniValue listbanned(const UniValue& params, bool fHelp);
-extern UniValue clearbanned(const UniValue& params, bool fHelp);
+extern UniValue setban(const UniValue& params, bool fHelp); // 设置黑名单
+extern UniValue listbanned(const UniValue& params, bool fHelp); // 列出黑名单
+extern UniValue clearbanned(const UniValue& params, bool fHelp); // 清空黑名单
 
 extern UniValue dumpprivkey(const UniValue& params, bool fHelp); // in rpcdump.cpp
 extern UniValue importprivkey(const UniValue& params, bool fHelp);
