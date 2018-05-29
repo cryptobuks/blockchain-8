@@ -514,7 +514,7 @@ bool CNode::IsBanned(CSubNet subnet)
 }
 
 void CNode::Ban(const CNetAddr& addr, const BanReason &banReason, int64_t bantimeoffset, bool sinceUnixEpoch) {
-    CSubNet subNet(addr); // 船舰子网对象
+    CSubNet subNet(addr); // 创建子网对象
     Ban(subNet, banReason, bantimeoffset, sinceUnixEpoch); // 添加禁止列表
 }
 
@@ -536,15 +536,15 @@ void CNode::Ban(const CSubNet& subNet, const BanReason &banReason, int64_t banti
 }
 
 bool CNode::Unban(const CNetAddr &addr) {
-    CSubNet subNet(addr);
+    CSubNet subNet(addr); // 创建子网对象
     return Unban(subNet);
 }
 
 bool CNode::Unban(const CSubNet &subNet) {
     LOCK(cs_setBanned);
-    if (setBanned.erase(subNet))
+    if (setBanned.erase(subNet)) // 从禁止列表中擦除指定子网
     {
-        setBannedIsDirty = true;
+        setBannedIsDirty = true; // 禁止列表改变标记置为 true
         return true;
     }
     return false;

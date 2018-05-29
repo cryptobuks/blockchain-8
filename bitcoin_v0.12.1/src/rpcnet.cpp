@@ -25,8 +25,8 @@ using namespace std;
 
 UniValue getconnectioncount(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() != 0)
-        throw runtime_error(
+    if (fHelp || params.size() != 0) // 没有参数
+        throw runtime_error( // 命令帮助反馈
             "getconnectioncount\n"
             "\nReturns the number of connections to other nodes.\n"
             "\nResult:\n"
@@ -38,13 +38,13 @@ UniValue getconnectioncount(const UniValue& params, bool fHelp)
 
     LOCK2(cs_main, cs_vNodes);
 
-    return (int)vNodes.size();
+    return (int)vNodes.size(); // 返回已建立连接的节点列表的大小
 }
 
 UniValue ping(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() != 0)
-        throw runtime_error(
+    if (fHelp || params.size() != 0) // 没有参数
+        throw runtime_error( // 命令帮助反馈
             "ping\n"
             "\nRequests that a ping be sent to all other nodes, to measure ping time.\n"
             "Results provided in getpeerinfo, pingtime and pingwait fields are decimal seconds.\n"
@@ -55,10 +55,10 @@ UniValue ping(const UniValue& params, bool fHelp)
         );
 
     // Request that each node send a ping during next message processing pass
-    LOCK2(cs_main, cs_vNodes);
+    LOCK2(cs_main, cs_vNodes); // 请求在下一条消息处理完后每个节点发送一个 ping
 
-    BOOST_FOREACH(CNode* pNode, vNodes) {
-        pNode->fPingQueued = true;
+    BOOST_FOREACH(CNode* pNode, vNodes) { // 遍历已建立连接的每个节点
+        pNode->fPingQueued = true; // 设置其 ping 请求队列标志为 true
     }
 
     return NullUniValue;
@@ -66,21 +66,21 @@ UniValue ping(const UniValue& params, bool fHelp)
 
 static void CopyNodeStats(std::vector<CNodeStats>& vstats)
 {
-    vstats.clear();
+    vstats.clear(); // 清空
 
-    LOCK(cs_vNodes);
-    vstats.reserve(vNodes.size());
-    BOOST_FOREACH(CNode* pnode, vNodes) {
+    LOCK(cs_vNodes); // 上锁
+    vstats.reserve(vNodes.size()); // 与开辟空间，防止自动扩容
+    BOOST_FOREACH(CNode* pnode, vNodes) { // 遍历以建立连接的节点列表
         CNodeStats stats;
-        pnode->copyStats(stats);
-        vstats.push_back(stats);
+        pnode->copyStats(stats); // 获取节点状态到 stats
+        vstats.push_back(stats); // 加入状态列表
     }
 }
 
 UniValue getpeerinfo(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() != 0)
-        throw runtime_error(
+    if (fHelp || params.size() != 0) // 没有参数
+        throw runtime_error( // 命令参数反馈
             "getpeerinfo\n"
             "\nReturns data about each connected network node as a json array of objects.\n"
             "\nResult:\n"
@@ -121,32 +121,32 @@ UniValue getpeerinfo(const UniValue& params, bool fHelp)
 
     LOCK(cs_main);
 
-    vector<CNodeStats> vstats;
-    CopyNodeStats(vstats);
+    vector<CNodeStats> vstats; // 节点状态列表
+    CopyNodeStats(vstats); // 复制节点状态到 vstats
 
-    UniValue ret(UniValue::VARR);
+    UniValue ret(UniValue::VARR); // 创建数组类型的结果对象
 
-    BOOST_FOREACH(const CNodeStats& stats, vstats) {
+    BOOST_FOREACH(const CNodeStats& stats, vstats) { // 遍历节点状态列表
         UniValue obj(UniValue::VOBJ);
         CNodeStateStats statestats;
         bool fStateStats = GetNodeStateStats(stats.nodeid, statestats);
-        obj.push_back(Pair("id", stats.nodeid));
-        obj.push_back(Pair("addr", stats.addrName));
+        obj.push_back(Pair("id", stats.nodeid)); // 节点 id
+        obj.push_back(Pair("addr", stats.addrName)); // 节点地址
         if (!(stats.addrLocal.empty()))
-            obj.push_back(Pair("addrlocal", stats.addrLocal));
+            obj.push_back(Pair("addrlocal", stats.addrLocal)); // 本地地址
         obj.push_back(Pair("services", strprintf("%016x", stats.nServices)));
         obj.push_back(Pair("relaytxes", stats.fRelayTxes));
         obj.push_back(Pair("lastsend", stats.nLastSend));
         obj.push_back(Pair("lastrecv", stats.nLastRecv));
         obj.push_back(Pair("bytessent", stats.nSendBytes));
         obj.push_back(Pair("bytesrecv", stats.nRecvBytes));
-        obj.push_back(Pair("conntime", stats.nTimeConnected));
+        obj.push_back(Pair("conntime", stats.nTimeConnected)); // 建立连接的时间
         obj.push_back(Pair("timeoffset", stats.nTimeOffset));
-        obj.push_back(Pair("pingtime", stats.dPingTime));
-        obj.push_back(Pair("minping", stats.dPingMin));
+        obj.push_back(Pair("pingtime", stats.dPingTime)); // ping 时间
+        obj.push_back(Pair("minping", stats.dPingMin)); // 最小 ping 时间
         if (stats.dPingWait > 0.0)
-            obj.push_back(Pair("pingwait", stats.dPingWait));
-        obj.push_back(Pair("version", stats.nVersion));
+            obj.push_back(Pair("pingwait", stats.dPingWait)); // ping 等待时间
+        obj.push_back(Pair("version", stats.nVersion)); // 版本号
         // Use the sanitized form of subver here, to avoid tricksy remote peers from
         // corrupting or modifiying the JSON output by putting special characters in
         // their ver message.
@@ -155,8 +155,8 @@ UniValue getpeerinfo(const UniValue& params, bool fHelp)
         obj.push_back(Pair("startingheight", stats.nStartingHeight));
         if (fStateStats) {
             obj.push_back(Pair("banscore", statestats.nMisbehavior));
-            obj.push_back(Pair("synced_headers", statestats.nSyncHeight));
-            obj.push_back(Pair("synced_blocks", statestats.nCommonHeight));
+            obj.push_back(Pair("synced_headers", statestats.nSyncHeight)); // 已同步的区块头数
+            obj.push_back(Pair("synced_blocks", statestats.nCommonHeight)); // 已同步的区块数
             UniValue heights(UniValue::VARR);
             BOOST_FOREACH(int height, statestats.vHeightInFlight) {
                 heights.push_back(height);
@@ -361,8 +361,8 @@ UniValue getaddednodeinfo(const UniValue& params, bool fHelp)
 
 UniValue getnettotals(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() > 0)
-        throw runtime_error(
+    if (fHelp || params.size() > 0) // 没有参数
+        throw runtime_error( // 命令帮助反馈
             "getnettotals\n"
             "\nReturns information about network traffic, including bytes in, bytes out,\n"
             "and current time.\n"
@@ -387,9 +387,9 @@ UniValue getnettotals(const UniValue& params, bool fHelp)
        );
 
     UniValue obj(UniValue::VOBJ);
-    obj.push_back(Pair("totalbytesrecv", CNode::GetTotalBytesRecv()));
-    obj.push_back(Pair("totalbytessent", CNode::GetTotalBytesSent()));
-    obj.push_back(Pair("timemillis", GetTimeMillis()));
+    obj.push_back(Pair("totalbytesrecv", CNode::GetTotalBytesRecv())); // 接收的总字节数
+    obj.push_back(Pair("totalbytessent", CNode::GetTotalBytesSent())); // 发送的总字节数
+    obj.push_back(Pair("timemillis", GetTimeMillis())); // 时间毫秒
 
     UniValue outboundLimit(UniValue::VOBJ);
     outboundLimit.push_back(Pair("timeframe", CNode::GetMaxOutboundTimeframe()));
@@ -406,18 +406,18 @@ static UniValue GetNetworksInfo()
 {
     UniValue networks(UniValue::VARR);
     for(int n=0; n<NET_MAX; ++n)
-    {
-        enum Network network = static_cast<enum Network>(n);
-        if(network == NET_UNROUTABLE)
+    { // 遍历所有网络类型
+        enum Network network = static_cast<enum Network>(n); // 强制类型转换为枚举 Network
+        if(network == NET_UNROUTABLE) // != 0
             continue;
         proxyType proxy;
         UniValue obj(UniValue::VOBJ);
         GetProxy(network, proxy);
-        obj.push_back(Pair("name", GetNetworkName(network)));
-        obj.push_back(Pair("limited", IsLimited(network)));
-        obj.push_back(Pair("reachable", IsReachable(network)));
-        obj.push_back(Pair("proxy", proxy.IsValid() ? proxy.proxy.ToStringIPPort() : string()));
-        obj.push_back(Pair("proxy_randomize_credentials", proxy.randomize_credentials));
+        obj.push_back(Pair("name", GetNetworkName(network))); // 网络名
+        obj.push_back(Pair("limited", IsLimited(network))); // 是否受限
+        obj.push_back(Pair("reachable", IsReachable(network))); // 是否可接入
+        obj.push_back(Pair("proxy", proxy.IsValid() ? proxy.proxy.ToStringIPPort() : string())); // 代理
+        obj.push_back(Pair("proxy_randomize_credentials", proxy.randomize_credentials)); // 代理随机化证书
         networks.push_back(obj);
     }
     return networks;
@@ -425,8 +425,8 @@ static UniValue GetNetworksInfo()
 
 UniValue getnetworkinfo(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() != 0)
-        throw runtime_error(
+    if (fHelp || params.size() != 0) // 没有参数
+        throw runtime_error( // 命令帮助反馈
             "getnetworkinfo\n"
             "Returns an object containing various state info regarding P2P networking.\n"
             "\nResult:\n"
@@ -464,29 +464,29 @@ UniValue getnetworkinfo(const UniValue& params, bool fHelp)
 
     LOCK(cs_main);
 
-    UniValue obj(UniValue::VOBJ);
-    obj.push_back(Pair("version",       CLIENT_VERSION));
-    obj.push_back(Pair("subversion",    strSubVersion));
-    obj.push_back(Pair("protocolversion",PROTOCOL_VERSION));
-    obj.push_back(Pair("localservices",       strprintf("%016x", nLocalServices)));
+    UniValue obj(UniValue::VOBJ); // 创建一个对象类型的结果对象
+    obj.push_back(Pair("version",       CLIENT_VERSION)); // 版本
+    obj.push_back(Pair("subversion",    strSubVersion)); // 子版本
+    obj.push_back(Pair("protocolversion",PROTOCOL_VERSION)); // 协议版本
+    obj.push_back(Pair("localservices",       strprintf("%016x", nLocalServices))); // 本地服务
     obj.push_back(Pair("timeoffset",    GetTimeOffset()));
-    obj.push_back(Pair("connections",   (int)vNodes.size()));
-    obj.push_back(Pair("networks",      GetNetworksInfo()));
+    obj.push_back(Pair("connections",   (int)vNodes.size())); // 连接数
+    obj.push_back(Pair("networks",      GetNetworksInfo())); // 网络信息
     obj.push_back(Pair("relayfee",      ValueFromAmount(::minRelayTxFee.GetFeePerK())));
-    UniValue localAddresses(UniValue::VARR);
+    UniValue localAddresses(UniValue::VARR); // 数组类型对象
     {
         LOCK(cs_mapLocalHost);
         BOOST_FOREACH(const PAIRTYPE(CNetAddr, LocalServiceInfo) &item, mapLocalHost)
         {
             UniValue rec(UniValue::VOBJ);
-            rec.push_back(Pair("address", item.first.ToString()));
-            rec.push_back(Pair("port", item.second.nPort));
+            rec.push_back(Pair("address", item.first.ToString())); // 地址
+            rec.push_back(Pair("port", item.second.nPort)); // 端口
             rec.push_back(Pair("score", item.second.nScore));
             localAddresses.push_back(rec);
         }
     }
-    obj.push_back(Pair("localaddresses", localAddresses));
-    obj.push_back(Pair("warnings",       GetWarnings("statusbar")));
+    obj.push_back(Pair("localaddresses", localAddresses)); // 本地地址
+    obj.push_back(Pair("warnings",       GetWarnings("statusbar"))); // 警告
     return obj;
 }
 

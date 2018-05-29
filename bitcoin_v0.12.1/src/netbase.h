@@ -29,14 +29,14 @@ static const int DEFAULT_NAME_LOOKUP = true;
 #undef SetPort
 #endif
 
-enum Network
+enum Network // Õ¯¬Á¿‡–Õ√∂æŸ
 {
     NET_UNROUTABLE = 0,
     NET_IPV4,
     NET_IPV6,
     NET_TOR,
 
-    NET_MAX,
+    NET_MAX, // 4
 };
 
 /** IP address (IPv6, or IPv4 using mapped IPv6 range (::FFFF:0:0/96)) */

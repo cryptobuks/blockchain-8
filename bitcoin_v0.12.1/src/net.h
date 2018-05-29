@@ -159,7 +159,7 @@ extern CAddrMan addrman;
 /** Maximum number of connections to simultaneously allow (aka connection slots) */
 extern int nMaxConnections;
 
-extern std::vector<CNode*> vNodes;
+extern std::vector<CNode*> vNodes; // 已建立连接的节点列表
 extern CCriticalSection cs_vNodes;
 extern std::map<CInv, CDataStream> mapRelay;
 extern std::deque<std::pair<int64_t, CInv> > vRelayExpiration;
@@ -183,7 +183,7 @@ struct LocalServiceInfo {
 extern CCriticalSection cs_mapLocalHost;
 extern std::map<CNetAddr, LocalServiceInfo> mapLocalHost;
 
-class CNodeStats
+class CNodeStats // 节点状态类
 {
 public:
     NodeId nodeid;
@@ -316,7 +316,7 @@ class CNode // 关于同辈的信息
 public:
     // socket
     uint64_t nServices;
-    SOCKET hSocket;
+    SOCKET hSocket; // 套接字
     CDataStream ssSend;
     size_t nSendSize; // total size of all vSendMsg entries
     size_t nSendOffset; // offset inside the first vSendMsg already sent
@@ -409,7 +409,7 @@ public:
     // Best measured round-trip time.
     int64_t nMinPingUsecTime;
     // Whether a ping is requested.
-    bool fPingQueued;
+    bool fPingQueued; // 是否请求一个 ping
 
     CNode(SOCKET hSocketIn, const CAddress &addrIn, const std::string &addrNameIn = "", bool fInboundIn = false);
     ~CNode();

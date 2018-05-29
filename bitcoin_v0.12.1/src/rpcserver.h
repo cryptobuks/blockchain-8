@@ -165,13 +165,13 @@ extern std::string HelpExampleRpc(const std::string& methodname, const std::stri
 
 extern void EnsureWalletIsUnlocked();
 
-extern UniValue getconnectioncount(const UniValue& params, bool fHelp); // in rpcnet.cpp
-extern UniValue getpeerinfo(const UniValue& params, bool fHelp);
-extern UniValue ping(const UniValue& params, bool fHelp);
+extern UniValue getconnectioncount(const UniValue& params, bool fHelp); // 获取当前的连接数
+extern UniValue getpeerinfo(const UniValue& params, bool fHelp); // 获取同辈节点信息
+extern UniValue ping(const UniValue& params, bool fHelp); // ping 命令在 getpeerinfo 结果的 pingtime 字段查看
 extern UniValue addnode(const UniValue& params, bool fHelp); // 添加节点
 extern UniValue disconnectnode(const UniValue& params, bool fHelp);
 extern UniValue getaddednodeinfo(const UniValue& params, bool fHelp);
-extern UniValue getnettotals(const UniValue& params, bool fHelp);
+extern UniValue getnettotals(const UniValue& params, bool fHelp); // 获取网络流量信息
 extern UniValue setban(const UniValue& params, bool fHelp); // 设置黑名单
 extern UniValue listbanned(const UniValue& params, bool fHelp); // 列出黑名单
 extern UniValue clearbanned(const UniValue& params, bool fHelp); // 清空黑名单
@@ -232,7 +232,7 @@ extern UniValue validateaddress(const UniValue& params, bool fHelp);
 extern UniValue getinfo(const UniValue& params, bool fHelp); // 获取比特币核心信息
 extern UniValue getwalletinfo(const UniValue& params, bool fHelp);
 extern UniValue getblockchaininfo(const UniValue& params, bool fHelp); // 获取区块链信息
-extern UniValue getnetworkinfo(const UniValue& params, bool fHelp);
+extern UniValue getnetworkinfo(const UniValue& params, bool fHelp); // 获取网络状态信息
 extern UniValue setmocktime(const UniValue& params, bool fHelp);
 extern UniValue resendwallettransactions(const UniValue& params, bool fHelp);
 
