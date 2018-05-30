@@ -40,7 +40,7 @@ static proxyType proxyInfo[NET_MAX];
 static proxyType nameProxy;
 static CCriticalSection cs_proxyInfos;
 int nConnectTimeout = DEFAULT_CONNECT_TIMEOUT;
-bool fNameLookup = DEFAULT_NAME_LOOKUP;
+bool fNameLookup = DEFAULT_NAME_LOOKUP; // 默认 true
 
 static const unsigned char pchIPv4[12] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff };
 
@@ -55,7 +55,7 @@ enum Network ParseNetwork(std::string net) {
     return NET_UNROUTABLE;
 }
 
-std::string GetNetworkName(enum Network net) {
+std::string GetNetworkName(enum Network net) { // 根据类型枚举获取网络名
     switch(net)
     {
     case NET_IPV4: return "ipv4";
@@ -66,9 +66,9 @@ std::string GetNetworkName(enum Network net) {
 }
 
 void SplitHostPort(std::string in, int &portOut, std::string &hostOut) {
-    size_t colon = in.find_last_of(':');
+    size_t colon = in.find_last_of(':'); // 找到最后一个冒号的位置
     // if a : is found, and it either follows a [...], or no other : is in the string, treat it as port separator
-    bool fHaveColon = colon != in.npos;
+    bool fHaveColon = colon != in.npos; // 若找到冒号，则将其视为分隔符
     bool fBracketed = fHaveColon && (in[0]=='[' && in[colon-1]==']'); // if there is a colon, and in[0]=='[', colon is not 0, so in[colon-1] is safe
     bool fMultiColon = fHaveColon && (in.find_last_of(':',colon-1) != in.npos);
     if (fHaveColon && (colon==0 || fBracketed || !fMultiColon)) {
@@ -196,14 +196,14 @@ bool LookupHost(const char *pszName, std::vector<CNetAddr>& vIP, unsigned int nM
 
 bool Lookup(const char *pszName, std::vector<CService>& vAddr, int portDefault, bool fAllowLookup, unsigned int nMaxSolutions)
 {
-    if (pszName[0] == 0)
+    if (pszName[0] == 0) // IP 不能为空
         return false;
-    int port = portDefault;
-    std::string hostname = "";
-    SplitHostPort(std::string(pszName), port, hostname);
+    int port = portDefault; // 默认端口
+    std::string hostname = ""; // 保存主机名
+    SplitHostPort(std::string(pszName), port, hostname); // 分离主机名和端口
 
     std::vector<CNetAddr> vIP;
-    bool fRet = LookupIntern(hostname.c_str(), vIP, nMaxSolutions, fAllowLookup);
+    bool fRet = LookupIntern(hostname.c_str(), vIP, nMaxSolutions, fAllowLookup); // 发现内部
     if (!fRet)
         return false;
     vAddr.resize(vIP.size());

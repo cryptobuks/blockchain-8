@@ -17,12 +17,12 @@
 #include <vector>
 
 extern int nConnectTimeout;
-extern bool fNameLookup;
+extern bool fNameLookup; // 名字发现标志
 
 //! -timeout default
 static const int DEFAULT_CONNECT_TIMEOUT = 5000;
 //! -dns default
-static const int DEFAULT_NAME_LOOKUP = true;
+static const int DEFAULT_NAME_LOOKUP = true; // -dns 选项的默认值
 
 #ifdef WIN32
 // In MSVC, this is defined as a macro, undefine it to prevent a compile and link error
@@ -32,9 +32,9 @@ static const int DEFAULT_NAME_LOOKUP = true;
 enum Network // 网络类型枚举
 {
     NET_UNROUTABLE = 0,
-    NET_IPV4,
-    NET_IPV6,
-    NET_TOR,
+    NET_IPV4, // 1
+    NET_IPV6, // 2
+    NET_TOR, // 3
 
     NET_MAX, // 4
 };

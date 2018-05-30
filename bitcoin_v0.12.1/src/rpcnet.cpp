@@ -223,8 +223,8 @@ UniValue addnode(const UniValue& params, bool fHelp)
 
 UniValue disconnectnode(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() != 1)
-        throw runtime_error(
+    if (fHelp || params.size() != 1) // 参数必须为 1 个
+        throw runtime_error( // 命令帮助反馈
             "disconnectnode \"node\" \n"
             "\nImmediately disconnects from the specified node.\n"
             "\nArguments:\n"
@@ -234,11 +234,11 @@ UniValue disconnectnode(const UniValue& params, bool fHelp)
             + HelpExampleRpc("disconnectnode", "\"192.168.0.6:8333\"")
         );
 
-    CNode* pNode = FindNode(params[0].get_str());
-    if (pNode == NULL)
+    CNode* pNode = FindNode(params[0].get_str()); // 查找指定节点
+    if (pNode == NULL) // 未找到要断开连接的节点
         throw JSONRPCError(RPC_CLIENT_NODE_NOT_CONNECTED, "Node not found in connected nodes");
 
-    pNode->fDisconnect = true;
+    pNode->fDisconnect = true; // 标记该节点的断开连接标志为 true
 
     return NullUniValue;
 }
@@ -278,32 +278,32 @@ UniValue getaddednodeinfo(const UniValue& params, bool fHelp)
 
     bool fDns = params[0].get_bool(); // 获取 dns 标志
 
-    list<string> laddedNodes(0); // 添加节点的双向环状链表
+    list<string> laddedNodes(0); // 添加节点 IP 的双向环状链表
     if (params.size() == 1) // 只有一个参数，未指定节点
     {
         LOCK(cs_vAddedNodes);
-        BOOST_FOREACH(const std::string& strAddNode, vAddedNodes) // 遍历添加的节点列表
+        BOOST_FOREACH(const std::string& strAddNode, vAddedNodes) // 遍历添加节点 IP 的列表
             laddedNodes.push_back(strAddNode); // 依次添加到该双向环状链表
     }
     else
     { // 超过 1 个参数
-        string strNode = params[1].get_str(); // 获取指定节点的字符串
+        string strNode = params[1].get_str(); // 获取指定节点 IP 的字符串
         LOCK(cs_vAddedNodes);
-        BOOST_FOREACH(const std::string& strAddNode, vAddedNodes) { // 遍历添加的节点列表
-            if (strAddNode == strNode) // 若未指定节点
+        BOOST_FOREACH(const std::string& strAddNode, vAddedNodes) { // 遍历添加节点 IP 的列表
+            if (strAddNode == strNode) // 若指定了节点
             {
                 laddedNodes.push_back(strAddNode); // 添加到双向环状链表
                 break; // 跳出
             }
         }
-        if (laddedNodes.size() == 0)
+        if (laddedNodes.size() == 0) // 若该链表大小为 0，表示没有节点被添加
             throw JSONRPCError(RPC_CLIENT_NODE_NOT_ADDED, "Error: Node has not been added.");
     }
 
     UniValue ret(UniValue::VARR); // 创建数组类型的结果对象
     if (!fDns) // 若关闭了 dns
     {
-        BOOST_FOREACH (const std::string& strAddNode, laddedNodes) { // 遍历双向环状链表
+        BOOST_FOREACH (const std::string& strAddNode, laddedNodes) { // 遍历添加节点 IP 的列表
             UniValue obj(UniValue::VOBJ);
             obj.push_back(Pair("addednode", strAddNode));
             ret.push_back(obj); // 加入结果对象
@@ -311,11 +311,11 @@ UniValue getaddednodeinfo(const UniValue& params, bool fHelp)
         return ret; // 返回结果
     } // 若开启了 dns
 
-    list<pair<string, vector<CService> > > laddedAddreses(0); // 添加的地址双向环状链表
-    BOOST_FOREACH(const std::string& strAddNode, laddedNodes) {
+    list<pair<string, vector<CService> > > laddedAddreses(0); // 添加地址的双向环状链表
+    BOOST_FOREACH(const std::string& strAddNode, laddedNodes) { // 遍历添加节点的链表
         vector<CService> vservNode(0);
-        if(Lookup(strAddNode.c_str(), vservNode, Params().GetDefaultPort(), fNameLookup, 0))
-            laddedAddreses.push_back(make_pair(strAddNode, vservNode));
+        if(Lookup(strAddNode.c_str(), vservNode, Params().GetDefaultPort(), fNameLookup, 0)) // IP + 端口 获取服务节点
+            laddedAddreses.push_back(make_pair(strAddNode, vservNode)); // 追加到添加地址的双向环状链表
         else
         {
             UniValue obj(UniValue::VOBJ);
@@ -327,36 +327,36 @@ UniValue getaddednodeinfo(const UniValue& params, bool fHelp)
     }
 
     LOCK(cs_vNodes);
-    for (list<pair<string, vector<CService> > >::iterator it = laddedAddreses.begin(); it != laddedAddreses.end(); it++)
+    for (list<pair<string, vector<CService> > >::iterator it = laddedAddreses.begin(); it != laddedAddreses.end(); it++) // 遍历添加地址的双向环状链表
     {
         UniValue obj(UniValue::VOBJ);
         obj.push_back(Pair("addednode", it->first));
 
         UniValue addresses(UniValue::VARR);
-        bool fConnected = false;
+        bool fConnected = false; // 连接标志
         BOOST_FOREACH(const CService& addrNode, it->second) {
-            bool fFound = false;
+            bool fFound = false; // 是否在连接的节点列表中找到
             UniValue node(UniValue::VOBJ);
             node.push_back(Pair("address", addrNode.ToString()));
-            BOOST_FOREACH(CNode* pnode, vNodes) {
-                if (pnode->addr == addrNode)
+            BOOST_FOREACH(CNode* pnode, vNodes) { // 遍历已建立连接的节点列表
+                if (pnode->addr == addrNode) // 若该节点已建立连接
                 {
                     fFound = true;
                     fConnected = true;
-                    node.push_back(Pair("connected", pnode->fInbound ? "inbound" : "outbound"));
+                    node.push_back(Pair("connected", pnode->fInbound ? "inbound" : "outbound")); // 追加该节点的连接状态
                     break;
                 }
             }
-            if (!fFound)
+            if (!fFound) // 未找到，未连接
                 node.push_back(Pair("connected", "false"));
             addresses.push_back(node);
         }
         obj.push_back(Pair("connected", fConnected));
         obj.push_back(Pair("addresses", addresses));
-        ret.push_back(obj);
+        ret.push_back(obj); // 加入结果集
     }
 
-    return ret;
+    return ret; // 返回数组类型的结果
 }
 
 UniValue getnettotals(const UniValue& params, bool fHelp)

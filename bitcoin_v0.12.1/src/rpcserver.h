@@ -169,7 +169,7 @@ extern UniValue getconnectioncount(const UniValue& params, bool fHelp); // »ñÈ¡µ
 extern UniValue getpeerinfo(const UniValue& params, bool fHelp); // »ñÈ¡Í¬±²½ÚµãĞÅÏ¢
 extern UniValue ping(const UniValue& params, bool fHelp); // ping ÃüÁîÔÚ getpeerinfo ½á¹ûµÄ pingtime ×Ö¶Î²é¿´
 extern UniValue addnode(const UniValue& params, bool fHelp); // Ìí¼Ó½Úµã
-extern UniValue disconnectnode(const UniValue& params, bool fHelp);
+extern UniValue disconnectnode(const UniValue& params, bool fHelp); // ¶Ï¿ªÓëÖ¸¶¨½ÚµãµÄÁ¬½Ó
 extern UniValue getaddednodeinfo(const UniValue& params, bool fHelp); // »ñÈ¡Ìí¼Ó½ÚµãµÄĞÅÏ¢
 extern UniValue getnettotals(const UniValue& params, bool fHelp); // »ñÈ¡ÍøÂçÁ÷Á¿ĞÅÏ¢
 extern UniValue setban(const UniValue& params, bool fHelp); // ÉèÖÃºÚÃûµ¥

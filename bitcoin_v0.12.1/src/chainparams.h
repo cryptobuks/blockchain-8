@@ -53,13 +53,13 @@ public:
     };
 
     const Consensus::Params& GetConsensus() const { return consensus; }
-    const CMessageHeader::MessageStartChars& MessageStart() const { return pchMessageStart; }
+    const CMessageHeader::MessageStartChars& MessageStart() const { return pchMessageStart; } // 获取通讯协议消息头
     const std::vector<unsigned char>& AlertKey() const { return vAlertPubKey; }
-    int GetDefaultPort() const { return nDefaultPort; }
+    int GetDefaultPort() const { return nDefaultPort; } // 获取默认端口号
 
-    const CBlock& GenesisBlock() const { return genesis; }
-    /** Make miner wait to have peers to avoid wasting work */
-    bool MiningRequiresPeers() const { return fMiningRequiresPeers; }
+    const CBlock& GenesisBlock() const { return genesis; } // 获取创世区块
+    /** Make miner wait to have peers to avoid wasting work */ // 使矿工等待同辈节点来避免浪费工作
+    bool MiningRequiresPeers() const { return fMiningRequiresPeers; } // 返回挖矿需同辈节点标志
     /** Default value for -checkmempool and -checkblockindex argument */
     bool DefaultConsistencyChecks() const { return fDefaultConsistencyChecks; }
     /** Policy: Filter transactions that do not match well-defined patterns */

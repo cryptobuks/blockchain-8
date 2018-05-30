@@ -364,10 +364,10 @@ CNode* FindNode(const CSubNet& subNet)
 CNode* FindNode(const std::string& addrName)
 {
     LOCK(cs_vNodes);
-    BOOST_FOREACH(CNode* pnode, vNodes)
-        if (pnode->addrName == addrName)
-            return (pnode);
-    return NULL;
+    BOOST_FOREACH(CNode* pnode, vNodes) // 遍历建立连接的节点链表
+        if (pnode->addrName == addrName) // 若找到指定节点
+            return (pnode); // 返回该节点指针
+    return NULL; // 否则返回空
 }
 
 CNode* FindNode(const CService& addr)

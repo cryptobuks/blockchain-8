@@ -196,7 +196,7 @@ public:
     std::string addrName;
     int nVersion;
     std::string cleanSubVer;
-    bool fInbound;
+    bool fInbound; // 连入标志，false 表示连出
     int nStartingHeight;
     uint64_t nSendBytes;
     uint64_t nRecvBytes;
@@ -335,7 +335,7 @@ public:
     int64_t nTimeConnected;
     int64_t nTimeOffset;
     CAddress addr;
-    std::string addrName;
+    std::string addrName; // 节点的 IP
     CService addrLocal;
     int nVersion;
     // strSubVer is whatever byte array we read from the wire. However, this field is intended
