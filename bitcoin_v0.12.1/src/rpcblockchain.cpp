@@ -30,8 +30,8 @@ void ScriptPubKeyToJSON(const CScript& scriptPubKey, UniValue& out, bool fInclud
 
 double GetDifficulty(const CBlockIndex* blockindex)
 {
-    // Floating point number that is a multiple of the minimum difficulty,
-    // minimum difficulty = 1.0. // 最小难度倍数的浮点数
+    // Floating point number that is a multiple of the minimum difficulty, // 最小难度倍数的浮点数
+    // minimum difficulty = 1.0. // 最小难度 = 1.0
     if (blockindex == NULL)
     {
         if (chainActive.Tip() == NULL) // 链尖为空
@@ -42,18 +42,18 @@ double GetDifficulty(const CBlockIndex* blockindex)
 
     int nShift = (blockindex->nBits >> 24) & 0xff; // 获取 nBits 的高 8 位 2 进制
 
-    double dDiff =
+    double dDiff = // main and testnet (0x1d00ffff) or regtest (0x207fffff) 0x1e0ffff0 (dash)
         (double)0x0000ffff / (double)(blockindex->nBits & 0x00ffffff); // 计算难度
 
-    while (nShift < 29) // 8 位的低 3 位非 0
+    while (nShift < 29)
     {
         dDiff *= 256.0;
-        nShift++; // +1
+        nShift++;
     }
-    while (nShift > 29) // 8 位高 3 位非 0
+    while (nShift > 29) // main and testnet (0x1d, 29) or regtest (0x20, 32)
     {
         dDiff /= 256.0;
-        nShift--; // -1
+        nShift--;
     }
 
     return dDiff; // 返回难度
@@ -62,26 +62,26 @@ double GetDifficulty(const CBlockIndex* blockindex)
 UniValue blockheaderToJSON(const CBlockIndex* blockindex)
 {
     UniValue result(UniValue::VOBJ);
-    result.push_back(Pair("hash", blockindex->GetBlockHash().GetHex()));
+    result.push_back(Pair("hash", blockindex->GetBlockHash().GetHex())); // 区块哈希
     int confirmations = -1;
     // Only report confirmations if the block is on the main chain
     if (chainActive.Contains(blockindex))
-        confirmations = chainActive.Height() - blockindex->nHeight + 1;
-    result.push_back(Pair("confirmations", confirmations));
-    result.push_back(Pair("height", blockindex->nHeight));
-    result.push_back(Pair("version", blockindex->nVersion));
-    result.push_back(Pair("merkleroot", blockindex->hashMerkleRoot.GetHex()));
-    result.push_back(Pair("time", (int64_t)blockindex->nTime));
+        confirmations = chainActive.Height() - blockindex->nHeight + 1; // 计算确认数
+    result.push_back(Pair("confirmations", confirmations)); // 确认数
+    result.push_back(Pair("height", blockindex->nHeight)); // 区块链高度
+    result.push_back(Pair("version", blockindex->nVersion)); // 区块版本号
+    result.push_back(Pair("merkleroot", blockindex->hashMerkleRoot.GetHex())); // 默克树根
+    result.push_back(Pair("time", (int64_t)blockindex->nTime)); // 区块创建时间
     result.push_back(Pair("mediantime", (int64_t)blockindex->GetMedianTimePast()));
-    result.push_back(Pair("nonce", (uint64_t)blockindex->nNonce));
-    result.push_back(Pair("bits", strprintf("%08x", blockindex->nBits)));
-    result.push_back(Pair("difficulty", GetDifficulty(blockindex)));
-    result.push_back(Pair("chainwork", blockindex->nChainWork.GetHex()));
+    result.push_back(Pair("nonce", (uint64_t)blockindex->nNonce)); // 随机数
+    result.push_back(Pair("bits", strprintf("%08x", blockindex->nBits))); // 难度对应值
+    result.push_back(Pair("difficulty", GetDifficulty(blockindex))); // 难度
+    result.push_back(Pair("chainwork", blockindex->nChainWork.GetHex())); // 工作量
 
-    if (blockindex->pprev)
+    if (blockindex->pprev) // 上一个区块的哈希
         result.push_back(Pair("previousblockhash", blockindex->pprev->GetBlockHash().GetHex()));
     CBlockIndex *pnext = chainActive.Next(blockindex);
-    if (pnext)
+    if (pnext) // 下一个区块的哈希
         result.push_back(Pair("nextblockhash", pnext->GetBlockHash().GetHex()));
     return result;
 }
@@ -164,7 +164,7 @@ UniValue getbestblockhash(const UniValue& params, bool fHelp)
 UniValue getdifficulty(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() != 0) // 没有参数
-        throw runtime_error( // 帮助信息反馈
+        throw runtime_error( // 命令帮助反馈
             "getdifficulty\n"
             "\nReturns the proof-of-work difficulty as a multiple of the minimum difficulty.\n"
             "\nResult:\n"
@@ -174,7 +174,7 @@ UniValue getdifficulty(const UniValue& params, bool fHelp)
             + HelpExampleRpc("getdifficulty", "")
         );
 
-    LOCK(cs_main);
+    LOCK(cs_main); // 上锁
     return GetDifficulty(); // 返回获取的难度值
 }
 
@@ -218,7 +218,7 @@ UniValue mempoolToJSON(bool fVerbose = false)
         return o;
     }
     else
-    { // 只打包交易号（哈希）
+    { // 打包交易索引（哈希）
         vector<uint256> vtxid;
         mempool.queryHashes(vtxid); // 填充交易池中的交易哈希到 vtxid
 
@@ -233,7 +233,7 @@ UniValue mempoolToJSON(bool fVerbose = false)
 UniValue getrawmempool(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() > 1) // 参数至多为 1 个
-        throw runtime_error( // 帮助信息反馈
+        throw runtime_error( // 命令帮助反馈
             "getrawmempool ( verbose )\n"
             "\nReturns all transaction ids in memory pool as a json array of string transaction ids.\n"
             "\nArguments:\n"
@@ -266,7 +266,7 @@ UniValue getrawmempool(const UniValue& params, bool fHelp)
             + HelpExampleRpc("getrawmempool", "true")
         );
 
-    LOCK(cs_main);
+    LOCK(cs_main); // 上锁
 
     bool fVerbose = false; // 详细标志，默认为 false
     if (params.size() > 0)
@@ -277,8 +277,8 @@ UniValue getrawmempool(const UniValue& params, bool fHelp)
 
 UniValue getblockhash(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() != 1) // 参数必须有 1 个（区块号）
-        throw runtime_error( // 帮助信息反馈
+    if (fHelp || params.size() != 1) // 参数只有 1 个
+        throw runtime_error( // 命令帮助反馈
             "getblockhash index\n"
             "\nReturns hash of block in best-block-chain at index provided.\n"
             "\nArguments:\n"
@@ -290,9 +290,9 @@ UniValue getblockhash(const UniValue& params, bool fHelp)
             + HelpExampleRpc("getblockhash", "1000")
         );
 
-    LOCK(cs_main);
+    LOCK(cs_main); // 上锁
 
-    int nHeight = params[0].get_int(); // 获取指定的高度（区块号）
+    int nHeight = params[0].get_int(); // 获取指定的区块索引作为区块链高度
     if (nHeight < 0 || nHeight > chainActive.Height()) // 检测指定高度是否在该区块链高度范围内
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Block height out of range");
 
@@ -303,7 +303,7 @@ UniValue getblockhash(const UniValue& params, bool fHelp)
 UniValue getblockheader(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() < 1 || params.size() > 2) // 参数至少为 1 个（区块哈希），至多 2 个
-        throw runtime_error( // 帮助信息反馈
+        throw runtime_error( // 命令帮助反馈
             "getblockheader \"hash\" ( verbose )\n"
             "\nIf verbose is false, returns a string that is serialized, hex-encoded data for blockheader 'hash'.\n"
             "If verbose is true, returns an Object with information about blockheader <hash>.\n"
@@ -333,10 +333,10 @@ UniValue getblockheader(const UniValue& params, bool fHelp)
             + HelpExampleRpc("getblockheader", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\"")
         );
 
-    LOCK(cs_main);
+    LOCK(cs_main); // 上锁
 
     std::string strHash = params[0].get_str(); // 获取区块哈希字符串
-    uint256 hash(uint256S(strHash)); // 构造 uint256 局部对象
+    uint256 hash(uint256S(strHash)); // 创建 uint256 局部对象
 
     bool fVerbose = true; // 详细信息标志，默认为 true
     if (params.size() > 1)
@@ -355,7 +355,7 @@ UniValue getblockheader(const UniValue& params, bool fHelp)
         return strHex; // 返回
     }
 
-    return blockheaderToJSON(pblockindex); // 分装区块头信息为 JSON 格式并返回
+    return blockheaderToJSON(pblockindex); // 封装区块头信息为 JSON 格式并返回
 }
 
 UniValue getblock(const UniValue& params, bool fHelp)
@@ -696,13 +696,13 @@ UniValue getblockchaininfo(const UniValue& params, bool fHelp)
     return obj; // 返回目标对象
 }
 
-/** Comparison function for sorting the getchaintips heads.  */
-struct CompareBlocksByHeight
+/** Comparison function for sorting the getchaintips heads.  */ // 用于 getchaintips 函数排序区块头的比较器
+struct CompareBlocksByHeight // 函数对象，通过高度比较区块
 {
     bool operator()(const CBlockIndex* a, const CBlockIndex* b) const
     {
-        /* Make sure that unequal blocks with the same height do not compare
-           equal. Use the pointers themselves to make a distinction. */
+        /* Make sure that unequal blocks with the same height do not compare // 确保相同高度不同的块比较后不等
+           equal. Use the pointers themselves to make a distinction. */ // 使用指针区分。
 
         if (a->nHeight != b->nHeight)
           return (a->nHeight > b->nHeight);
@@ -714,7 +714,7 @@ struct CompareBlocksByHeight
 UniValue getchaintips(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() != 0) // 没有参数
-        throw runtime_error( // 帮助信息反馈
+        throw runtime_error( // 命令帮助反馈
             "getchaintips\n"
             "Return information about all known tips in the block tree,"
             " including the main chain as well as orphaned branches.\n"
@@ -744,51 +744,51 @@ UniValue getchaintips(const UniValue& params, bool fHelp)
             + HelpExampleRpc("getchaintips", "")
         );
 
-    LOCK(cs_main);
+    LOCK(cs_main); // 上锁
 
-    /* Build up a list of chain tips.  We start with the list of all
+    /* Build up a list of chain tips.  We start with the list of all // 构建链尖列表。
        known blocks, and successively remove blocks that appear as pprev
-       of another block.  */ // 构建链尖列表。我们从已知块的列表开始，并连续移除另一个区块的 pprev 区块
-    std::set<const CBlockIndex*, CompareBlocksByHeight> setTips;
-    BOOST_FOREACH(const PAIRTYPE(const uint256, CBlockIndex*)& item, mapBlockIndex)
-        setTips.insert(item.second);
-    BOOST_FOREACH(const PAIRTYPE(const uint256, CBlockIndex*)& item, mapBlockIndex)
+       of another block.  */ // 我们从已知块的列表开始，并连续移除另一个区块的 pprev 区块，以获取链尖区块索引。
+    std::set<const CBlockIndex*, CompareBlocksByHeight> setTips; // 链尖区块索引集合
+    BOOST_FOREACH(const PAIRTYPE(const uint256, CBlockIndex*)& item, mapBlockIndex) // 遍历区块索引映射
+        setTips.insert(item.second); // 插入链尖索引集合
+    BOOST_FOREACH(const PAIRTYPE(const uint256, CBlockIndex*)& item, mapBlockIndex) // 遍历区块索引映射
     {
         const CBlockIndex* pprev = item.second->pprev;
         if (pprev)
-            setTips.erase(pprev);
+            setTips.erase(pprev); // 移除区块的前一个区块
     }
 
     // Always report the currently active tip. // 总是报告当前激活的链尖
-    setTips.insert(chainActive.Tip());
+    setTips.insert(chainActive.Tip()); // 插入当前激活链尖区块索引
 
-    /* Construct the output array.  */
-    UniValue res(UniValue::VARR);
-    BOOST_FOREACH(const CBlockIndex* block, setTips)
+    /* Construct the output array.  */ // 构建输出数组
+    UniValue res(UniValue::VARR); // 创建数组类型的结果对象
+    BOOST_FOREACH(const CBlockIndex* block, setTips) // 遍历链尖区块索引集合
     {
         UniValue obj(UniValue::VOBJ);
-        obj.push_back(Pair("height", block->nHeight));
-        obj.push_back(Pair("hash", block->phashBlock->GetHex()));
+        obj.push_back(Pair("height", block->nHeight)); // 链高度（区块索引）
+        obj.push_back(Pair("hash", block->phashBlock->GetHex())); // 区块哈希
 
-        const int branchLen = block->nHeight - chainActive.FindFork(block)->nHeight;
+        const int branchLen = block->nHeight - chainActive.FindFork(block)->nHeight; // 计算分支长度
         obj.push_back(Pair("branchlen", branchLen));
 
-        string status;
-        if (chainActive.Contains(block)) {
-            // This block is part of the currently active chain.
-            status = "active";
-        } else if (block->nStatus & BLOCK_FAILED_MASK) {
+        string status; // 链状态
+        if (chainActive.Contains(block)) { // 检查当前激活链上是否存在该区块
+            // This block is part of the currently active chain. // 该区块是当前激活链的一部分
+            status = "active"; // 状态标记为激活
+        } else if (block->nStatus & BLOCK_FAILED_MASK) { // 该块或其祖先之一的区块无效
             // This block or one of its ancestors is invalid.
-            status = "invalid";
-        } else if (block->nChainTx == 0) {
+            status = "invalid"; // 状态标记为无效
+        } else if (block->nChainTx == 0) { // 该块无法连接，因为该块或其父块之一的完整区块数据丢失
             // This block cannot be connected because full block data for it or one of its parents is missing.
-            status = "headers-only";
-        } else if (block->IsValid(BLOCK_VALID_SCRIPTS)) {
-            // This block is fully validated, but no longer part of the active chain. It was probably the active block once, but was reorganized.
-            status = "valid-fork";
-        } else if (block->IsValid(BLOCK_VALID_TREE)) {
-            // The headers for this block are valid, but it has not been validated. It was probably never part of the most-work chain.
-            status = "valid-headers";
+            status = "headers-only"; // 状态表记为仅区块头
+        } else if (block->IsValid(BLOCK_VALID_SCRIPTS)) { // 该区块已完全验证，但不再是激活链的一部分
+            // This block is fully validated, but no longer part of the active chain. It was probably the active block once, but was reorganized. // 可能曾是激活的区块，但被重组
+            status = "valid-fork"; // 状态标记为验证分叉
+        } else if (block->IsValid(BLOCK_VALID_TREE)) { // 该区块头有效，但它没有被验证。
+            // The headers for this block are valid, but it has not been validated. It was probably never part of the most-work chain. // 可能从来不是有效链的一部分。
+            status = "valid-headers"; // 状态标记为验证头部
         } else {
             // No clue.
             status = "unknown";
@@ -798,7 +798,7 @@ UniValue getchaintips(const UniValue& params, bool fHelp)
         res.push_back(obj);
     }
 
-    return res;
+    return res; // 返回结果数组
 }
 
 UniValue mempoolInfoToJSON()
@@ -817,7 +817,7 @@ UniValue mempoolInfoToJSON()
 UniValue getmempoolinfo(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() != 0) // 没有参数
-        throw runtime_error( // 帮助信息反馈
+        throw runtime_error( // 命令帮助反馈
             "getmempoolinfo\n"
             "\nReturns details on the active state of the TX memory pool.\n"
             "\nResult:\n"
@@ -833,7 +833,7 @@ UniValue getmempoolinfo(const UniValue& params, bool fHelp)
             + HelpExampleRpc("getmempoolinfo", "")
         );
 
-    return mempoolInfoToJSON(); // 交易内存池信息打包位 JSON 格式并返回
+    return mempoolInfoToJSON(); // 把交易内存池信息打包为 JSON 格式并返回
 }
 
 UniValue invalidateblock(const UniValue& params, bool fHelp)

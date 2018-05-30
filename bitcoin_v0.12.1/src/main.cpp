@@ -78,8 +78,8 @@ uint64_t nPruneTarget = 0;
 bool fAlerts = DEFAULT_ALERTS;
 bool fEnableReplacement = DEFAULT_ENABLE_REPLACEMENT;
 
-/** Fees smaller than this (in satoshi) are considered zero fee (for relaying, mining and transaction creation) */
-CFeeRate minRelayTxFee = CFeeRate(DEFAULT_MIN_RELAY_TX_FEE);
+/** Fees smaller than this (in satoshi) are considered zero fee (for relaying, mining and transaction creation) */ // 小于词费用（单位为 satoshi）被当作 0 费用（用于中继，挖矿和创建交易）
+CFeeRate minRelayTxFee = CFeeRate(DEFAULT_MIN_RELAY_TX_FEE); // 最小中继交易费
 
 CTxMemPool mempool(::minRelayTxFee); // 交易内存池全局对象，通过最小中继交易费创建
 

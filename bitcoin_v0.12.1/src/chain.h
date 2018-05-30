@@ -107,7 +107,7 @@ public:
     CBlockIndex* pprev; // 指向前一个区块索引的指针
 
     //! pointer to the index of some further predecessor of this block
-    CBlockIndex* pskip; // 指向后一个区块索引的指针（可为空）
+    CBlockIndex* pskip; // 指向该块某个更前面区块索引的指针（可为空）
 
     //! height of the entry in the chain. The genesis block has height 0
     int nHeight; // 该区块在链上的高度。创世区块高度为 0
@@ -131,7 +131,7 @@ public:
     //! (memory only) Number of transactions in the chain up to and including this block.
     //! This value will be non-zero only if and only if transactions for this block and all its parents are available.
     //! Change to 64-bit type when necessary; won't happen before 2030
-    unsigned int nChainTx;
+    unsigned int nChainTx; // （仅限内存中）该链上包含该区块内交易号
 
     //! Verification status of this block. See enum BlockStatus
     unsigned int nStatus; // 验证该区块的状态
@@ -220,7 +220,7 @@ public:
         return *phashBlock;
     }
 
-    int64_t GetBlockTime() const
+    int64_t GetBlockTime() const // 获取区块创建的时间
     {
         return (int64_t)nTime;
     }
@@ -276,7 +276,7 @@ public:
     void BuildSkip();
 
     //! Efficiently find an ancestor of this block.
-    CBlockIndex* GetAncestor(int height);
+    CBlockIndex* GetAncestor(int height); // 有效找到该块的祖先
     const CBlockIndex* GetAncestor(int height) const;
 };
 
@@ -398,7 +398,7 @@ public:
     CBlockLocator GetLocator(const CBlockIndex *pindex = NULL) const; // 返回一个链上区块的 CBlockLocator，通常为链尖
 
     /** Find the last common block between this chain and a block index entry. */
-    const CBlockIndex *FindFork(const CBlockIndex *pindex) const;
+    const CBlockIndex *FindFork(const CBlockIndex *pindex) const; // 在该链和一个区块索引条目间找最近的一个公共区块
 };
 
 #endif // BITCOIN_CHAIN_H

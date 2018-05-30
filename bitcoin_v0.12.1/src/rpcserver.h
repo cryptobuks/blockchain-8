@@ -254,9 +254,9 @@ extern UniValue getbestblockhash(const UniValue& params, bool fHelp); // »ñÈ¡µ±Ç
 extern UniValue getdifficulty(const UniValue& params, bool fHelp); // »ñÈ¡µ±Ç°ÍÚ¿óÄÑ¶È
 extern UniValue settxfee(const UniValue& params, bool fHelp);
 extern UniValue getmempoolinfo(const UniValue& params, bool fHelp); // »ñÈ¡½»Ò×ÄÚ´æ³ØĞÅÏ¢
-extern UniValue getrawmempool(const UniValue& params, bool fHelp); // »ñÈ¡½»Ò×ÄÚ´æ³ØÔªĞÅÏ¢£¨Î´´ò°ü½»Ò×µÄ¹şÏ££©
-extern UniValue getblockhash(const UniValue& params, bool fHelp); // Í¨¹ıÇø¿éºÅ»ñÈ¡Çø¿é¹şÏ£
-extern UniValue getblockheader(const UniValue& params, bool fHelp); // »ñÈ¡Ö¸¶¨¹şÏ£µÄÇø¿éÍ·ĞÅÏ¢
+extern UniValue getrawmempool(const UniValue& params, bool fHelp); // »ñÈ¡½»Ò×ÄÚ´æ³ØÔªĞÅÏ¢£¨½»Ò×Ë÷Òı£©
+extern UniValue getblockhash(const UniValue& params, bool fHelp); // »ñÈ¡Ö¸¶¨Çø¿éË÷ÒıµÄÇø¿é¹şÏ£
+extern UniValue getblockheader(const UniValue& params, bool fHelp); // »ñÈ¡Ö¸¶¨Çø¿é¹şÏ£µÄÇø¿éÍ·ĞÅÏ¢
 extern UniValue getblock(const UniValue& params, bool fHelp); // »ñÈ¡Çø¿éĞÅÏ¢
 extern UniValue gettxoutsetinfo(const UniValue& params, bool fHelp);
 extern UniValue gettxout(const UniValue& params, bool fHelp); // »ñÈ¡ÄÚ´æ³ØÖĞÒ»±Ê½»Ò×Êä³öµÄĞÅÏ¢
