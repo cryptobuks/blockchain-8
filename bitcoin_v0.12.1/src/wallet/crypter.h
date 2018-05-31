@@ -11,8 +11,8 @@
 
 class uint256;
 
-const unsigned int WALLET_CRYPTO_KEY_SIZE = 32;
-const unsigned int WALLET_CRYPTO_SALT_SIZE = 8;
+const unsigned int WALLET_CRYPTO_KEY_SIZE = 32; // 钱包加密密码大小
+const unsigned int WALLET_CRYPTO_SALT_SIZE = 8; // 钱包加密盐值大小
 
 /**
  * Private key encryption is done based on a CMasterKey,
@@ -30,15 +30,15 @@ const unsigned int WALLET_CRYPTO_SALT_SIZE = 8;
  */
 
 /** Master key for wallet encryption */
-class CMasterKey
+class CMasterKey // 钱包加密的主密钥
 {
 public:
-    std::vector<unsigned char> vchCryptedKey;
-    std::vector<unsigned char> vchSalt;
+    std::vector<unsigned char> vchCryptedKey; // 加密的密钥
+    std::vector<unsigned char> vchSalt; // 盐值
     //! 0 = EVP_sha512()
     //! 1 = scrypt()
-    unsigned int nDerivationMethod;
-    unsigned int nDeriveIterations;
+    unsigned int nDerivationMethod; // 派生方式
+    unsigned int nDeriveIterations; // 派生迭代计数
     //! Use this for more parameters to key derivation,
     //! such as the various parameters to scrypt
     std::vector<unsigned char> vchOtherDerivationParameters;
@@ -67,16 +67,16 @@ public:
 typedef std::vector<unsigned char, secure_allocator<unsigned char> > CKeyingMaterial;
 
 /** Encryption/decryption context with key information */
-class CCrypter
+class CCrypter // 使用密钥信息加密/解密上下文
 {
 private:
-    unsigned char chKey[WALLET_CRYPTO_KEY_SIZE];
-    unsigned char chIV[WALLET_CRYPTO_KEY_SIZE];
+    unsigned char chKey[WALLET_CRYPTO_KEY_SIZE]; // 对称密钥
+    unsigned char chIV[WALLET_CRYPTO_KEY_SIZE]; // 初始化向量 iv
     bool fKeySet;
 
 public:
-    bool SetKeyFromPassphrase(const SecureString &strKeyData, const std::vector<unsigned char>& chSalt, const unsigned int nRounds, const unsigned int nDerivationMethod);
-    bool Encrypt(const CKeyingMaterial& vchPlaintext, std::vector<unsigned char> &vchCiphertext);
+    bool SetKeyFromPassphrase(const SecureString &strKeyData, const std::vector<unsigned char>& chSalt, const unsigned int nRounds, const unsigned int nDerivationMethod); // 使用 sha512 进行加密，获取密钥和初始化的 iv
+    bool Encrypt(const CKeyingMaterial& vchPlaintext, std::vector<unsigned char> &vchCiphertext); // 加密
     bool Decrypt(const std::vector<unsigned char>& vchCiphertext, CKeyingMaterial& vchPlaintext);
     bool SetKey(const CKeyingMaterial& chNewKey, const std::vector<unsigned char>& chNewIV);
 
@@ -128,7 +128,7 @@ protected:
     bool SetCrypted();
 
     //! will encrypt previously unencrypted keys
-    bool EncryptKeys(CKeyingMaterial& vMasterKeyIn);
+    bool EncryptKeys(CKeyingMaterial& vMasterKeyIn); // 加密之前未加密的密钥
 
     bool Unlock(const CKeyingMaterial& vMasterKeyIn);
 
@@ -189,7 +189,7 @@ public:
     /**
      * Wallet status (encrypted, locked) changed.
      * Note: Called without locks held.
-     */
+     */ // 钱包状态（加密，锁定）改变。注：无锁时调用。
     boost::signals2::signal<void (CCryptoKeyStore* wallet)> NotifyStatusChanged;
 };
 

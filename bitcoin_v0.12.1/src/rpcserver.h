@@ -108,7 +108,7 @@ void RPCUnregisterTimerInterface(RPCTimerInterface *iface);
 /**
  * Run func nSeconds from now.
  * Overrides previous timer <name> (if any).
- */
+ */ // 从现在开始的 nSeconds 秒后运行该函数
 void RPCRunLater(const std::string& name, boost::function<void(void)> func, int64_t nSeconds);
 
 typedef UniValue(*rpcfn_type)(const UniValue& params, bool fHelp); // RPC 命令对应函数行为的回调函数
@@ -224,9 +224,9 @@ extern UniValue gettransaction(const UniValue& params, bool fHelp);
 extern UniValue abandontransaction(const UniValue& params, bool fHelp); // 抛弃钱包内的交易
 extern UniValue backupwallet(const UniValue& params, bool fHelp);
 extern UniValue keypoolrefill(const UniValue& params, bool fHelp);
-extern UniValue walletpassphrase(const UniValue& params, bool fHelp);
-extern UniValue walletpassphrasechange(const UniValue& params, bool fHelp);
-extern UniValue walletlock(const UniValue& params, bool fHelp);
+extern UniValue walletpassphrase(const UniValue& params, bool fHelp); // 钱包解锁
+extern UniValue walletpassphrasechange(const UniValue& params, bool fHelp); // 修改钱包密码
+extern UniValue walletlock(const UniValue& params, bool fHelp); // 锁定钱包
 extern UniValue encryptwallet(const UniValue& params, bool fHelp); // 加密钱包
 extern UniValue validateaddress(const UniValue& params, bool fHelp);
 extern UniValue getinfo(const UniValue& params, bool fHelp); // 获取比特币核心信息

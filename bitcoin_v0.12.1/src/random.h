@@ -14,7 +14,7 @@
  * Seed OpenSSL PRNG with additional entropy data
  */
 void RandAddSeed(); // 生成随机数的种子
-void RandAddSeedPerfmon();
+void RandAddSeedPerfmon(); // Linux 下转调 RandAddSeed()
 
 /**
  * Functions to gather random data via the OpenSSL PRNG

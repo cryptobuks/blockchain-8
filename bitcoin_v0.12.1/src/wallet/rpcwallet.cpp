@@ -1893,11 +1893,11 @@ static void LockWallet(CWallet* pWallet)
 
 UniValue walletpassphrase(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保钱包可用
         return NullUniValue;
     
-    if (pwalletMain->IsCrypted() && (fHelp || params.size() != 2))
-        throw runtime_error(
+    if (pwalletMain->IsCrypted() && (fHelp || params.size() != 2)) // 参数个数必须为 2 个
+        throw runtime_error( // 命令帮助反馈
             "walletpassphrase \"passphrase\" timeout\n"
             "\nStores the wallet decryption key in memory for 'timeout' seconds.\n"
             "This is needed prior to performing transactions related to private keys such as sending bitcoins\n"
@@ -1916,23 +1916,23 @@ UniValue walletpassphrase(const UniValue& params, bool fHelp)
             + HelpExampleRpc("walletpassphrase", "\"my pass phrase\", 60")
         );
 
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
 
-    if (fHelp)
+    if (fHelp) // 钱包未加密时无法查看该命令帮助
         return true;
-    if (!pwalletMain->IsCrypted())
+    if (!pwalletMain->IsCrypted()) // 钱包未加密时无法执行该命令
         throw JSONRPCError(RPC_WALLET_WRONG_ENC_STATE, "Error: running with an unencrypted wallet, but walletpassphrase was called.");
 
     // Note that the walletpassphrase is stored in params[0] which is not mlock()ed
     SecureString strWalletPass;
-    strWalletPass.reserve(100);
+    strWalletPass.reserve(100); // 预开辟 100 个字节的空间
     // TODO: get rid of this .c_str() by implementing SecureString::operator=(std::string)
     // Alternately, find a way to make params[0] mlock()'d to begin with.
-    strWalletPass = params[0].get_str().c_str();
+    strWalletPass = params[0].get_str().c_str(); // 获取用户指定的钱包密码
 
-    if (strWalletPass.length() > 0)
+    if (strWalletPass.length() > 0) // 密码长度必须大于 0
     {
-        if (!pwalletMain->Unlock(strWalletPass))
+        if (!pwalletMain->Unlock(strWalletPass)) // 解锁钱包
             throw JSONRPCError(RPC_WALLET_PASSPHRASE_INCORRECT, "Error: The wallet passphrase entered was incorrect.");
     }
     else
@@ -1940,12 +1940,12 @@ UniValue walletpassphrase(const UniValue& params, bool fHelp)
             "walletpassphrase <passphrase> <timeout>\n"
             "Stores the wallet decryption key in memory for <timeout> seconds.");
 
-    pwalletMain->TopUpKeyPool();
+    pwalletMain->TopUpKeyPool(); // 充满密钥池
 
-    int64_t nSleepTime = params[1].get_int64();
+    int64_t nSleepTime = params[1].get_int64(); // 获取密钥过期时间作为睡眠时间
     LOCK(cs_nWalletUnlockTime);
-    nWalletUnlockTime = GetTime() + nSleepTime;
-    RPCRunLater("lockwallet", boost::bind(LockWallet, pwalletMain), nSleepTime);
+    nWalletUnlockTime = GetTime() + nSleepTime; // 得出绝对秒数
+    RPCRunLater("lockwallet", boost::bind(LockWallet, pwalletMain), nSleepTime); // 稍后运行锁定钱包函数
 
     return NullUniValue;
 }
@@ -1953,11 +1953,11 @@ UniValue walletpassphrase(const UniValue& params, bool fHelp)
 
 UniValue walletpassphrasechange(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保钱包当前可用
         return NullUniValue;
     
-    if (pwalletMain->IsCrypted() && (fHelp || params.size() != 2))
-        throw runtime_error(
+    if (pwalletMain->IsCrypted() && (fHelp || params.size() != 2)) // 钱包已加密 且 参数必须为 2 个
+        throw runtime_error( // 命令帮助反馈
             "walletpassphrasechange \"oldpassphrase\" \"newpassphrase\"\n"
             "\nChanges the wallet passphrase from 'oldpassphrase' to 'newpassphrase'.\n"
             "\nArguments:\n"
@@ -1968,42 +1968,42 @@ UniValue walletpassphrasechange(const UniValue& params, bool fHelp)
             + HelpExampleRpc("walletpassphrasechange", "\"old one\", \"new one\"")
         );
 
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
 
-    if (fHelp)
+    if (fHelp) // 若钱包未加密，则无法显示该命令帮助
         return true;
-    if (!pwalletMain->IsCrypted())
+    if (!pwalletMain->IsCrypted()) // 若钱包未加密，则无法使用该命令
         throw JSONRPCError(RPC_WALLET_WRONG_ENC_STATE, "Error: running with an unencrypted wallet, but walletpassphrasechange was called.");
 
     // TODO: get rid of these .c_str() calls by implementing SecureString::operator=(std::string)
     // Alternately, find a way to make params[0] mlock()'d to begin with.
     SecureString strOldWalletPass;
     strOldWalletPass.reserve(100);
-    strOldWalletPass = params[0].get_str().c_str();
+    strOldWalletPass = params[0].get_str().c_str(); // 获取用户指定的旧密码
 
     SecureString strNewWalletPass;
     strNewWalletPass.reserve(100);
-    strNewWalletPass = params[1].get_str().c_str();
+    strNewWalletPass = params[1].get_str().c_str(); // 获取用户指定的新密码
 
-    if (strOldWalletPass.length() < 1 || strNewWalletPass.length() < 1)
+    if (strOldWalletPass.length() < 1 || strNewWalletPass.length() < 1) // 新旧密码长度都不能小于 1
         throw runtime_error(
             "walletpassphrasechange <oldpassphrase> <newpassphrase>\n"
             "Changes the wallet passphrase from <oldpassphrase> to <newpassphrase>.");
 
-    if (!pwalletMain->ChangeWalletPassphrase(strOldWalletPass, strNewWalletPass))
+    if (!pwalletMain->ChangeWalletPassphrase(strOldWalletPass, strNewWalletPass)) // 改变钱包密码
         throw JSONRPCError(RPC_WALLET_PASSPHRASE_INCORRECT, "Error: The wallet passphrase entered was incorrect.");
 
-    return NullUniValue;
+    return NullUniValue; // 返回空值
 }
 
 
 UniValue walletlock(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保钱包当前可用
         return NullUniValue;
     
-    if (pwalletMain->IsCrypted() && (fHelp || params.size() != 0))
-        throw runtime_error(
+    if (pwalletMain->IsCrypted() && (fHelp || params.size() != 0)) // 钱包已加密 且 没有参数
+        throw runtime_error( // 命令帮助反馈
             "walletlock\n"
             "\nRemoves the wallet encryption key from memory, locking the wallet.\n"
             "After calling this method, you will need to call walletpassphrase again\n"
@@ -2019,20 +2019,20 @@ UniValue walletlock(const UniValue& params, bool fHelp)
             + HelpExampleRpc("walletlock", "")
         );
 
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
 
-    if (fHelp)
+    if (fHelp) // 钱包未加密时无法查看该命令帮助
         return true;
-    if (!pwalletMain->IsCrypted())
+    if (!pwalletMain->IsCrypted()) // 钱包未加密时无法使用该命令
         throw JSONRPCError(RPC_WALLET_WRONG_ENC_STATE, "Error: running with an unencrypted wallet, but walletlock was called.");
 
     {
         LOCK(cs_nWalletUnlockTime);
-        pwalletMain->Lock();
-        nWalletUnlockTime = 0;
+        pwalletMain->Lock(); // 锁定钱包
+        nWalletUnlockTime = 0; // 钱包解锁过期时间置 0
     }
 
-    return NullUniValue;
+    return NullUniValue; // 返回空值
 }
 
 

@@ -36,7 +36,7 @@ extern unsigned int nTxConfirmTarget;
 extern bool bSpendZeroConfChange;
 extern bool fSendFreeTransactions;
 
-static const unsigned int DEFAULT_KEYPOOL_SIZE = 100;
+static const unsigned int DEFAULT_KEYPOOL_SIZE = 100; // 密钥池默认大小
 //! -paytxfee default
 static const CAmount DEFAULT_TRANSACTION_FEE = 0;
 //! -paytxfee will warn if called with a higher fee than this amount (in satoshis) per KB
@@ -470,7 +470,7 @@ private:
      */
     bool SelectCoins(const CAmount& nTargetValue, std::set<std::pair<const CWalletTx*,unsigned int> >& setCoinsRet, CAmount& nValueRet, const CCoinControl *coinControl = NULL) const;
 
-    CWalletDB *pwalletdbEncryption;
+    CWalletDB *pwalletdbEncryption; // 钱包数据库对象指针
 
     //! the current wallet version: clients below this version are not able to load the wallet
     int nWalletVersion; // 当前的钱包版本：客户端低于该版本时不能加载钱包
@@ -510,12 +510,12 @@ public:
     bool fFileBacked; // 文件是否已备份的标志
     std::string strWalletFile; // 钱包文件的文件名
 
-    std::set<int64_t> setKeyPool; // 密钥池集合，用于记录密钥的数量（索引），从数字 1 开始递增
+    std::set<int64_t> setKeyPool; // 密钥池集合，用于记录密钥索引，从数字 1 开始递增
     std::map<CKeyID, CKeyMetadata> mapKeyMetadata;
 
     typedef std::map<unsigned int, CMasterKey> MasterKeyMap;
-    MasterKeyMap mapMasterKeys;
-    unsigned int nMasterKeyMaxID;
+    MasterKeyMap mapMasterKeys; // 主密钥映射
+    unsigned int nMasterKeyMaxID; // 主密钥最大索引号
 
     CWallet()
     {
@@ -631,8 +631,8 @@ public:
     bool LoadWatchOnly(const CScript &dest);
 
     bool Unlock(const SecureString& strWalletPassphrase);
-    bool ChangeWalletPassphrase(const SecureString& strOldWalletPassphrase, const SecureString& strNewWalletPassphrase);
-    bool EncryptWallet(const SecureString& strWalletPassphrase);
+    bool ChangeWalletPassphrase(const SecureString& strOldWalletPassphrase, const SecureString& strNewWalletPassphrase); // 改变钱包密码
+    bool EncryptWallet(const SecureString& strWalletPassphrase); // 使用用户指定密码加密钱包
 
     void GetKeyBirthTimes(std::map<CKeyID, int64_t> &mapKeyBirth) const;
 
@@ -687,7 +687,7 @@ public:
     static CAmount GetRequiredFee(unsigned int nTxBytes);
 
     bool NewKeyPool();
-    bool TopUpKeyPool(unsigned int kpSize = 0);
+    bool TopUpKeyPool(unsigned int kpSize = 0); // 充满密钥池
     void ReserveKeyFromKeyPool(int64_t& nIndex, CKeyPool& keypool);
     void KeepKey(int64_t nIndex);
     void ReturnKey(int64_t nIndex);

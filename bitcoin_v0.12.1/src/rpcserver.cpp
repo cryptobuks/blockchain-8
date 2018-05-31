@@ -35,8 +35,8 @@ static CCriticalSection cs_rpcWarmup;
 /* Timer-creating functions */
 static std::vector<RPCTimerInterface*> timerInterfaces; // RPC 定时器接口列表
 /* Map of name to timer.
- * @note Can be changed to std::unique_ptr when C++11 */
-static std::map<std::string, boost::shared_ptr<RPCTimerBase> > deadlineTimers;
+ * @note Can be changed to std::unique_ptr when C++11 */ // 定时器名字映射
+static std::map<std::string, boost::shared_ptr<RPCTimerBase> > deadlineTimers; // 截止时间定时器
 
 static struct CRPCSignals
 {
@@ -563,10 +563,10 @@ void RPCRunLater(const std::string& name, boost::function<void(void)> func, int6
 {
     if (timerInterfaces.empty())
         throw JSONRPCError(RPC_INTERNAL_ERROR, "No timer handler registered for RPC");
-    deadlineTimers.erase(name);
-    RPCTimerInterface* timerInterface = timerInterfaces.back();
+    deadlineTimers.erase(name); // 擦除指定名字的定时器
+    RPCTimerInterface* timerInterface = timerInterfaces.back(); // 拿到列表中最后一个定时器
     LogPrint("rpc", "queue run of timer %s in %i seconds (using %s)\n", name, nSeconds, timerInterface->Name());
-    deadlineTimers.insert(std::make_pair(name, boost::shared_ptr<RPCTimerBase>(timerInterface->NewTimer(func, nSeconds*1000))));
+    deadlineTimers.insert(std::make_pair(name, boost::shared_ptr<RPCTimerBase>(timerInterface->NewTimer(func, nSeconds*1000)))); // 和定时器名字配对，插入到截止时间定时器映射列表中
 }
 
 const CRPCTable tableRPC;

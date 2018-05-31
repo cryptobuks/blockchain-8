@@ -246,42 +246,42 @@ bool CWallet::Unlock(const SecureString& strWalletPassphrase)
 
 bool CWallet::ChangeWalletPassphrase(const SecureString& strOldWalletPassphrase, const SecureString& strNewWalletPassphrase)
 {
-    bool fWasLocked = IsLocked();
+    bool fWasLocked = IsLocked(); // 获取当前钱包加密状态作为以前加密状态
 
     {
-        LOCK(cs_wallet);
-        Lock();
+        LOCK(cs_wallet); // 钱包上锁
+        Lock(); // 锁定（加密）钱包
 
         CCrypter crypter;
         CKeyingMaterial vMasterKey;
-        BOOST_FOREACH(MasterKeyMap::value_type& pMasterKey, mapMasterKeys)
+        BOOST_FOREACH(MasterKeyMap::value_type& pMasterKey, mapMasterKeys) // 遍历主密钥映射列表
         {
-            if(!crypter.SetKeyFromPassphrase(strOldWalletPassphrase, pMasterKey.second.vchSalt, pMasterKey.second.nDeriveIterations, pMasterKey.second.nDerivationMethod))
+            if(!crypter.SetKeyFromPassphrase(strOldWalletPassphrase, pMasterKey.second.vchSalt, pMasterKey.second.nDeriveIterations, pMasterKey.second.nDerivationMethod)) // 从旧密码设置密钥
                 return false;
-            if (!crypter.Decrypt(pMasterKey.second.vchCryptedKey, vMasterKey))
+            if (!crypter.Decrypt(pMasterKey.second.vchCryptedKey, vMasterKey)) // 解密
                 return false;
-            if (CCryptoKeyStore::Unlock(vMasterKey))
+            if (CCryptoKeyStore::Unlock(vMasterKey)) // 解锁
             {
                 int64_t nStartTime = GetTimeMillis();
-                crypter.SetKeyFromPassphrase(strNewWalletPassphrase, pMasterKey.second.vchSalt, pMasterKey.second.nDeriveIterations, pMasterKey.second.nDerivationMethod);
-                pMasterKey.second.nDeriveIterations = pMasterKey.second.nDeriveIterations * (100 / ((double)(GetTimeMillis() - nStartTime)));
+                crypter.SetKeyFromPassphrase(strNewWalletPassphrase, pMasterKey.second.vchSalt, pMasterKey.second.nDeriveIterations, pMasterKey.second.nDerivationMethod); // 使用新密码获取密钥
+                pMasterKey.second.nDeriveIterations = pMasterKey.second.nDeriveIterations * (100 / ((double)(GetTimeMillis() - nStartTime))); // 计算迭代计数
 
                 nStartTime = GetTimeMillis();
-                crypter.SetKeyFromPassphrase(strNewWalletPassphrase, pMasterKey.second.vchSalt, pMasterKey.second.nDeriveIterations, pMasterKey.second.nDerivationMethod);
-                pMasterKey.second.nDeriveIterations = (pMasterKey.second.nDeriveIterations + pMasterKey.second.nDeriveIterations * 100 / ((double)(GetTimeMillis() - nStartTime))) / 2;
+                crypter.SetKeyFromPassphrase(strNewWalletPassphrase, pMasterKey.second.vchSalt, pMasterKey.second.nDeriveIterations, pMasterKey.second.nDerivationMethod); // 第 2 次设置
+                pMasterKey.second.nDeriveIterations = (pMasterKey.second.nDeriveIterations + pMasterKey.second.nDeriveIterations * 100 / ((double)(GetTimeMillis() - nStartTime))) / 2; // 重新计算迭代计数
 
-                if (pMasterKey.second.nDeriveIterations < 25000)
+                if (pMasterKey.second.nDeriveIterations < 25000) // 迭代计数最小 25000
                     pMasterKey.second.nDeriveIterations = 25000;
 
                 LogPrintf("Wallet passphrase changed to an nDeriveIterations of %i\n", pMasterKey.second.nDeriveIterations);
 
-                if (!crypter.SetKeyFromPassphrase(strNewWalletPassphrase, pMasterKey.second.vchSalt, pMasterKey.second.nDeriveIterations, pMasterKey.second.nDerivationMethod))
+                if (!crypter.SetKeyFromPassphrase(strNewWalletPassphrase, pMasterKey.second.vchSalt, pMasterKey.second.nDeriveIterations, pMasterKey.second.nDerivationMethod)) // 第 3 次设置
                     return false;
-                if (!crypter.Encrypt(vMasterKey, pMasterKey.second.vchCryptedKey))
+                if (!crypter.Encrypt(vMasterKey, pMasterKey.second.vchCryptedKey)) // 加密
                     return false;
-                CWalletDB(strWalletFile).WriteMasterKey(pMasterKey.first, pMasterKey.second);
-                if (fWasLocked)
-                    Lock();
+                CWalletDB(strWalletFile).WriteMasterKey(pMasterKey.first, pMasterKey.second); // 把新密钥写入钱包数据库
+                if (fWasLocked) // 若密码改变前未加密状态
+                    Lock(); // 锁定（加密)
                 return true;
             }
         }
@@ -493,43 +493,43 @@ void CWallet::AddToSpends(const uint256& wtxid)
 
 bool CWallet::EncryptWallet(const SecureString& strWalletPassphrase)
 {
-    if (IsCrypted())
-        return false;
+    if (IsCrypted()) // 如果钱包已加密
+        return false; // 直接退出
 
     CKeyingMaterial vMasterKey;
-    RandAddSeedPerfmon();
+    RandAddSeedPerfmon(); // 创建随机数种子
 
-    vMasterKey.resize(WALLET_CRYPTO_KEY_SIZE);
-    GetRandBytes(&vMasterKey[0], WALLET_CRYPTO_KEY_SIZE);
+    vMasterKey.resize(WALLET_CRYPTO_KEY_SIZE); // 预开辟密钥大小
+    GetRandBytes(&vMasterKey[0], WALLET_CRYPTO_KEY_SIZE); // 获取 32 字节的随机字节
 
-    CMasterKey kMasterKey;
-    RandAddSeedPerfmon();
+    CMasterKey kMasterKey; // 主密钥对象
+    RandAddSeedPerfmon(); // 再次创建随机数种子
 
-    kMasterKey.vchSalt.resize(WALLET_CRYPTO_SALT_SIZE);
-    GetRandBytes(&kMasterKey.vchSalt[0], WALLET_CRYPTO_SALT_SIZE);
+    kMasterKey.vchSalt.resize(WALLET_CRYPTO_SALT_SIZE); // 预开辟主密钥盐值大小
+    GetRandBytes(&kMasterKey.vchSalt[0], WALLET_CRYPTO_SALT_SIZE); // 获取 8 字节的随机字节
 
     CCrypter crypter;
-    int64_t nStartTime = GetTimeMillis();
-    crypter.SetKeyFromPassphrase(strWalletPassphrase, kMasterKey.vchSalt, 25000, kMasterKey.nDerivationMethod);
-    kMasterKey.nDeriveIterations = 2500000 / ((double)(GetTimeMillis() - nStartTime));
+    int64_t nStartTime = GetTimeMillis(); // 记录起始时间
+    crypter.SetKeyFromPassphrase(strWalletPassphrase, kMasterKey.vchSalt, 25000, kMasterKey.nDerivationMethod); // 从用户指定密码设置密钥
+    kMasterKey.nDeriveIterations = 2500000 / ((double)(GetTimeMillis() - nStartTime)); // 计算迭代计数
 
     nStartTime = GetTimeMillis();
-    crypter.SetKeyFromPassphrase(strWalletPassphrase, kMasterKey.vchSalt, kMasterKey.nDeriveIterations, kMasterKey.nDerivationMethod);
-    kMasterKey.nDeriveIterations = (kMasterKey.nDeriveIterations + kMasterKey.nDeriveIterations * 100 / ((double)(GetTimeMillis() - nStartTime))) / 2;
+    crypter.SetKeyFromPassphrase(strWalletPassphrase, kMasterKey.vchSalt, kMasterKey.nDeriveIterations, kMasterKey.nDerivationMethod); // 第 2 次调用 sha512 进行加密
+    kMasterKey.nDeriveIterations = (kMasterKey.nDeriveIterations + kMasterKey.nDeriveIterations * 100 / ((double)(GetTimeMillis() - nStartTime))) / 2; // 重新计算迭代计数
 
-    if (kMasterKey.nDeriveIterations < 25000)
+    if (kMasterKey.nDeriveIterations < 25000) // 迭代计数最低为 25000
         kMasterKey.nDeriveIterations = 25000;
 
     LogPrintf("Encrypting Wallet with an nDeriveIterations of %i\n", kMasterKey.nDeriveIterations);
 
-    if (!crypter.SetKeyFromPassphrase(strWalletPassphrase, kMasterKey.vchSalt, kMasterKey.nDeriveIterations, kMasterKey.nDerivationMethod))
+    if (!crypter.SetKeyFromPassphrase(strWalletPassphrase, kMasterKey.vchSalt, kMasterKey.nDeriveIterations, kMasterKey.nDerivationMethod)) // 第 3 次调用 sha512 获取密钥和初始化向量
         return false;
-    if (!crypter.Encrypt(vMasterKey, kMasterKey.vchCryptedKey))
+    if (!crypter.Encrypt(vMasterKey, kMasterKey.vchCryptedKey)) // 
         return false;
 
     {
-        LOCK(cs_wallet);
-        mapMasterKeys[++nMasterKeyMaxID] = kMasterKey;
+        LOCK(cs_wallet); // 钱包上锁
+        mapMasterKeys[++nMasterKeyMaxID] = kMasterKey; // 加入主密钥映射
         if (fFileBacked)
         {
             assert(!pwalletdbEncryption);
@@ -539,7 +539,7 @@ bool CWallet::EncryptWallet(const SecureString& strWalletPassphrase)
                 pwalletdbEncryption = NULL;
                 return false;
             }
-            pwalletdbEncryption->WriteMasterKey(nMasterKeyMaxID, kMasterKey);
+            pwalletdbEncryption->WriteMasterKey(nMasterKeyMaxID, kMasterKey); // 写主密钥到钱包数据库
         }
 
         if (!EncryptKeys(vMasterKey))
@@ -547,21 +547,21 @@ bool CWallet::EncryptWallet(const SecureString& strWalletPassphrase)
             if (fFileBacked) {
                 pwalletdbEncryption->TxnAbort();
                 delete pwalletdbEncryption;
-            }
+            } // 我们现在可能有一半加密的密钥在内存，另一半未加密...
             // We now probably have half of our keys encrypted in memory, and half not...
-            // die and let the user reload the unencrypted wallet.
+            // die and let the user reload the unencrypted wallet. // 关闭并让用户重新加载未加密的钱包
             assert(false);
         }
 
-        // Encryption was introduced in version 0.4.0
+        // Encryption was introduced in version 0.4.0 // 加密在版本 0.4.0 引入
         SetMinVersion(FEATURE_WALLETCRYPT, pwalletdbEncryption, true);
 
-        if (fFileBacked)
+        if (fFileBacked) // 文件备份标志
         {
             if (!pwalletdbEncryption->TxnCommit()) {
                 delete pwalletdbEncryption;
-                // We now have keys encrypted in memory, but not on disk...
-                // die to avoid confusion and let the user reload the unencrypted wallet.
+                // We now have keys encrypted in memory, but not on disk... // 我们现在拥有内存中的加密密钥，但在磁盘上没有...
+                // die to avoid confusion and let the user reload the unencrypted wallet. // 尽量避免混淆并让用户重新加载未加密的钱包
                 assert(false);
             }
 
@@ -569,17 +569,17 @@ bool CWallet::EncryptWallet(const SecureString& strWalletPassphrase)
             pwalletdbEncryption = NULL;
         }
 
-        Lock();
-        Unlock(strWalletPassphrase);
-        NewKeyPool();
-        Lock();
+        Lock(); // 上锁，标志加密状态
+        Unlock(strWalletPassphrase); // 通过用户指定密码解锁
+        NewKeyPool(); // 新建密钥池
+        Lock(); // 再次上锁
 
         // Need to completely rewrite the wallet file; if we don't, bdb might keep
         // bits of the unencrypted private key in slack space in the database file.
-        CDB::Rewrite(strWalletFile);
+        CDB::Rewrite(strWalletFile); // 需要完全重写钱包文件；如果我们不这么做，bdb 可能会保留未加密私钥比特位在数据库文件的松散空间。
 
     }
-    NotifyStatusChanged(this);
+    NotifyStatusChanged(this); // 通知钱包状态已改变
 
     return true;
 }
@@ -2439,27 +2439,27 @@ bool CWallet::SetDefaultKey(const CPubKey &vchPubKey)
 /**
  * Mark old keypool keys as used,
  * and generate all new keys 
- */
+ */ // 标记旧密钥池密钥为已使用，并生成全部的新密钥
 bool CWallet::NewKeyPool()
 {
     {
-        LOCK(cs_wallet);
-        CWalletDB walletdb(strWalletFile);
-        BOOST_FOREACH(int64_t nIndex, setKeyPool)
-            walletdb.ErasePool(nIndex);
-        setKeyPool.clear();
+        LOCK(cs_wallet); // 钱包上锁
+        CWalletDB walletdb(strWalletFile); // 创建钱包数据库对象
+        BOOST_FOREACH(int64_t nIndex, setKeyPool) // 遍历密钥池索引集合
+            walletdb.ErasePool(nIndex); // 根据索引擦除数据库中的密钥
+        setKeyPool.clear(); // 清空密钥池索引集合
 
-        if (IsLocked())
+        if (IsLocked()) // 检查钱包是否加密
             return false;
 
-        int64_t nKeys = max(GetArg("-keypool", DEFAULT_KEYPOOL_SIZE), (int64_t)0);
+        int64_t nKeys = max(GetArg("-keypool", DEFAULT_KEYPOOL_SIZE), (int64_t)0); // 获取密钥池大小
         for (int i = 0; i < nKeys; i++)
         {
             int64_t nIndex = i+1;
-            walletdb.WritePool(nIndex, CKeyPool(GenerateNewKey()));
-            setKeyPool.insert(nIndex);
+            walletdb.WritePool(nIndex, CKeyPool(GenerateNewKey())); // 创建新密钥并和索引一起写入钱包数据库
+            setKeyPool.insert(nIndex); // 插入密钥池索引集合
         }
-        LogPrintf("CWallet::NewKeyPool wrote %d new keys\n", nKeys);
+        LogPrintf("CWallet::NewKeyPool wrote %d new keys\n", nKeys); // 记录写入新密钥的个数
     }
     return true;
 }

@@ -21,8 +21,8 @@ bool CCrypter::SetKeyFromPassphrase(const SecureString& strKeyData, const std::v
 
     int i = 0;
     if (nDerivationMethod == 0)
-        i = EVP_BytesToKey(EVP_aes_256_cbc(), EVP_sha512(), &chSalt[0],
-                          (unsigned char *)&strKeyData[0], strKeyData.size(), nRounds, chKey, chIV);
+        i = EVP_BytesToKey(EVP_aes_256_cbc(), EVP_sha512(), &chSalt[0], // sha512 对称加密得到一个对称密钥和一个初始化向量 iv
+                          (unsigned char *)&strKeyData[0], strKeyData.size(), nRounds, chKey, chIV); // nRounds 为迭代计数
 
     if (i != (int)WALLET_CRYPTO_KEY_SIZE)
     {
@@ -135,7 +135,7 @@ static bool DecryptKey(const CKeyingMaterial& vMasterKey, const std::vector<unsi
     return key.VerifyPubKey(vchPubKey);
 }
 
-bool CCryptoKeyStore::SetCrypted()
+bool CCryptoKeyStore::SetCrypted() // 设置加密状态为 true
 {
     LOCK(cs_KeyStore);
     if (fUseCrypto)
@@ -148,15 +148,15 @@ bool CCryptoKeyStore::SetCrypted()
 
 bool CCryptoKeyStore::Lock()
 {
-    if (!SetCrypted())
+    if (!SetCrypted()) // 设置加密状态
         return false;
 
     {
-        LOCK(cs_KeyStore);
-        vMasterKey.clear();
+        LOCK(cs_KeyStore); // 上锁
+        vMasterKey.clear(); // 清空主密钥
     }
 
-    NotifyStatusChanged(this);
+    NotifyStatusChanged(this); // 通知状态改变
     return true;
 }
 
