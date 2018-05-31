@@ -37,7 +37,7 @@ std::string HelpRequiringPassphrase()
         : "";
 }
 
-bool EnsureWalletIsAvailable(bool avoidException) // 确保钱包可用
+bool EnsureWalletIsAvailable(bool avoidException)
 {
     if (!pwalletMain) // 若当前钱包未创建
     {
@@ -1788,11 +1788,11 @@ UniValue gettransaction(const UniValue& params, bool fHelp)
 
 UniValue abandontransaction(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保当前钱包可用
         return NullUniValue;
 
-    if (fHelp || params.size() != 1)
-        throw runtime_error(
+    if (fHelp || params.size() != 1) // 参数必须为 1 个
+        throw runtime_error( // 命令帮助反馈
             "abandontransaction \"txid\"\n"
             "\nMark in-wallet transaction <txid> as abandoned\n"
             "This will mark this transaction and all its in-wallet descendants as abandoned which will allow\n"
@@ -1807,17 +1807,17 @@ UniValue abandontransaction(const UniValue& params, bool fHelp)
             + HelpExampleRpc("abandontransaction", "\"1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d\"")
         );
 
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 上锁
 
     uint256 hash;
-    hash.SetHex(params[0].get_str());
+    hash.SetHex(params[0].get_str()); // 获取交易索引
 
-    if (!pwalletMain->mapWallet.count(hash))
+    if (!pwalletMain->mapWallet.count(hash)) // 检查指定交易是否在钱包中
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid or non-wallet transaction id");
-    if (!pwalletMain->AbandonTransaction(hash))
+    if (!pwalletMain->AbandonTransaction(hash)) // 标记该钱包交易为已抛弃
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Transaction not eligible for abandonment");
 
-    return NullUniValue;
+    return NullUniValue; // 返回空
 }
 
 
@@ -2038,11 +2038,11 @@ UniValue walletlock(const UniValue& params, bool fHelp)
 
 UniValue encryptwallet(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保钱包当前可用
         return NullUniValue;
     
-    if (!pwalletMain->IsCrypted() && (fHelp || params.size() != 1))
-        throw runtime_error(
+    if (!pwalletMain->IsCrypted() && (fHelp || params.size() != 1)) // 钱包未加密 且 参数只能有 1 个
+        throw runtime_error( // 命令参数反馈
             "encryptwallet \"passphrase\"\n"
             "\nEncrypts the wallet with 'passphrase'. This is for first time encryption.\n"
             "After this, any calls that interact with private keys such as sending or signing \n"
@@ -2065,32 +2065,32 @@ UniValue encryptwallet(const UniValue& params, bool fHelp)
             + HelpExampleRpc("encryptwallet", "\"my pass phrase\"")
         );
 
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
 
-    if (fHelp)
+    if (fHelp) // 钱包加密时帮助处理，不反馈任何信息
         return true;
-    if (pwalletMain->IsCrypted())
+    if (pwalletMain->IsCrypted()) // 若钱包已加密
         throw JSONRPCError(RPC_WALLET_WRONG_ENC_STATE, "Error: running with an encrypted wallet, but encryptwallet was called.");
 
     // TODO: get rid of this .c_str() by implementing SecureString::operator=(std::string)
     // Alternately, find a way to make params[0] mlock()'d to begin with.
-    SecureString strWalletPass;
-    strWalletPass.reserve(100);
-    strWalletPass = params[0].get_str().c_str();
+    SecureString strWalletPass; // 创建一个安全字符串对象，用来保存密码
+    strWalletPass.reserve(100); // 预开辟 100 个字符的空间
+    strWalletPass = params[0].get_str().c_str(); // 获取用户指定的密码
 
-    if (strWalletPass.length() < 1)
+    if (strWalletPass.length() < 1) // 密码长度不能小于 1，至少为 1 个字符
         throw runtime_error(
             "encryptwallet <passphrase>\n"
             "Encrypts the wallet with <passphrase>.");
 
-    if (!pwalletMain->EncryptWallet(strWalletPass))
+    if (!pwalletMain->EncryptWallet(strWalletPass)) // 加密钱包
         throw JSONRPCError(RPC_WALLET_ENCRYPTION_FAILED, "Error: Failed to encrypt the wallet.");
 
-    // BDB seems to have a bad habit of writing old data into
-    // slack space in .dat files; that is bad if the old data is
-    // unencrypted private keys. So:
-    StartShutdown();
-    return "wallet encrypted; Bitcoin server stopping, restart to run with encrypted wallet. The keypool has been flushed, you need to make a new backup.";
+    // BDB seems to have a bad habit of writing old data into // Berkeley DB 似乎有一个坏习惯，
+    // slack space in .dat files; that is bad if the old data is // 把旧数据写入 .dat 文件的松散空
+    // unencrypted private keys. So: // 糟糕的是旧数据是没有加密的私钥，所以：
+    StartShutdown(); // 关闭核心服务器
+    return "wallet encrypted; Bitcoin server stopping, restart to run with encrypted wallet. The keypool has been flushed, you need to make a new backup."; // 返回该信息表示加密成功
 }
 
 UniValue lockunspent(const UniValue& params, bool fHelp)
@@ -2255,11 +2255,11 @@ UniValue settxfee(const UniValue& params, bool fHelp)
 
 UniValue getwalletinfo(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保钱包当前可用
         return NullUniValue;
     
-    if (fHelp || params.size() != 0)
-        throw runtime_error(
+    if (fHelp || params.size() != 0) // 没有参数
+        throw runtime_error( // 命令帮助反馈
             "getwalletinfo\n"
             "Returns an object containing various wallet state info.\n"
             "\nResult:\n"
@@ -2279,20 +2279,20 @@ UniValue getwalletinfo(const UniValue& params, bool fHelp)
             + HelpExampleRpc("getwalletinfo", "")
         );
 
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
 
-    UniValue obj(UniValue::VOBJ);
-    obj.push_back(Pair("walletversion", pwalletMain->GetVersion()));
-    obj.push_back(Pair("balance",       ValueFromAmount(pwalletMain->GetBalance())));
-    obj.push_back(Pair("unconfirmed_balance", ValueFromAmount(pwalletMain->GetUnconfirmedBalance())));
-    obj.push_back(Pair("immature_balance",    ValueFromAmount(pwalletMain->GetImmatureBalance())));
-    obj.push_back(Pair("txcount",       (int)pwalletMain->mapWallet.size()));
-    obj.push_back(Pair("keypoololdest", pwalletMain->GetOldestKeyPoolTime()));
-    obj.push_back(Pair("keypoolsize",   (int)pwalletMain->GetKeyPoolSize()));
-    if (pwalletMain->IsCrypted())
-        obj.push_back(Pair("unlocked_until", nWalletUnlockTime));
-    obj.push_back(Pair("paytxfee",      ValueFromAmount(payTxFee.GetFeePerK())));
-    return obj;
+    UniValue obj(UniValue::VOBJ); // 创建目标类型对象
+    obj.push_back(Pair("walletversion", pwalletMain->GetVersion())); // 钱包版本
+    obj.push_back(Pair("balance",       ValueFromAmount(pwalletMain->GetBalance()))); // 钱包余额（可用，已确认，已成熟）
+    obj.push_back(Pair("unconfirmed_balance", ValueFromAmount(pwalletMain->GetUnconfirmedBalance()))); // 未确认余额
+    obj.push_back(Pair("immature_balance",    ValueFromAmount(pwalletMain->GetImmatureBalance()))); // 未成熟余额
+    obj.push_back(Pair("txcount",       (int)pwalletMain->mapWallet.size())); // 该钱包内的交易数
+    obj.push_back(Pair("keypoololdest", pwalletMain->GetOldestKeyPoolTime())); // 密钥池最早的密钥创建时间
+    obj.push_back(Pair("keypoolsize",   (int)pwalletMain->GetKeyPoolSize())); // 密钥池大小
+    if (pwalletMain->IsCrypted()) // 若钱包已加密
+        obj.push_back(Pair("unlocked_until", nWalletUnlockTime)); // 解锁过期时间
+    obj.push_back(Pair("paytxfee",      ValueFromAmount(payTxFee.GetFeePerK()))); // 交易费
+    return obj; // 返回结果
 }
 
 UniValue resendwallettransactions(const UniValue& params, bool fHelp)

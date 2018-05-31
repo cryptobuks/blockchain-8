@@ -785,55 +785,55 @@ bool CWallet::AddToWalletIfInvolvingMe(const CTransaction& tx, const CBlock* pbl
 
 bool CWallet::AbandonTransaction(const uint256& hashTx)
 {
-    LOCK2(cs_main, cs_wallet);
+    LOCK2(cs_main, cs_wallet); // 上锁
 
     // Do not flush the wallet here for performance reasons
-    CWalletDB walletdb(strWalletFile, "r+", false);
+    CWalletDB walletdb(strWalletFile, "r+", false); // 因为性能原因不要在这里刷新钱包
 
-    std::set<uint256> todo;
-    std::set<uint256> done;
+    std::set<uint256> todo; // 待办列表
+    std::set<uint256> done; // 已完成列表
 
-    // Can't mark abandoned if confirmed or in mempool
-    assert(mapWallet.count(hashTx));
-    CWalletTx& origtx = mapWallet[hashTx];
-    if (origtx.GetDepthInMainChain() > 0 || origtx.InMempool()) {
+    // Can't mark abandoned if confirmed or in mempool // 若已确认或在内存池中的交易则无法标记已抛弃
+    assert(mapWallet.count(hashTx)); // 检查交易是否在钱包中
+    CWalletTx& origtx = mapWallet[hashTx]; // 获取指定的钱包交易
+    if (origtx.GetDepthInMainChain() > 0 || origtx.InMempool()) { // 交易所在区块深度大于 0 （该交易已上链）或该交易在内存池中
         return false;
     }
 
-    todo.insert(hashTx);
+    todo.insert(hashTx); // 插入待办列表
 
-    while (!todo.empty()) {
-        uint256 now = *todo.begin();
+    while (!todo.empty()) { // 待办列表非空
+        uint256 now = *todo.begin(); // 取出待办列表的第一项
         todo.erase(now);
-        done.insert(now);
+        done.insert(now); // 插入已完成列表
         assert(mapWallet.count(now));
-        CWalletTx& wtx = mapWallet[now];
-        int currentconfirm = wtx.GetDepthInMainChain();
+        CWalletTx& wtx = mapWallet[now]; // 获取对应的钱包交易
+        int currentconfirm = wtx.GetDepthInMainChain(); // 获取该交易所在区块在链上的深度作为确认数
         // If the orig tx was not in block, none of its spends can be
         assert(currentconfirm <= 0);
         // if (currentconfirm < 0) {Tx and spends are already conflicted, no need to abandon}
-        if (currentconfirm == 0 && !wtx.isAbandoned()) {
-            // If the orig tx was not in block/mempool, none of its spends can be in mempool
-            assert(!wtx.InMempool());
+        if (currentconfirm == 0 && !wtx.isAbandoned()) { // 当前确认为 0 且钱包交易未标记已抛弃
+            // If the orig tx was not in block/mempool, none of its spends can be in mempool // 它的所有花费都不在内存池中
+            assert(!wtx.InMempool()); // 钱包交易不在内存池中
             wtx.nIndex = -1;
-            wtx.setAbandoned();
-            wtx.MarkDirty();
-            wtx.WriteToDisk(&walletdb);
+            wtx.setAbandoned(); // 把钱包交易标记为已抛弃
+            wtx.MarkDirty(); // 标记该交易已变动
+            wtx.WriteToDisk(&walletdb); // 写入钱包数据库
             NotifyTransactionChanged(this, wtx.GetHash(), CT_UPDATED);
-            // Iterate over all its outputs, and mark transactions in the wallet that spend them abandoned too
+            // Iterate over all its outputs, and mark transactions in the wallet that spend them abandoned too // 遍历它所有的输出，并标记钱包中的交易为已抛弃
             TxSpends::const_iterator iter = mapTxSpends.lower_bound(COutPoint(hashTx, 0));
-            while (iter != mapTxSpends.end() && iter->first.hash == now) {
-                if (!done.count(iter->second)) {
-                    todo.insert(iter->second);
+            while (iter != mapTxSpends.end() && iter->first.hash == now) { // 遍历交易花费映射，且全部为该交易的输出
+                if (!done.count(iter->second)) { // 对应交易若不在已完成列表
+                    todo.insert(iter->second); // 把该交易加入待办列表
                 }
                 iter++;
             }
-            // If a transaction changes 'conflicted' state, that changes the balance
-            // available of the outputs it spends. So force those to be recomputed
+            // If a transaction changes 'conflicted' state, that changes the balance // 如果交易改变“冲突”状态，会改变其输出花费的可用余额。
+            // available of the outputs it spends. So force those to be recomputed // 所以强制重新计算。
             BOOST_FOREACH(const CTxIn& txin, wtx.vin)
             {
-                if (mapWallet.count(txin.prevout.hash))
-                    mapWallet[txin.prevout.hash].MarkDirty();
+                if (mapWallet.count(txin.prevout.hash)) // 若前一笔交易的在钱包中
+                    mapWallet[txin.prevout.hash].MarkDirty(); // 把该交易索引对应的钱包交易标记为已改变
             }
         }
     }
@@ -3011,14 +3011,14 @@ int CMerkleTx::GetDepthInMainChain(const CBlockIndex* &pindexRet) const
     if (hashUnset()) // 判断该区块的有效性
         return 0;
 
-    AssertLockHeld(cs_main);
+    AssertLockHeld(cs_main); // 验证锁状态
 
-    // Find the block it claims to be in
-    BlockMap::iterator mi = mapBlockIndex.find(hashBlock); // 根据 hashBlock 在区块索引列表中找区块
+    // Find the block it claims to be in // 找到该交易声明在的区块
+    BlockMap::iterator mi = mapBlockIndex.find(hashBlock); // 获取对应区块的迭代器
     if (mi == mapBlockIndex.end()) // 若没找到，则返回 0
         return 0;
-    CBlockIndex* pindex = (*mi).second;
-    if (!pindex || !chainActive.Contains(pindex)) // 根据区块索引判断该块是否在主链上，若不在，则返回 0
+    CBlockIndex* pindex = (*mi).second; // 获取区块索引
+    if (!pindex || !chainActive.Contains(pindex)) // 检查该区块是否在激活主链上
         return 0;
 
     pindexRet = pindex;

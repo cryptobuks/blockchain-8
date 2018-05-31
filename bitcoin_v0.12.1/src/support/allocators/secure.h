@@ -56,7 +56,7 @@ struct secure_allocator : public std::allocator<T> {
     }
 };
 
-// This is exactly like std::string, but with a custom allocator.
-typedef std::basic_string<char, std::char_traits<char>, secure_allocator<char> > SecureString;
+// This is exactly like std::string, but with a custom allocator. // 这是一个 std::string，但定制了空间配置器。
+typedef std::basic_string<char, std::char_traits<char>, secure_allocator<char> > SecureString; // 安全字符串类型
 
 #endif // BITCOIN_SUPPORT_ALLOCATORS_SECURE_H

@@ -155,20 +155,20 @@ struct COutputEntry // 输出条目
 };
 
 /** A transaction with a merkle branch linking it to the block chain. */
-class CMerkleTx : public CTransaction
+class CMerkleTx : public CTransaction // 一个连接它到区块链的默克分支交易
 {
 private:
   /** Constant used in hashBlock to indicate tx has been abandoned */
-    static const uint256 ABANDON_HASH;
+    static const uint256 ABANDON_HASH; // 在块哈希中使用的用于表示交易已被抛弃的常量
 
 public:
-    uint256 hashBlock;
+    uint256 hashBlock; // 块哈希
 
     /* An nIndex == -1 means that hashBlock (in nonzero) refers to the earliest
      * block in the chain we know this or any in-wallet dependency conflicts
      * with. Older clients interpret nIndex == -1 as unconfirmed for backward
      * compatibility.
-     */
+     */ // nIndex 等于 -1 意味着块哈希（非零）指的是链上最早的块，我们知道这个或任何钱包内部依赖冲突。旧客户端把 nIndex 等于 -1 解释为未确认向后的兼容性。
     int nIndex;
 
     CMerkleTx()
@@ -207,14 +207,14 @@ public:
      *  0  : in memory pool, waiting to be included in a block
      * >=1 : this many blocks deep in the main chain
      */
-    int GetDepthInMainChain(const CBlockIndex* &pindexRet) const;
+    int GetDepthInMainChain(const CBlockIndex* &pindexRet) const; // 获取该交易在主链上的深度
     int GetDepthInMainChain() const { const CBlockIndex *pindexRet; return GetDepthInMainChain(pindexRet); }
     bool IsInMainChain() const { const CBlockIndex *pindexRet; return GetDepthInMainChain(pindexRet) > 0; }
     int GetBlocksToMaturity() const;
     bool AcceptToMemoryPool(bool fLimitFree=true, bool fRejectAbsurdFee=true);
-    bool hashUnset() const { return (hashBlock.IsNull() || hashBlock == ABANDON_HASH); }
-    bool isAbandoned() const { return (hashBlock == ABANDON_HASH); }
-    void setAbandoned() { hashBlock = ABANDON_HASH; }
+    bool hashUnset() const { return (hashBlock.IsNull() || hashBlock == ABANDON_HASH); } // 哈希未设置（为空或已抛弃的哈希）
+    bool isAbandoned() const { return (hashBlock == ABANDON_HASH); } // 该交易是否标记为已抛弃
+    void setAbandoned() { hashBlock = ABANDON_HASH; } // 标记该交易为已抛弃
 };
 
 /** 
@@ -351,8 +351,8 @@ public:
         mapValue.erase("timesmart");
     }
 
-    //! make sure balances are recalculated
-    void MarkDirty()
+    //! make sure balances are recalculated // 确保余额被重新计算
+    void MarkDirty() // 标记已变动
     {
         fCreditCached = false;
         fAvailableCreditCached = false;
@@ -550,7 +550,7 @@ public:
         fBroadcastTransactions = false;
     }
 
-    std::map<uint256, CWalletTx> mapWallet;
+    std::map<uint256, CWalletTx> mapWallet; // 钱包映射 <交易索引， 钱包交易>
     std::list<CAccountingEntry> laccentries;
 
     typedef std::pair<CWalletTx*, CAccountingEntry*> TxPair;
@@ -778,7 +778,7 @@ public:
     /** 
      * Wallet transaction added, removed or updated.
      * @note called with lock cs_wallet held.
-     */
+     */ // 钱包交易添加，移除和更新时。
     boost::signals2::signal<void (CWallet *wallet, const uint256 &hashTx,
             ChangeType status)> NotifyTransactionChanged;
 
@@ -794,7 +794,7 @@ public:
     void SetBroadcastTransactions(bool broadcast) { fBroadcastTransactions = broadcast; }
 
     /* Mark a transaction (and it in-wallet descendants) as abandoned so its inputs may be respent. */
-    bool AbandonTransaction(const uint256& hashTx);
+    bool AbandonTransaction(const uint256& hashTx); // 标记一笔交易（及其钱包后裔）为以抛弃，以至于它的输入被重新关注
 };
 
 /** A key allocated from the key pool. */

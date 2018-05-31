@@ -221,16 +221,16 @@ extern UniValue listaddressgroupings(const UniValue& params, bool fHelp);
 extern UniValue listaccounts(const UniValue& params, bool fHelp);
 extern UniValue listsinceblock(const UniValue& params, bool fHelp);
 extern UniValue gettransaction(const UniValue& params, bool fHelp);
-extern UniValue abandontransaction(const UniValue& params, bool fHelp);
+extern UniValue abandontransaction(const UniValue& params, bool fHelp); // 抛弃钱包内的交易
 extern UniValue backupwallet(const UniValue& params, bool fHelp);
 extern UniValue keypoolrefill(const UniValue& params, bool fHelp);
 extern UniValue walletpassphrase(const UniValue& params, bool fHelp);
 extern UniValue walletpassphrasechange(const UniValue& params, bool fHelp);
 extern UniValue walletlock(const UniValue& params, bool fHelp);
-extern UniValue encryptwallet(const UniValue& params, bool fHelp);
+extern UniValue encryptwallet(const UniValue& params, bool fHelp); // 加密钱包
 extern UniValue validateaddress(const UniValue& params, bool fHelp);
 extern UniValue getinfo(const UniValue& params, bool fHelp); // 获取比特币核心信息
-extern UniValue getwalletinfo(const UniValue& params, bool fHelp);
+extern UniValue getwalletinfo(const UniValue& params, bool fHelp); // 获取钱包信息
 extern UniValue getblockchaininfo(const UniValue& params, bool fHelp); // 获取区块链信息
 extern UniValue getnetworkinfo(const UniValue& params, bool fHelp); // 获取网络状态信息
 extern UniValue setmocktime(const UniValue& params, bool fHelp);
