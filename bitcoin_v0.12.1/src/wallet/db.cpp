@@ -31,7 +31,7 @@ unsigned int nWalletDBUpdated; // 钱包数据库升级次数计数器
 // CDB
 //
 
-CDBEnv bitdb;
+CDBEnv bitdb; // 钱包数据库环境对象
 
 void CDBEnv::EnvShutdown()
 {

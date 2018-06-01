@@ -16,6 +16,6 @@ int64_t GetLogTimeMicros(); // 调用 GetTimeMicros
 void SetMockTime(int64_t nMockTimeIn);
 void MilliSleep(int64_t n); // 睡 n 毫秒
 
-std::string DateTimeStrFormat(const char* pszFormat, int64_t nTime);
+std::string DateTimeStrFormat(const char* pszFormat, int64_t nTime); // 格式化日期时间
 
 #endif // BITCOIN_UTILTIME_H

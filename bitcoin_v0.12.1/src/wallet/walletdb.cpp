@@ -865,32 +865,32 @@ void ThreadFlushWalletDB(const string& strFile)
 
 bool BackupWallet(const CWallet& wallet, const string& strDest)
 {
-    if (!wallet.fFileBacked)
+    if (!wallet.fFileBacked) // 备份文件标志为 true
         return false;
     while (true)
     {
         {
-            LOCK(bitdb.cs_db);
-            if (!bitdb.mapFileUseCount.count(wallet.strWalletFile) || bitdb.mapFileUseCount[wallet.strWalletFile] == 0)
+            LOCK(bitdb.cs_db); // 数据库上锁
+            if (!bitdb.mapFileUseCount.count(wallet.strWalletFile) || bitdb.mapFileUseCount[wallet.strWalletFile] == 0) // 文件名未使用过 或 文件名存在但使用次数为 0
             {
-                // Flush log data to the dat file
+                // Flush log data to the dat file // 刷新日志数据到数据文件
                 bitdb.CloseDb(wallet.strWalletFile);
                 bitdb.CheckpointLSN(wallet.strWalletFile);
                 bitdb.mapFileUseCount.erase(wallet.strWalletFile);
 
-                // Copy wallet.dat
-                boost::filesystem::path pathSrc = GetDataDir() / wallet.strWalletFile;
-                boost::filesystem::path pathDest(strDest);
-                if (boost::filesystem::is_directory(pathDest))
-                    pathDest /= wallet.strWalletFile;
+                // Copy wallet.dat // 复制 wallet.dat 文件
+                boost::filesystem::path pathSrc = GetDataDir() / wallet.strWalletFile; // 原 wallet.dat 路径
+                boost::filesystem::path pathDest(strDest); // 目标路径
+                if (boost::filesystem::is_directory(pathDest)) // 若目标路径为目录
+                    pathDest /= wallet.strWalletFile; // 拼接默认钱包文件名 "wallet.dat"
 
                 try {
-#if BOOST_VERSION >= 104000
-                    boost::filesystem::copy_file(pathSrc, pathDest, boost::filesystem::copy_option::overwrite_if_exists);
+#if BOOST_VERSION >= 104000 // boost 版本为 104000 之后
+                    boost::filesystem::copy_file(pathSrc, pathDest, boost::filesystem::copy_option::overwrite_if_exists); // copy 文件到目标位置，若文件已存在则覆盖
 #else
-                    boost::filesystem::copy_file(pathSrc, pathDest);
+                    boost::filesystem::copy_file(pathSrc, pathDest); // copy 文件到目标位置
 #endif
-                    LogPrintf("copied wallet.dat to %s\n", pathDest.string());
+                    LogPrintf("copied wallet.dat to %s\n", pathDest.string()); // 记录日志
                     return true;
                 } catch (const boost::filesystem::filesystem_error& e) {
                     LogPrintf("error copying wallet.dat to %s - %s\n", pathDest.string(), e.what());
@@ -898,7 +898,7 @@ bool BackupWallet(const CWallet& wallet, const string& strDest)
                 }
             }
         }
-        MilliSleep(100);
+        MilliSleep(100); // 睡 100 毫秒
     }
     return false;
 }

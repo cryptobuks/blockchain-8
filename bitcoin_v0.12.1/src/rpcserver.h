@@ -180,12 +180,12 @@ extern UniValue dumpprivkey(const UniValue& params, bool fHelp); // in rpcdump.c
 extern UniValue importprivkey(const UniValue& params, bool fHelp);
 extern UniValue importaddress(const UniValue& params, bool fHelp);
 extern UniValue importpubkey(const UniValue& params, bool fHelp);
-extern UniValue dumpwallet(const UniValue& params, bool fHelp);
-extern UniValue importwallet(const UniValue& params, bool fHelp);
+extern UniValue dumpwallet(const UniValue& params, bool fHelp); // 导出钱包
+extern UniValue importwallet(const UniValue& params, bool fHelp); // 导入钱包
 
 extern UniValue getgenerate(const UniValue& params, bool fHelp); // 获取挖矿状态
 extern UniValue setgenerate(const UniValue& params, bool fHelp); // 设置挖矿状态，挖矿开关
-extern UniValue generate(const UniValue& params, bool fHelp); // 产生指定数目个区块（回归测试网用）
+extern UniValue generate(const UniValue& params, bool fHelp); // 生成指定数目个区块（回归测试网用）
 extern UniValue getnetworkhashps(const UniValue& params, bool fHelp); // 获取全网算力
 extern UniValue getmininginfo(const UniValue& params, bool fHelp); // 获取挖矿信息
 extern UniValue prioritisetransaction(const UniValue& params, bool fHelp); // 设置交易的优先级
@@ -222,8 +222,8 @@ extern UniValue listaccounts(const UniValue& params, bool fHelp);
 extern UniValue listsinceblock(const UniValue& params, bool fHelp);
 extern UniValue gettransaction(const UniValue& params, bool fHelp);
 extern UniValue abandontransaction(const UniValue& params, bool fHelp); // 抛弃钱包内的交易
-extern UniValue backupwallet(const UniValue& params, bool fHelp);
-extern UniValue keypoolrefill(const UniValue& params, bool fHelp);
+extern UniValue backupwallet(const UniValue& params, bool fHelp); // 备份钱包
+extern UniValue keypoolrefill(const UniValue& params, bool fHelp); // 再填充密钥池
 extern UniValue walletpassphrase(const UniValue& params, bool fHelp); // 钱包解锁
 extern UniValue walletpassphrasechange(const UniValue& params, bool fHelp); // 修改钱包密码
 extern UniValue walletlock(const UniValue& params, bool fHelp); // 锁定钱包

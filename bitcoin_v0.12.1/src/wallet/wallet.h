@@ -560,7 +560,7 @@ public:
     int64_t nOrderPosNext;
     std::map<uint256, int> mapRequestCount;
 
-    std::map<CTxDestination, CAddressBookData> mapAddressBook;
+    std::map<CTxDestination, CAddressBookData> mapAddressBook; // 地址簿映射列表
 
     CPubKey vchDefaultKey; // 默认公钥
 
@@ -687,7 +687,7 @@ public:
     static CAmount GetRequiredFee(unsigned int nTxBytes);
 
     bool NewKeyPool();
-    bool TopUpKeyPool(unsigned int kpSize = 0); // 充满密钥池
+    bool TopUpKeyPool(unsigned int kpSize = 0); // 填充满密钥池
     void ReserveKeyFromKeyPool(int64_t& nIndex, CKeyPool& keypool);
     void KeepKey(int64_t nIndex);
     void ReturnKey(int64_t nIndex);
@@ -743,7 +743,7 @@ public:
     unsigned int GetKeyPoolSize() // 获取密钥池大小
     {
         AssertLockHeld(cs_wallet); // setKeyPool
-        return setKeyPool.size(); // 返回密钥池集合的大小
+        return setKeyPool.size(); // 返回密钥池索引集合的大小
     }
 
     bool SetDefaultKey(const CPubKey &vchPubKey);

@@ -51,8 +51,8 @@ bool EnsureWalletIsAvailable(bool avoidException)
 
 void EnsureWalletIsUnlocked()
 {
-    if (pwalletMain->IsLocked())
-        throw JSONRPCError(RPC_WALLET_UNLOCK_NEEDED, "Error: Please enter the wallet passphrase with walletpassphrase first.");
+    if (pwalletMain->IsLocked()) // 若钱包加密
+        throw JSONRPCError(RPC_WALLET_UNLOCK_NEEDED, "Error: Please enter the wallet passphrase with walletpassphrase first."); // 抛出错误信息
 }
 
 void WalletTxToJSON(const CWalletTx& wtx, UniValue& entry)
@@ -1823,11 +1823,11 @@ UniValue abandontransaction(const UniValue& params, bool fHelp)
 
 UniValue backupwallet(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保当前钱包可用
         return NullUniValue;
     
-    if (fHelp || params.size() != 1)
-        throw runtime_error(
+    if (fHelp || params.size() != 1) // 参数必须为 1 个
+        throw runtime_error( // 命令帮助反馈
             "backupwallet \"destination\"\n"
             "\nSafely copies wallet.dat to destination, which can be a directory or a path with filename.\n"
             "\nArguments:\n"
@@ -1837,23 +1837,23 @@ UniValue backupwallet(const UniValue& params, bool fHelp)
             + HelpExampleRpc("backupwallet", "\"backup.dat\"")
         );
 
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
 
-    string strDest = params[0].get_str();
+    string strDest = params[0].get_str(); // 获取指定的输出目标
     if (!BackupWallet(*pwalletMain, strDest))
         throw JSONRPCError(RPC_WALLET_ERROR, "Error: Wallet backup failed!");
 
-    return NullUniValue;
+    return NullUniValue; // 返回空值
 }
 
 
 UniValue keypoolrefill(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保钱包当前可用
         return NullUniValue;
     
-    if (fHelp || params.size() > 1)
-        throw runtime_error(
+    if (fHelp || params.size() > 1) // 至多 1 个参数
+        throw runtime_error( // 命令帮助反馈
             "keypoolrefill ( newsize )\n"
             "\nFills the keypool."
             + HelpRequiringPassphrase() + "\n"
@@ -1864,23 +1864,23 @@ UniValue keypoolrefill(const UniValue& params, bool fHelp)
             + HelpExampleRpc("keypoolrefill", "")
         );
 
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
 
     // 0 is interpreted by TopUpKeyPool() as the default keypool size given by -keypool
-    unsigned int kpSize = 0;
+    unsigned int kpSize = 0; // 0 表示通过 TopUpKeyPool() 基于 -keypool 选项的默认密钥池大小
     if (params.size() > 0) {
-        if (params[0].get_int() < 0)
+        if (params[0].get_int() < 0) // 密钥池大小不能小于 0
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, expected valid size.");
-        kpSize = (unsigned int)params[0].get_int();
+        kpSize = (unsigned int)params[0].get_int(); // 获取密钥池大小
     }
 
-    EnsureWalletIsUnlocked();
-    pwalletMain->TopUpKeyPool(kpSize);
+    EnsureWalletIsUnlocked(); // 确保钱包当前未加密
+    pwalletMain->TopUpKeyPool(kpSize); // 根据指定大小填充密钥池
 
-    if (pwalletMain->GetKeyPoolSize() < kpSize)
+    if (pwalletMain->GetKeyPoolSize() < kpSize) // 填充后的密钥池大小不能小于 kpSize
         throw JSONRPCError(RPC_WALLET_ERROR, "Error refreshing keypool.");
 
-    return NullUniValue;
+    return NullUniValue; // 返回空值
 }
 
 

@@ -448,11 +448,11 @@ UniValue dumpprivkey(const UniValue& params, bool fHelp)
 
 UniValue dumpwallet(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保当前钱包可用
         return NullUniValue;
     
-    if (fHelp || params.size() != 1)
-        throw runtime_error(
+    if (fHelp || params.size() != 1) // 参数必须为 1 个
+        throw runtime_error( // 命令帮助反馈
             "dumpwallet \"filename\"\n"
             "\nDumps all wallet keys in a human-readable format.\n"
             "\nArguments:\n"
@@ -462,51 +462,51 @@ UniValue dumpwallet(const UniValue& params, bool fHelp)
             + HelpExampleRpc("dumpwallet", "\"test\"")
         );
 
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
 
-    EnsureWalletIsUnlocked();
+    EnsureWalletIsUnlocked(); // 确保当前钱包未加密
 
-    ofstream file;
-    file.open(params[0].get_str().c_str());
-    if (!file.is_open())
+    ofstream file; // 文件输出流对象
+    file.open(params[0].get_str().c_str()); // 打开指定文件
+    if (!file.is_open()) // 检测打开文件状态
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Cannot open wallet dump file");
 
-    std::map<CKeyID, int64_t> mapKeyBirth;
-    std::set<CKeyID> setKeyPool;
-    pwalletMain->GetKeyBirthTimes(mapKeyBirth);
-    pwalletMain->GetAllReserveKeys(setKeyPool);
+    std::map<CKeyID, int64_t> mapKeyBirth; // 密钥创建时间
+    std::set<CKeyID> setKeyPool; // 密钥池集合
+    pwalletMain->GetKeyBirthTimes(mapKeyBirth); // 获取钱包密钥创建时间
+    pwalletMain->GetAllReserveKeys(setKeyPool); // 获取所有预创建的密钥
 
     // sort time/key pairs
-    std::vector<std::pair<int64_t, CKeyID> > vKeyBirth;
+    std::vector<std::pair<int64_t, CKeyID> > vKeyBirth; // 密钥创建时间映射列表
     for (std::map<CKeyID, int64_t>::const_iterator it = mapKeyBirth.begin(); it != mapKeyBirth.end(); it++) {
-        vKeyBirth.push_back(std::make_pair(it->second, it->first));
+        vKeyBirth.push_back(std::make_pair(it->second, it->first)); // 把 map 内的数据导入 vector
     }
-    mapKeyBirth.clear();
-    std::sort(vKeyBirth.begin(), vKeyBirth.end());
+    mapKeyBirth.clear(); // 清空 map
+    std::sort(vKeyBirth.begin(), vKeyBirth.end()); // 对该列表按创建时间进行排序，默认升序
 
     // produce output
-    file << strprintf("# Wallet dump created by Bitcoin %s (%s)\n", CLIENT_BUILD, CLIENT_DATE);
-    file << strprintf("# * Created on %s\n", EncodeDumpTime(GetTime()));
-    file << strprintf("# * Best block at time of backup was %i (%s),\n", chainActive.Height(), chainActive.Tip()->GetBlockHash().ToString());
-    file << strprintf("#   mined on %s\n", EncodeDumpTime(chainActive.Tip()->GetBlockTime()));
+    file << strprintf("# Wallet dump created by Bitcoin %s (%s)\n", CLIENT_BUILD, CLIENT_DATE); // 客户端版本
+    file << strprintf("# * Created on %s\n", EncodeDumpTime(GetTime())); // 当前时间
+    file << strprintf("# * Best block at time of backup was %i (%s),\n", chainActive.Height(), chainActive.Tip()->GetBlockHash().ToString()); // 最佳块的高度和哈希
+    file << strprintf("#   mined on %s\n", EncodeDumpTime(chainActive.Tip()->GetBlockTime())); // 最佳块产生的时间
     file << "\n";
     for (std::vector<std::pair<int64_t, CKeyID> >::const_iterator it = vKeyBirth.begin(); it != vKeyBirth.end(); it++) {
-        const CKeyID &keyid = it->second;
-        std::string strTime = EncodeDumpTime(it->first);
-        std::string strAddr = CBitcoinAddress(keyid).ToString();
+        const CKeyID &keyid = it->second; // 获取密钥索引
+        std::string strTime = EncodeDumpTime(it->first); // 编码时间，按一定的格式输出
+        std::string strAddr = CBitcoinAddress(keyid).ToString(); // 获取公钥地址
         CKey key;
         if (pwalletMain->GetKey(keyid, key)) {
-            if (pwalletMain->mapAddressBook.count(keyid)) {
-                file << strprintf("%s %s label=%s # addr=%s\n", CBitcoinSecret(key).ToString(), strTime, EncodeDumpString(pwalletMain->mapAddressBook[keyid].name), strAddr);
-            } else if (setKeyPool.count(keyid)) {
-                file << strprintf("%s %s reserve=1 # addr=%s\n", CBitcoinSecret(key).ToString(), strTime, strAddr);
-            } else {
-                file << strprintf("%s %s change=1 # addr=%s\n", CBitcoinSecret(key).ToString(), strTime, strAddr);
+            if (pwalletMain->mapAddressBook.count(keyid)) { // 密钥索引存在于地址簿映射列表
+                file << strprintf("%s %s label=%s # addr=%s\n", CBitcoinSecret(key).ToString(), strTime, EncodeDumpString(pwalletMain->mapAddressBook[keyid].name), strAddr); // label=
+            } else if (setKeyPool.count(keyid)) { // 密钥索引存在于密钥池集合
+                file << strprintf("%s %s reserve=1 # addr=%s\n", CBitcoinSecret(key).ToString(), strTime, strAddr); // reserve=1
+            } else { // 其他类型
+                file << strprintf("%s %s change=1 # addr=%s\n", CBitcoinSecret(key).ToString(), strTime, strAddr); // change=1
             }
         }
     }
     file << "\n";
-    file << "# End of dump\n";
-    file.close();
-    return NullUniValue;
+    file << "# End of dump\n"; // 导出结束
+    file.close(); // 关闭文件输出流
+    return NullUniValue; // 返回空值
 }

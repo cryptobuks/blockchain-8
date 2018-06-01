@@ -39,7 +39,7 @@ private:
 public:
     mutable CCriticalSection cs_db;
     DbEnv *dbenv;
-    std::map<std::string, int> mapFileUseCount;
+    std::map<std::string, int> mapFileUseCount;// 文件使用次数映射 <文件名，使用次数>
     std::map<std::string, Db*> mapDb;
 
     CDBEnv();
