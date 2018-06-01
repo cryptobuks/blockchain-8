@@ -46,16 +46,16 @@ public:
     virtual bool HaveWatchOnly() const =0;
 };
 
-typedef std::map<CKeyID, CKey> KeyMap; // 密钥映射，公钥 ID 对应私钥
+typedef std::map<CKeyID, CKey> KeyMap; // 密钥索引和私钥的映射
 typedef std::map<CKeyID, CPubKey> WatchKeyMap;
 typedef std::map<CScriptID, CScript > ScriptMap;
 typedef std::set<CScript> WatchOnlySet;
 
 /** Basic key store, that keeps keys in an address->secret map */
-class CBasicKeyStore : public CKeyStore
+class CBasicKeyStore : public CKeyStore // 基础密钥存储，以 address->secret 映射维持私钥
 {
 protected:
-    KeyMap mapKeys;
+    KeyMap mapKeys; // 密钥索引和私钥的映射列表
     WatchKeyMap mapWatchKeys;
     ScriptMap mapScripts;
     WatchOnlySet setWatchOnly;
@@ -89,10 +89,10 @@ public:
     {
         {
             LOCK(cs_KeyStore);
-            KeyMap::const_iterator mi = mapKeys.find(address);
-            if (mi != mapKeys.end())
+            KeyMap::const_iterator mi = mapKeys.find(address); // 在密钥索引和私钥映射列表中查找
+            if (mi != mapKeys.end()) // 若找到指定密钥索引
             {
-                keyOut = mi->second;
+                keyOut = mi->second; // 获取对应的私钥
                 return true;
             }
         }
@@ -108,7 +108,7 @@ public:
     virtual bool HaveWatchOnly() const;
 };
 
-typedef std::vector<unsigned char, secure_allocator<unsigned char> > CKeyingMaterial;
-typedef std::map<CKeyID, std::pair<CPubKey, std::vector<unsigned char> > > CryptedKeyMap;
+typedef std::vector<unsigned char, secure_allocator<unsigned char> > CKeyingMaterial; // 私钥
+typedef std::map<CKeyID, std::pair<CPubKey, std::vector<unsigned char> > > CryptedKeyMap; // 密钥索引对应公钥私钥对映射
 
 #endif // BITCOIN_KEYSTORE_H

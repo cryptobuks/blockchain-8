@@ -113,7 +113,7 @@ public:
 class CCryptoKeyStore : public CBasicKeyStore
 {
 private:
-    CryptedKeyMap mapCryptedKeys; // 加密的密钥索引列表
+    CryptedKeyMap mapCryptedKeys; // 密钥索引对应公钥私钥对映射列表
 
     CKeyingMaterial vMasterKey; // 主密钥
 
@@ -168,9 +168,9 @@ public:
         }
         return false;
     }
-    bool GetKey(const CKeyID &address, CKey& keyOut) const;
-    bool GetPubKey(const CKeyID &address, CPubKey& vchPubKeyOut) const;
-    void GetKeys(std::set<CKeyID> &setAddress) const
+    bool GetKey(const CKeyID &address, CKey& keyOut) const; // 通过密钥索引获取私钥
+    bool GetPubKey(const CKeyID &address, CPubKey& vchPubKeyOut) const; // 通过密钥索引获取公钥
+    void GetKeys(std::set<CKeyID> &setAddress) const // 获取密钥索引集合
     {
         if (!IsCrypted())
         {

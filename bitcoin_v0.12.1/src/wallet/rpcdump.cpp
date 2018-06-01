@@ -303,11 +303,11 @@ UniValue importpubkey(const UniValue& params, bool fHelp)
 
 UniValue importwallet(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保当前钱包可用
         return NullUniValue;
     
-    if (fHelp || params.size() != 1)
-        throw runtime_error(
+    if (fHelp || params.size() != 1) // 参数必须为 1 个
+        throw runtime_error( // 命令帮助反馈
             "importwallet \"filename\"\n"
             "\nImports keys from a wallet dump file (see dumpwallet).\n"
             "\nArguments:\n"
@@ -321,91 +321,91 @@ UniValue importwallet(const UniValue& params, bool fHelp)
             + HelpExampleRpc("importwallet", "\"test\"")
         );
 
-    if (fPruneMode)
+    if (fPruneMode) // 导入钱包在修剪模式下无效
         throw JSONRPCError(RPC_WALLET_ERROR, "Importing wallets is disabled in pruned mode");
 
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
 
-    EnsureWalletIsUnlocked();
+    EnsureWalletIsUnlocked(); // 确保钱包此时未加密
 
-    ifstream file;
-    file.open(params[0].get_str().c_str(), std::ios::in | std::ios::ate);
-    if (!file.is_open())
+    ifstream file; // 文件输入流对象
+    file.open(params[0].get_str().c_str(), std::ios::in | std::ios::ate); // 打开指定文件并立刻定位到文件流结尾
+    if (!file.is_open()) // 判断文件的打开状态
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Cannot open wallet dump file");
 
-    int64_t nTimeBegin = chainActive.Tip()->GetBlockTime();
+    int64_t nTimeBegin = chainActive.Tip()->GetBlockTime(); // 获取最佳区块创建时间
 
     bool fGood = true;
 
-    int64_t nFilesize = std::max((int64_t)1, (int64_t)file.tellg());
-    file.seekg(0, file.beg);
+    int64_t nFilesize = std::max((int64_t)1, (int64_t)file.tellg()); // 通过文件指针的位置获取文件大小，用于显示加载进度
+    file.seekg(0, file.beg); // 文件指针定位到文件流开头
 
     pwalletMain->ShowProgress(_("Importing..."), 0); // show progress dialog in GUI
-    while (file.good()) {
+    while (file.good()) { // 文件流状态正常时
         pwalletMain->ShowProgress("", std::max(1, std::min(99, (int)(((double)file.tellg() / (double)nFilesize) * 100))));
         std::string line;
-        std::getline(file, line);
-        if (line.empty() || line[0] == '#')
-            continue;
+        std::getline(file, line); // 读取一行
+        if (line.empty() || line[0] == '#') // 若该行为空 或 行首字符为 '#'
+            continue; // 跳过空行 或 注释行
 
         std::vector<std::string> vstr;
-        boost::split(vstr, line, boost::is_any_of(" "));
-        if (vstr.size() < 2)
+        boost::split(vstr, line, boost::is_any_of(" ")); // 按空格 " " 分隔字符串
+        if (vstr.size() < 2) // 字符串个数不能低于 2 个
             continue;
         CBitcoinSecret vchSecret;
-        if (!vchSecret.SetString(vstr[0]))
+        if (!vchSecret.SetString(vstr[0])) // Base58 编码的私钥
             continue;
-        CKey key = vchSecret.GetKey();
-        CPubKey pubkey = key.GetPubKey();
-        assert(key.VerifyPubKey(pubkey));
-        CKeyID keyid = pubkey.GetID();
-        if (pwalletMain->HaveKey(keyid)) {
+        CKey key = vchSecret.GetKey(); // 获取私钥
+        CPubKey pubkey = key.GetPubKey(); // 计算得到公钥
+        assert(key.VerifyPubKey(pubkey)); // 验证公钥私钥是否匹配
+        CKeyID keyid = pubkey.GetID(); // 获取公钥索引作为密钥索引
+        if (pwalletMain->HaveKey(keyid)) { // 检查密钥索引对应密钥是否存在
             LogPrintf("Skipping import of %s (key already present)\n", CBitcoinAddress(keyid).ToString());
             continue;
         }
-        int64_t nTime = DecodeDumpTime(vstr[1]);
-        std::string strLabel;
-        bool fLabel = true;
-        for (unsigned int nStr = 2; nStr < vstr.size(); nStr++) {
-            if (boost::algorithm::starts_with(vstr[nStr], "#"))
+        int64_t nTime = DecodeDumpTime(vstr[1]); // 获取并编码时间
+        std::string strLabel; // 保存 label 标签的值，账户名
+        bool fLabel = true; // 账户标志，默认为 true
+        for (unsigned int nStr = 2; nStr < vstr.size(); nStr++) { // 第三个参数，标签类别
+            if (boost::algorithm::starts_with(vstr[nStr], "#")) // 没有标签，直接跳出
                 break;
             if (vstr[nStr] == "change=1")
                 fLabel = false;
             if (vstr[nStr] == "reserve=1")
                 fLabel = false;
             if (boost::algorithm::starts_with(vstr[nStr], "label=")) {
-                strLabel = DecodeDumpString(vstr[nStr].substr(6));
-                fLabel = true;
+                strLabel = DecodeDumpString(vstr[nStr].substr(6)); // 从下标为 6 的字符开始截取字串
+                fLabel = true; // 账户标志置为 true
             }
         }
-        LogPrintf("Importing %s...\n", CBitcoinAddress(keyid).ToString());
-        if (!pwalletMain->AddKeyPubKey(key, pubkey)) {
+        LogPrintf("Importing %s...\n", CBitcoinAddress(keyid).ToString()); // 记录导入公钥地址
+        if (!pwalletMain->AddKeyPubKey(key, pubkey)) { // 把公私对添加到钱包
             fGood = false;
             continue;
         }
-        pwalletMain->mapKeyMetadata[keyid].nCreateTime = nTime;
-        if (fLabel)
-            pwalletMain->SetAddressBook(keyid, strLabel, "receive");
+        pwalletMain->mapKeyMetadata[keyid].nCreateTime = nTime; // 导入私钥创建时间
+        if (fLabel) // 若该密钥有所属账户
+            pwalletMain->SetAddressBook(keyid, strLabel, "receive"); // 设置到地址簿并设置其所属账户名
         nTimeBegin = std::min(nTimeBegin, nTime);
     }
-    file.close();
+    file.close(); // 关闭文件输入流
     pwalletMain->ShowProgress("", 100); // hide progress dialog in GUI
 
-    CBlockIndex *pindex = chainActive.Tip();
+    CBlockIndex *pindex = chainActive.Tip(); // 获取链尖区块索引指针
     while (pindex && pindex->pprev && pindex->GetBlockTime() > nTimeBegin - 7200)
-        pindex = pindex->pprev;
+        pindex = pindex->pprev; // 寻找时间相差 2h 的块
 
     if (!pwalletMain->nTimeFirstKey || nTimeBegin < pwalletMain->nTimeFirstKey)
         pwalletMain->nTimeFirstKey = nTimeBegin;
 
     LogPrintf("Rescanning last %i blocks\n", chainActive.Height() - pindex->nHeight + 1);
-    pwalletMain->ScanForWalletTransactions(pindex);
-    pwalletMain->MarkDirty();
+    pwalletMain->ScanForWalletTransactions(pindex); // 从某个块开始扫描块上的交易
+    pwalletMain->MarkDirty(); // 标记钱包已改变
 
-    if (!fGood)
+    if (!fGood) // 某个密钥添加到钱包失败
         throw JSONRPCError(RPC_WALLET_ERROR, "Error adding some keys to wallet");
 
-    return NullUniValue;
+    return NullUniValue; // 返回空值
 }
 
 UniValue dumpprivkey(const UniValue& params, bool fHelp)
@@ -494,8 +494,8 @@ UniValue dumpwallet(const UniValue& params, bool fHelp)
         const CKeyID &keyid = it->second; // 获取密钥索引
         std::string strTime = EncodeDumpTime(it->first); // 编码时间，按一定的格式输出
         std::string strAddr = CBitcoinAddress(keyid).ToString(); // 获取公钥地址
-        CKey key;
-        if (pwalletMain->GetKey(keyid, key)) {
+        CKey key; // 私钥
+        if (pwalletMain->GetKey(keyid, key)) { // 通过密钥索引获取对应私钥
             if (pwalletMain->mapAddressBook.count(keyid)) { // 密钥索引存在于地址簿映射列表
                 file << strprintf("%s %s label=%s # addr=%s\n", CBitcoinSecret(key).ToString(), strTime, EncodeDumpString(pwalletMain->mapAddressBook[keyid].name), strAddr); // label=
             } else if (setKeyPool.count(keyid)) { // 密钥索引存在于密钥池集合

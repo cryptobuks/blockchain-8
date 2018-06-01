@@ -121,15 +121,15 @@ public:
 
 /**
  * A base58-encoded secret key
- */
+ */ // 一个 base58 编码的密钥
 class CBitcoinSecret : public CBase58Data
 {
 public:
     void SetKey(const CKey& vchSecret);
-    CKey GetKey();
+    CKey GetKey(); // 获取私钥
     bool IsValid() const;
     bool SetString(const char* pszSecret);
-    bool SetString(const std::string& strSecret);
+    bool SetString(const std::string& strSecret); // 把 strSecret 转化为 C 风格，转调上面的重载函数
 
     CBitcoinSecret(const CKey& vchSecret) { SetKey(vchSecret); }
     CBitcoinSecret() {}

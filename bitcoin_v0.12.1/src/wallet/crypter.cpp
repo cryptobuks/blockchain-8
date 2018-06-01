@@ -125,14 +125,14 @@ static bool DecryptSecret(const CKeyingMaterial& vMasterKey, const std::vector<u
 static bool DecryptKey(const CKeyingMaterial& vMasterKey, const std::vector<unsigned char>& vchCryptedSecret, const CPubKey& vchPubKey, CKey& key)
 {
     CKeyingMaterial vchSecret;
-    if(!DecryptSecret(vMasterKey, vchCryptedSecret, vchPubKey.GetHash(), vchSecret))
+    if(!DecryptSecret(vMasterKey, vchCryptedSecret, vchPubKey.GetHash(), vchSecret)) // 解密私钥，获取私钥元数据
         return false;
 
-    if (vchSecret.size() != 32)
+    if (vchSecret.size() != 32) // 密钥大小为 32 字节
         return false;
 
-    key.Set(vchSecret.begin(), vchSecret.end(), vchPubKey.IsCompressed());
-    return key.VerifyPubKey(vchPubKey);
+    key.Set(vchSecret.begin(), vchSecret.end(), vchPubKey.IsCompressed()); // 初始化私钥
+    return key.VerifyPubKey(vchPubKey); // 验证获取的私钥与公钥是否匹配
 }
 
 bool CCryptoKeyStore::SetCrypted() // 设置加密状态为 true
@@ -236,15 +236,15 @@ bool CCryptoKeyStore::GetKey(const CKeyID &address, CKey& keyOut) const
 {
     {
         LOCK(cs_KeyStore);
-        if (!IsCrypted())
+        if (!IsCrypted()) // 若当前钱包未加密
             return CBasicKeyStore::GetKey(address, keyOut);
 
-        CryptedKeyMap::const_iterator mi = mapCryptedKeys.find(address);
-        if (mi != mapCryptedKeys.end())
+        CryptedKeyMap::const_iterator mi = mapCryptedKeys.find(address); // 在密钥索引和公钥私钥对映射列表中查找
+        if (mi != mapCryptedKeys.end()) // 若找到
         {
-            const CPubKey &vchPubKey = (*mi).second.first;
-            const std::vector<unsigned char> &vchCryptedSecret = (*mi).second.second;
-            return DecryptKey(vMasterKey, vchCryptedSecret, vchPubKey, keyOut);
+            const CPubKey &vchPubKey = (*mi).second.first; // 取出公钥
+            const std::vector<unsigned char> &vchCryptedSecret = (*mi).second.second; // 取出加密的密钥
+            return DecryptKey(vMasterKey, vchCryptedSecret, vchPubKey, keyOut); // 解密私钥
         }
     }
     return false;

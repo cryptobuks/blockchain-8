@@ -307,5 +307,5 @@ bool CBitcoinSecret::SetString(const char* pszSecret)
 
 bool CBitcoinSecret::SetString(const std::string& strSecret)
 {
-    return SetString(strSecret.c_str());
+    return SetString(strSecret.c_str()); // 转调上面的重载函数
 }

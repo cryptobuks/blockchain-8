@@ -40,12 +40,12 @@ enum DBErrors
     DB_NEED_REWRITE // 5
 };
 
-class CKeyMetadata
+class CKeyMetadata // 密钥元数据类
 {
 public:
     static const int CURRENT_VERSION=1;
-    int nVersion;
-    int64_t nCreateTime; // 0 means unknown
+    int nVersion; // 版本号
+    int64_t nCreateTime; // 0 means unknown // 密钥创建时间
 
     CKeyMetadata()
     {

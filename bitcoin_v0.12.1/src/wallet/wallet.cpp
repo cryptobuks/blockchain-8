@@ -599,9 +599,9 @@ int64_t CWallet::IncOrderPosNext(CWalletDB *pwalletdb)
 void CWallet::MarkDirty()
 {
     {
-        LOCK(cs_wallet);
-        BOOST_FOREACH(PAIRTYPE(const uint256, CWalletTx)& item, mapWallet)
-            item.second.MarkDirty();
+        LOCK(cs_wallet); // 钱包上锁
+        BOOST_FOREACH(PAIRTYPE(const uint256, CWalletTx)& item, mapWallet) // 遍历钱包交易映射列表
+            item.second.MarkDirty(); // 标记钱包中的每笔交易为已变动
     }
 }
 
@@ -1185,7 +1185,7 @@ bool CWalletTx::WriteToDisk(CWalletDB *pwalletdb)
  * Scan the block chain (starting in pindexStart) for transactions
  * from or to us. If fUpdate is true, found transactions that already
  * exist in the wallet will be updated.
- */
+ */ // 扫描区块链（从 pindexStart 开始）的交易。如果 fUpdate 为 true，在钱包中已存在的找到的交易将会升级。
 int CWallet::ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate)
 {
     int ret = 0;
@@ -2755,21 +2755,21 @@ void CReserveKey::ReturnKey()
 
 void CWallet::GetAllReserveKeys(set<CKeyID>& setAddress) const
 {
-    setAddress.clear();
+    setAddress.clear(); // 清空地址集合
 
-    CWalletDB walletdb(strWalletFile);
+    CWalletDB walletdb(strWalletFile); // 创建钱包数据库对象
 
-    LOCK2(cs_main, cs_wallet);
-    BOOST_FOREACH(const int64_t& id, setKeyPool)
+    LOCK2(cs_main, cs_wallet); // 钱包上锁
+    BOOST_FOREACH(const int64_t& id, setKeyPool) // 遍历密钥池索引集合
     {
-        CKeyPool keypool;
-        if (!walletdb.ReadPool(id, keypool))
+        CKeyPool keypool; // 创建一个密钥池条目
+        if (!walletdb.ReadPool(id, keypool)) // 根据索引从数据库中读相应的密钥到密钥池条目
             throw runtime_error("GetAllReserveKeyHashes(): read failed");
-        assert(keypool.vchPubKey.IsValid());
-        CKeyID keyID = keypool.vchPubKey.GetID();
-        if (!HaveKey(keyID))
+        assert(keypool.vchPubKey.IsValid()); // 检查该密钥对应公钥是否有效
+        CKeyID keyID = keypool.vchPubKey.GetID(); // 获取公钥索引
+        if (!HaveKey(keyID)) // 检查该索引对应密钥是否存在
             throw runtime_error("GetAllReserveKeyHashes(): unknown key in key pool");
-        setAddress.insert(keyID);
+        setAddress.insert(keyID); // 插入地址集合
     }
 }
 
@@ -2867,42 +2867,42 @@ public:
 
 void CWallet::GetKeyBirthTimes(std::map<CKeyID, int64_t> &mapKeyBirth) const {
     AssertLockHeld(cs_wallet); // mapKeyMetadata
-    mapKeyBirth.clear();
+    mapKeyBirth.clear(); // 清空密钥创建时间映射列表
 
-    // get birth times for keys with metadata
-    for (std::map<CKeyID, CKeyMetadata>::const_iterator it = mapKeyMetadata.begin(); it != mapKeyMetadata.end(); it++)
-        if (it->second.nCreateTime)
-            mapKeyBirth[it->first] = it->second.nCreateTime;
+    // get birth times for keys with metadata // 获取密钥元数据的创建时间
+    for (std::map<CKeyID, CKeyMetadata>::const_iterator it = mapKeyMetadata.begin(); it != mapKeyMetadata.end(); it++) // 遍历密钥元数据列表
+        if (it->second.nCreateTime) // 若创建时间非 0
+            mapKeyBirth[it->first] = it->second.nCreateTime; // 加入映射
 
     // map in which we'll infer heights of other keys
     CBlockIndex *pindexMax = chainActive[std::max(0, chainActive.Height() - 144)]; // the tip can be reorganised; use a 144-block safety margin
-    std::map<CKeyID, CBlockIndex*> mapKeyFirstBlock;
-    std::set<CKeyID> setKeys;
+    std::map<CKeyID, CBlockIndex*> mapKeyFirstBlock; // 密钥区块索引映射列表
+    std::set<CKeyID> setKeys; // 密钥索引集合
     GetKeys(setKeys);
-    BOOST_FOREACH(const CKeyID &keyid, setKeys) {
-        if (mapKeyBirth.count(keyid) == 0)
-            mapKeyFirstBlock[keyid] = pindexMax;
+    BOOST_FOREACH(const CKeyID &keyid, setKeys) { // 遍历该索引集合
+        if (mapKeyBirth.count(keyid) == 0) // 该密钥索引在密钥创建时间映射列表中不存在
+            mapKeyFirstBlock[keyid] = pindexMax; // 加入密钥区块索引映射列表
     }
-    setKeys.clear();
+    setKeys.clear(); // 清空密钥索引集合
 
     // if there are no such keys, we're done
-    if (mapKeyFirstBlock.empty())
+    if (mapKeyFirstBlock.empty()) // 若密钥区块索引映射列表为空
         return;
 
-    // find first block that affects those keys, if there are any left
+    // find first block that affects those keys, if there are any left // 找到影响这些密钥的首个区块，如果有剩余
     std::vector<CKeyID> vAffected;
     for (std::map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); it++) {
-        // iterate over all wallet transactions...
+        // iterate over all wallet transactions... // 迭代全部钱包交易
         const CWalletTx &wtx = (*it).second;
         BlockMap::const_iterator blit = mapBlockIndex.find(wtx.hashBlock);
         if (blit != mapBlockIndex.end() && chainActive.Contains(blit->second)) {
-            // ... which are already in a block
+            // ... which are already in a block // 已经在一个块中
             int nHeight = blit->second->nHeight;
             BOOST_FOREACH(const CTxOut &txout, wtx.vout) {
-                // iterate over all their outputs
+                // iterate over all their outputs // 迭代全部输出
                 CAffectedKeysVisitor(*this, vAffected).Process(txout.scriptPubKey);
                 BOOST_FOREACH(const CKeyID &keyid, vAffected) {
-                    // ... and all their affected keys
+                    // ... and all their affected keys // 受影响的全部密钥
                     std::map<CKeyID, CBlockIndex*>::iterator rit = mapKeyFirstBlock.find(keyid);
                     if (rit != mapKeyFirstBlock.end() && nHeight < rit->second->nHeight)
                         rit->second = blit->second;
@@ -2912,9 +2912,9 @@ void CWallet::GetKeyBirthTimes(std::map<CKeyID, int64_t> &mapKeyBirth) const {
         }
     }
 
-    // Extract block timestamps for those keys
+    // Extract block timestamps for those keys // 提取这些密钥的区块时间戳
     for (std::map<CKeyID, CBlockIndex*>::const_iterator it = mapKeyFirstBlock.begin(); it != mapKeyFirstBlock.end(); it++)
-        mapKeyBirth[it->first] = it->second->GetBlockTime() - 7200; // block times can be 2h off
+        mapKeyBirth[it->first] = it->second->GetBlockTime() - 7200; // block times can be 2h off // 和块时间相差 2h
 }
 
 bool CWallet::AddDestData(const CTxDestination &dest, const std::string &key, const std::string &value)

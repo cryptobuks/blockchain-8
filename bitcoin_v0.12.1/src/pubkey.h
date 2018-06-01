@@ -41,11 +41,11 @@ private:
     /**
      * Just store the serialized data.
      * Its length can very cheaply be computed from the first byte.
-     */
-    unsigned char vch[65];
+     */ // 进存放序列化的数据。它的长度可通过首个字节轻松得出。
+    unsigned char vch[65]; // 存放公钥
 
     //! Compute the length of a pubkey with a given first byte.
-    unsigned int static GetLen(unsigned char chHeader)
+    unsigned int static GetLen(unsigned char chHeader) // 基于首个字节计算公钥长度
     {
         if (chHeader == 2 || chHeader == 3)
             return 33;
@@ -55,20 +55,20 @@ private:
     }
 
     //! Set this key data to be invalid
-    void Invalidate()
+    void Invalidate() // 使该公钥数据无效
     {
         vch[0] = 0xFF;
     }
 
 public:
     //! Construct an invalid public key.
-    CPubKey()
+    CPubKey() // 构建一个无效的公钥
     {
         Invalidate();
     }
 
     //! Initialize a public key using begin/end iterators to byte data.
-    template <typename T>
+    template <typename T> // 使用首尾迭代器指向的数据初始化一个公钥。
     void Set(const T pbegin, const T pend)
     {
         int len = pend == pbegin ? 0 : GetLen(pbegin[0]);
@@ -79,20 +79,20 @@ public:
     }
 
     //! Construct a public key using begin/end iterators to byte data.
-    template <typename T>
+    template <typename T> // 使用首尾迭代器指向的数据构建一个公钥
     CPubKey(const T pbegin, const T pend)
     {
         Set(pbegin, pend);
     }
 
     //! Construct a public key from a byte vector.
-    CPubKey(const std::vector<unsigned char>& vch)
+    CPubKey(const std::vector<unsigned char>& vch) // 从一个 vector 构建一个公钥
     {
         Set(vch.begin(), vch.end());
     }
 
-    //! Simple read-only vector-like interface to the pubkey data.
-    unsigned int size() const { return GetLen(vch[0]); }
+    //! Simple read-only vector-like interface to the pubkey data. // 获取公钥数据的类 vector 简单只读接口
+    unsigned int size() const { return GetLen(vch[0]); } // 获取公钥的长度
     const unsigned char* begin() const { return vch; }
     const unsigned char* end() const { return vch + size(); }
     const unsigned char& operator[](unsigned int pos) const { return vch[pos]; }
@@ -141,7 +141,7 @@ public:
     }
 
     //! Get the KeyID of this public key (hash of its serialization)
-    CKeyID GetID() const // 获取公钥地址 ID，即公钥的 hash160，20个字节
+    CKeyID GetID() const // 获取公钥索引，即公钥的 hash160，20个字节
     {
         return CKeyID(Hash160(vch, vch + size()));
     }
@@ -166,7 +166,7 @@ public:
     bool IsFullyValid() const;
 
     //! Check whether this is a compressed public key.
-    bool IsCompressed() const
+    bool IsCompressed() const // 检查公钥是否压缩。
     {
         return size() == 33;
     }
