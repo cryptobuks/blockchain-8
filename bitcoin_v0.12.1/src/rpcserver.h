@@ -252,7 +252,7 @@ extern UniValue verifytxoutproof(const UniValue& params, bool fHelp);
 extern UniValue getblockcount(const UniValue& params, bool fHelp); // 获取当前区块总数
 extern UniValue getbestblockhash(const UniValue& params, bool fHelp); // 获取当前最佳块的哈希
 extern UniValue getdifficulty(const UniValue& params, bool fHelp); // 获取当前挖矿难度
-extern UniValue settxfee(const UniValue& params, bool fHelp);
+extern UniValue settxfee(const UniValue& params, bool fHelp); // 设置交易费
 extern UniValue getmempoolinfo(const UniValue& params, bool fHelp); // 获取交易内存池信息
 extern UniValue getrawmempool(const UniValue& params, bool fHelp); // 获取交易内存池元信息（交易索引）
 extern UniValue getblockhash(const UniValue& params, bool fHelp); // 获取指定区块索引的区块哈希

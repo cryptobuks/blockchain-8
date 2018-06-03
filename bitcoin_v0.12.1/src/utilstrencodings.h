@@ -127,7 +127,7 @@ bool TimingResistantEqual(const T& a, const T& b)
  * See http://json.org/number.gif
  * @returns true on success, false on error.
  * @note The result must be in the range (-10^18,10^18), otherwise an overflow error will trigger.
- */
+ */ // 根据 JSON 数字句法解析数字为一个修正点
 bool ParseFixedPoint(const std::string &val, int decimals, int64_t *amount_out);
 
 #endif // BITCOIN_UTILSTRENCODINGS_H

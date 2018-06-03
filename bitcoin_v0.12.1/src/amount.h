@@ -11,12 +11,12 @@
 #include <stdlib.h>
 #include <string>
 
-typedef int64_t CAmount;
+typedef int64_t CAmount; // 金额，64 位
 
 static const CAmount COIN = 100000000;
 static const CAmount CENT = 1000000;
 
-extern const std::string CURRENCY_UNIT;
+extern const std::string CURRENCY_UNIT; // "BTC"
 
 /** No amount larger than this (in satoshi) is valid.
  *
@@ -27,12 +27,12 @@ extern const std::string CURRENCY_UNIT;
  * critical; in unusual circumstances like a(nother) overflow bug that allowed
  * for the creation of coins out of thin air modification could lead to a fork.
  * */
-static const CAmount MAX_MONEY = 21000000 * COIN;
-inline bool MoneyRange(const CAmount& nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
+static const CAmount MAX_MONEY = 21000000 * COIN; // 最大金额 2100 BTC
+inline bool MoneyRange(const CAmount& nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); } // 金额范围检测
 
 /** Type-safe wrapper class for fee rates
  * (how much to pay based on transaction size)
- */
+ */ // 费率的安全包装类（基于交易的大小需要支付多少交易费）
 class CFeeRate
 {
 private:

@@ -33,7 +33,7 @@
 
 using namespace std;
 
-/** Transaction fee set by the user */
+/** Transaction fee set by the user */ // 用户设置的交易费
 CFeeRate payTxFee(DEFAULT_TRANSACTION_FEE); // 默认交易费为 0
 CAmount maxTxFee = DEFAULT_TRANSACTION_MAXFEE; // 交易费上限为 0.1 BTC
 unsigned int nTxConfirmTarget = DEFAULT_TX_CONFIRM_TARGET;

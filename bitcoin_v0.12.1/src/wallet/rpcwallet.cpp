@@ -2228,11 +2228,11 @@ UniValue listlockunspent(const UniValue& params, bool fHelp)
 
 UniValue settxfee(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保当前钱包可用
         return NullUniValue;
     
-    if (fHelp || params.size() < 1 || params.size() > 1)
-        throw runtime_error(
+    if (fHelp || params.size() < 1 || params.size() > 1) // 参数必须为 1 个
+        throw runtime_error( // 命令帮助反馈
             "settxfee amount\n"
             "\nSet the transaction fee per kB. Overwrites the paytxfee parameter.\n"
             "\nArguments:\n"
@@ -2244,13 +2244,13 @@ UniValue settxfee(const UniValue& params, bool fHelp)
             + HelpExampleRpc("settxfee", "0.00001")
         );
 
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
 
     // Amount
-    CAmount nAmount = AmountFromValue(params[0]);
+    CAmount nAmount = AmountFromValue(params[0]); // 获取指定交易费
 
-    payTxFee = CFeeRate(nAmount, 1000);
-    return true;
+    payTxFee = CFeeRate(nAmount, 1000); // 设置交易费
+    return true; // 设置成功返回 true
 }
 
 UniValue getwalletinfo(const UniValue& params, bool fHelp)

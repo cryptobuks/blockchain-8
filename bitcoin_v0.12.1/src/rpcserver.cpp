@@ -108,14 +108,14 @@ void RPCTypeCheckObj(const UniValue& o,
 
 CAmount AmountFromValue(const UniValue& value)
 {
-    if (!value.isNum() && !value.isStr())
+    if (!value.isNum() && !value.isStr()) // 该值必须为数字或字符串类型
         throw JSONRPCError(RPC_TYPE_ERROR, "Amount is not a number or string");
-    CAmount amount;
-    if (!ParseFixedPoint(value.getValStr(), 8, &amount))
+    CAmount amount; // int64_t
+    if (!ParseFixedPoint(value.getValStr(), 8, &amount)) // 解析并初始化金额
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount");
-    if (!MoneyRange(amount))
+    if (!MoneyRange(amount)) // 检测金额范围
         throw JSONRPCError(RPC_TYPE_ERROR, "Amount out of range");
-    return amount;
+    return amount; // 返回该金额
 }
 
 UniValue ValueFromAmount(const CAmount& amount)
