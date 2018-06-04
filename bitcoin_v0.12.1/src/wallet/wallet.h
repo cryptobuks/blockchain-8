@@ -651,7 +651,7 @@ public:
     void ResendWalletTransactions(int64_t nBestBlockTime);
     std::vector<uint256> ResendWalletTransactionsBefore(int64_t nTime);
     CAmount GetBalance() const; // 获取钱包余额
-    CAmount GetUnconfirmedBalance() const;
+    CAmount GetUnconfirmedBalance() const; // 获取钱包内未确认的余额
     CAmount GetImmatureBalance() const;
     CAmount GetWatchOnlyBalance() const;
     CAmount GetUnconfirmedWatchOnlyBalance() const;

@@ -787,17 +787,17 @@ UniValue getbalance(const UniValue& params, bool fHelp)
 
 UniValue getunconfirmedbalance(const UniValue &params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保当前钱包可用
         return NullUniValue;
     
-    if (fHelp || params.size() > 0)
-        throw runtime_error(
+    if (fHelp || params.size() > 0) // 没有参数
+        throw runtime_error( // 命令帮助反馈
                 "getunconfirmedbalance\n"
                 "Returns the server's total unconfirmed balance\n");
 
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
 
-    return ValueFromAmount(pwalletMain->GetUnconfirmedBalance());
+    return ValueFromAmount(pwalletMain->GetUnconfirmedBalance()); // 获取未确认的余额并返回
 }
 
 

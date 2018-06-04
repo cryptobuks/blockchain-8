@@ -1448,8 +1448,8 @@ CAmount CWalletTx::GetChange() const
 bool CWalletTx::InMempool() const
 {
     LOCK(mempool.cs);
-    if (mempool.exists(GetHash())) {
-        return true;
+    if (mempool.exists(GetHash())) { // 若该交易索引是否存在于内存池中
+        return true; // 返回 true
     }
     return false;
 }
@@ -1560,7 +1560,7 @@ CAmount CWallet::GetBalance() const
         for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
         { // 遍历钱包映射
             const CWalletTx* pcoin = &(*it).second; // 获取钱包交易
-            if (pcoin->IsTrusted())
+            if (pcoin->IsTrusted()) // 该交易可信（已确认）
                 nTotal += pcoin->GetAvailableCredit(); // 获取可用余额并累加
         }
     }
@@ -1574,13 +1574,13 @@ CAmount CWallet::GetUnconfirmedBalance() const
     {
         LOCK2(cs_main, cs_wallet);
         for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
-        {
-            const CWalletTx* pcoin = &(*it).second;
-            if (!pcoin->IsTrusted() && pcoin->GetDepthInMainChain() == 0 && pcoin->InMempool())
-                nTotal += pcoin->GetAvailableCredit();
+        { // 遍历钱包交易映射列表
+            const CWalletTx* pcoin = &(*it).second; // 获取钱包交易
+            if (!pcoin->IsTrusted() && pcoin->GetDepthInMainChain() == 0 && pcoin->InMempool()) // 该交易不可信（未确认） 且 交易所在链深度为 0 且 交易在内存池中（未上链）
+                nTotal += pcoin->GetAvailableCredit(); // 获取累加可用余额
         }
     }
-    return nTotal;
+    return nTotal; // 返回总余额
 }
 
 CAmount CWallet::GetImmatureBalance() const
