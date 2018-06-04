@@ -210,7 +210,7 @@ public:
     int GetDepthInMainChain(const CBlockIndex* &pindexRet) const; // 获取该交易在主链上的深度
     int GetDepthInMainChain() const { const CBlockIndex *pindexRet; return GetDepthInMainChain(pindexRet); }
     bool IsInMainChain() const { const CBlockIndex *pindexRet; return GetDepthInMainChain(pindexRet) > 0; }
-    int GetBlocksToMaturity() const;
+    int GetBlocksToMaturity() const; // 获取据成熟所需的区块数，101 - 当前所在区块链深度
     bool AcceptToMemoryPool(bool fLimitFree=true, bool fRejectAbsurdFee=true);
     bool hashUnset() const { return (hashBlock.IsNull() || hashBlock == ABANDON_HASH); } // 哈希未设置（为空或已抛弃的哈希）
     bool isAbandoned() const { return (hashBlock == ABANDON_HASH); } // 该交易是否标记为已抛弃
@@ -220,7 +220,7 @@ public:
 /** 
  * A transaction with a bunch of additional info that only the owner cares about.
  * It includes any unrecorded transactions needed to link it back to the block chain.
- */
+ */ // 一系列只有所属者才关心的交易的附加信息。它包含全部需要链接回区块链的未记录的交易。
 class CWalletTx : public CMerkleTx // 钱包交易
 {
 private:
@@ -550,7 +550,7 @@ public:
         fBroadcastTransactions = false;
     }
 
-    std::map<uint256, CWalletTx> mapWallet; // 钱包映射 <交易索引， 钱包交易>
+    std::map<uint256, CWalletTx> mapWallet; // 钱包交易映射列表 <交易索引， 钱包交易>
     std::list<CAccountingEntry> laccentries;
 
     typedef std::pair<CWalletTx*, CAccountingEntry*> TxPair;

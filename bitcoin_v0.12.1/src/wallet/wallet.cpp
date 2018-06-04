@@ -1558,14 +1558,14 @@ CAmount CWallet::GetBalance() const
     {
         LOCK2(cs_main, cs_wallet);
         for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
-        {
-            const CWalletTx* pcoin = &(*it).second;
+        { // 遍历钱包映射
+            const CWalletTx* pcoin = &(*it).second; // 获取钱包交易
             if (pcoin->IsTrusted())
-                nTotal += pcoin->GetAvailableCredit();
+                nTotal += pcoin->GetAvailableCredit(); // 获取可用余额并累加
         }
     }
 
-    return nTotal;
+    return nTotal; // 返回总余额
 }
 
 CAmount CWallet::GetUnconfirmedBalance() const
@@ -3027,9 +3027,9 @@ int CMerkleTx::GetDepthInMainChain(const CBlockIndex* &pindexRet) const
 
 int CMerkleTx::GetBlocksToMaturity() const
 {
-    if (!IsCoinBase())
+    if (!IsCoinBase()) // 必须是创币交易
         return 0;
-    return max(0, (COINBASE_MATURITY+1) - GetDepthInMainChain());
+    return max(0, (COINBASE_MATURITY+1) - GetDepthInMainChain()); // 获取据成熟所需的区块数
 }
 
 

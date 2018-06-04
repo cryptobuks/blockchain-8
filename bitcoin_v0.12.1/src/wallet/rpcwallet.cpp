@@ -742,13 +742,13 @@ UniValue getbalance(const UniValue& params, bool fHelp)
     if (params.size() == 0) // 若无参数
         return  ValueFromAmount(pwalletMain->GetBalance()); // 直接返回当前整个钱包的余额
 
-    int nMinDepth = 1;
+    int nMinDepth = 1; // 最小深度，默认为 1
     if (params.size() > 1)
-        nMinDepth = params[1].get_int();
-    isminefilter filter = ISMINE_SPENDABLE;
+        nMinDepth = params[1].get_int(); // 获取最小深度
+    isminefilter filter = ISMINE_SPENDABLE; // ismine 过滤器
     if(params.size() > 2)
         if(params[2].get_bool())
-            filter = filter | ISMINE_WATCH_ONLY;
+            filter = filter | ISMINE_WATCH_ONLY; // 获取 watchonly
 
     if (params[0].get_str() == "*") { // 若指定账户名为 "*"
         // Calculate total balance a different way from GetBalance() // 以不同于 GetBalance() 的方式计算总余额
@@ -756,26 +756,26 @@ UniValue getbalance(const UniValue& params, bool fHelp)
         // getbalance and "getbalance * 1 true" should return the same number // getbalance 和 "getbalance * 1 true" 应该返回相同的数字
         CAmount nBalance = 0;
         for (map<uint256, CWalletTx>::iterator it = pwalletMain->mapWallet.begin(); it != pwalletMain->mapWallet.end(); ++it)
-        {
-            const CWalletTx& wtx = (*it).second;
-            if (!CheckFinalTx(wtx) || wtx.GetBlocksToMaturity() > 0 || wtx.GetDepthInMainChain() < 0)
-                continue;
+        { // 遍历钱包交易映射列表
+            const CWalletTx& wtx = (*it).second; // 获取钱包交易
+            if (!CheckFinalTx(wtx) || wtx.GetBlocksToMaturity() > 0 || wtx.GetDepthInMainChain() < 0) // 检测是否为最终交易 或 未成熟 或 所在链深度小于 0
+                continue; // 跳过
 
             CAmount allFee;
             string strSentAccount;
-            list<COutputEntry> listReceived;
-            list<COutputEntry> listSent;
-            wtx.GetAmounts(listReceived, listSent, allFee, strSentAccount, filter);
-            if (wtx.GetDepthInMainChain() >= nMinDepth)
+            list<COutputEntry> listReceived; // 接收列表
+            list<COutputEntry> listSent; // 发送列表
+            wtx.GetAmounts(listReceived, listSent, allFee, strSentAccount, filter); // 获取相应的金额
+            if (wtx.GetDepthInMainChain() >= nMinDepth) // 该交易在链上的深度大于等于最小深度
             {
-                BOOST_FOREACH(const COutputEntry& r, listReceived)
-                    nBalance += r.amount;
+                BOOST_FOREACH(const COutputEntry& r, listReceived) // 遍历接收列表
+                    nBalance += r.amount; // 累加金额
             }
-            BOOST_FOREACH(const COutputEntry& s, listSent)
-                nBalance -= s.amount;
-            nBalance -= allFee;
+            BOOST_FOREACH(const COutputEntry& s, listSent) // 遍历发送列表
+                nBalance -= s.amount; // 减去花费的金额
+            nBalance -= allFee; // 减去交易费
         }
-        return  ValueFromAmount(nBalance);
+        return  ValueFromAmount(nBalance); // 得到钱包总余额并返回
     }
 
     string strAccount = AccountFromValue(params[0]); // 获取指定的账户名
