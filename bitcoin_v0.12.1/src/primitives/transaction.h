@@ -221,8 +221,8 @@ public:
     // and bypass the constness. This is safe, as they update the entire
     // structure, including the hash.
     const int32_t nVersion; // 交易版本
-    const std::vector<CTxIn> vin; // 交易输入
-    const std::vector<CTxOut> vout; // 交易输出
+    const std::vector<CTxIn> vin; // 交易输入列表
+    const std::vector<CTxOut> vout; // 交易输出列表
     const uint32_t nLockTime; // 锁定时间
 
     /** Construct a CTransaction that qualifies as IsNull() */

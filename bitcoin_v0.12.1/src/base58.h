@@ -100,21 +100,21 @@ public:
  * The data vector contains RIPEMD160(SHA256(pubkey)), where pubkey is the serialized public key.
  * Script-hash-addresses have version 5 (or 196 testnet).
  * The data vector contains RIPEMD160(SHA256(cscript)), where cscript is the serialized redemption script.
- */
+ */ // base58 编码的比特币地址
 class CBitcoinAddress : public CBase58Data {
 public:
     bool Set(const CKeyID &id);
     bool Set(const CScriptID &id);
     bool Set(const CTxDestination &dest);
-    bool IsValid() const;
-    bool IsValid(const CChainParams &params) const;
+    bool IsValid() const; // 转调下面的重载函数
+    bool IsValid(const CChainParams &params) const; // 验证地址是否有效
 
     CBitcoinAddress() {}
     CBitcoinAddress(const CTxDestination &dest) { Set(dest); }
     CBitcoinAddress(const std::string& strAddress) { SetString(strAddress); }
     CBitcoinAddress(const char* pszAddress) { SetString(pszAddress); }
 
-    CTxDestination Get() const;
+    CTxDestination Get() const; // 获取公钥索引或脚本索引
     bool GetKeyID(CKeyID &keyID) const;
     bool IsScript() const;
 };

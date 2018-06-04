@@ -107,7 +107,7 @@ const CChainParams &Params();
 
 /**
  * @returns CChainParams for the given BIP70 chain name.
- */
+ */ // 返回基于 BIP70 链名的链参数
 CChainParams& Params(const std::string& chain);
 
 /**

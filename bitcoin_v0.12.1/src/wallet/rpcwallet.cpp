@@ -150,15 +150,15 @@ UniValue getnewaddress(const UniValue& params, bool fHelp) // 在指定账户下新建一
 
 CBitcoinAddress GetAccountAddress(string strAccount, bool bForceNew=false)
 {
-    CWalletDB walletdb(pwalletMain->strWalletFile);
+    CWalletDB walletdb(pwalletMain->strWalletFile); // 创建钱包数据库对象
 
     CAccount account;
-    walletdb.ReadAccount(strAccount, account);
+    walletdb.ReadAccount(strAccount, account); // 从数据库中获取指定账户的数据
 
-    bool bKeyUsed = false;
+    bool bKeyUsed = false; // 该密钥是否正在使用标志
 
     // Check if the current key has been used
-    if (account.vchPubKey.IsValid())
+    if (account.vchPubKey.IsValid()) // 若该公钥有效
     {
         CScript scriptPubKey = GetScriptForDestination(account.vchPubKey.GetID());
         for (map<uint256, CWalletTx>::iterator it = pwalletMain->mapWallet.begin();
@@ -166,32 +166,32 @@ CBitcoinAddress GetAccountAddress(string strAccount, bool bForceNew=false)
              ++it)
         {
             const CWalletTx& wtx = (*it).second;
-            BOOST_FOREACH(const CTxOut& txout, wtx.vout)
-                if (txout.scriptPubKey == scriptPubKey)
-                    bKeyUsed = true;
+            BOOST_FOREACH(const CTxOut& txout, wtx.vout) // 遍历交易输出集
+                if (txout.scriptPubKey == scriptPubKey) // 若公钥脚本一致
+                    bKeyUsed = true; // 标志置为 true
         }
     }
 
     // Generate a new key
-    if (!account.vchPubKey.IsValid() || bForceNew || bKeyUsed)
+    if (!account.vchPubKey.IsValid() || bForceNew || bKeyUsed) // 无效时生成新密钥
     {
-        if (!pwalletMain->GetKeyFromPool(account.vchPubKey))
+        if (!pwalletMain->GetKeyFromPool(account.vchPubKey)) // 从密钥池中获取一个密钥的公钥
             throw JSONRPCError(RPC_WALLET_KEYPOOL_RAN_OUT, "Error: Keypool ran out, please call keypoolrefill first");
 
-        pwalletMain->SetAddressBook(account.vchPubKey.GetID(), strAccount, "receive");
-        walletdb.WriteAccount(strAccount, account);
+        pwalletMain->SetAddressBook(account.vchPubKey.GetID(), strAccount, "receive"); // 设置地址簿
+        walletdb.WriteAccount(strAccount, account); // 把该账户写入钱包数据库中
     }
 
-    return CBitcoinAddress(account.vchPubKey.GetID());
+    return CBitcoinAddress(account.vchPubKey.GetID()); // 获取公钥对应的索引并返回
 }
 
 UniValue getaccountaddress(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保当前钱包可用
         return NullUniValue;
     
-    if (fHelp || params.size() != 1)
-        throw runtime_error(
+    if (fHelp || params.size() != 1) // 参数必须为 1 个
+        throw runtime_error( // 命令帮助反馈
             "getaccountaddress \"account\"\n"
             "\nDEPRECATED. Returns the current Bitcoin address for receiving payments to this account.\n"
             "\nArguments:\n"
@@ -205,15 +205,15 @@ UniValue getaccountaddress(const UniValue& params, bool fHelp)
             + HelpExampleRpc("getaccountaddress", "\"myaccount\"")
         );
 
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
 
     // Parse the account first so we don't generate a key if there's an error
-    string strAccount = AccountFromValue(params[0]);
+    string strAccount = AccountFromValue(params[0]); // 首先解析账户，如果这里出错我们不会生成一个密钥
 
     UniValue ret(UniValue::VSTR);
 
-    ret = GetAccountAddress(strAccount).ToString();
-    return ret;
+    ret = GetAccountAddress(strAccount).ToString(); // 获取指定账户的找零地址
+    return ret; // 返回一个比特币地址
 }
 
 
@@ -300,11 +300,11 @@ UniValue setaccount(const UniValue& params, bool fHelp)
 
 UniValue getaccount(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保当前钱包可用
         return NullUniValue;
     
-    if (fHelp || params.size() != 1)
-        throw runtime_error(
+    if (fHelp || params.size() != 1) // 参数必须为 1 个
+        throw runtime_error( // 命令帮助反馈
             "getaccount \"bitcoinaddress\"\n"
             "\nDEPRECATED. Returns the account associated with the given address.\n"
             "\nArguments:\n"
@@ -316,27 +316,27 @@ UniValue getaccount(const UniValue& params, bool fHelp)
             + HelpExampleRpc("getaccount", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\"")
         );
 
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
 
-    CBitcoinAddress address(params[0].get_str());
-    if (!address.IsValid())
+    CBitcoinAddress address(params[0].get_str()); // 获取指定的比特币地址
+    if (!address.IsValid()) // 检测地址是否有效
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Bitcoin address");
 
-    string strAccount;
-    map<CTxDestination, CAddressBookData>::iterator mi = pwalletMain->mapAddressBook.find(address.Get());
-    if (mi != pwalletMain->mapAddressBook.end() && !(*mi).second.name.empty())
-        strAccount = (*mi).second.name;
-    return strAccount;
+    string strAccount; // 保存账户名
+    map<CTxDestination, CAddressBookData>::iterator mi = pwalletMain->mapAddressBook.find(address.Get()); // 获取地址簿中对应地址索引的数据
+    if (mi != pwalletMain->mapAddressBook.end() && !(*mi).second.name.empty()) // 若存在该数据且账户名非空
+        strAccount = (*mi).second.name; // 获取账户名
+    return strAccount; // 返回所属账户名
 }
 
 
 UniValue getaddressesbyaccount(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保当前钱包可用
         return NullUniValue;
     
-    if (fHelp || params.size() != 1)
-        throw runtime_error(
+    if (fHelp || params.size() != 1) // 参数必须为 1 个
+        throw runtime_error( // 命令参数反馈
             "getaddressesbyaccount \"account\"\n"
             "\nDEPRECATED. Returns the list of addresses for the given account.\n"
             "\nArguments:\n"
@@ -351,20 +351,20 @@ UniValue getaddressesbyaccount(const UniValue& params, bool fHelp)
             + HelpExampleRpc("getaddressesbyaccount", "\"tabby\"")
         );
 
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
 
-    string strAccount = AccountFromValue(params[0]);
+    string strAccount = AccountFromValue(params[0]); // 获取指定账户名
 
-    // Find all addresses that have the given account
-    UniValue ret(UniValue::VARR);
+    // Find all addresses that have the given account // 查找基于给定帐户名的所有地址
+    UniValue ret(UniValue::VARR); // 创建数组类型的结果对象
     BOOST_FOREACH(const PAIRTYPE(CBitcoinAddress, CAddressBookData)& item, pwalletMain->mapAddressBook)
-    {
-        const CBitcoinAddress& address = item.first;
-        const string& strName = item.second.name;
-        if (strName == strAccount)
-            ret.push_back(address.ToString());
+    { // 遍历地址簿
+        const CBitcoinAddress& address = item.first; // 获取比特币地址
+        const string& strName = item.second.name; // 获取账户名
+        if (strName == strAccount) // 若与指定帐户名相同
+            ret.push_back(address.ToString()); // 把该地址加入结果集
     }
-    return ret;
+    return ret; // 返回结果对象
 }
 
 static void SendMoney(const CTxDestination &address, CAmount nValue, bool fSubtractFeeFromAmount, CWalletTx& wtxNew)
@@ -712,11 +712,11 @@ CAmount GetAccountBalance(const string& strAccount, int nMinDepth, const isminef
 
 UniValue getbalance(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保当前钱包可用
         return NullUniValue;
     
-    if (fHelp || params.size() > 3)
-        throw runtime_error(
+    if (fHelp || params.size() > 3) // 参数最多为 3 个
+        throw runtime_error( // 命令帮助反馈
             "getbalance ( \"account\" minconf includeWatchonly )\n"
             "\nIf account is not specified, returns the server's total available balance.\n"
             "If account is specified (DEPRECATED), returns the balance in the account.\n"
@@ -737,10 +737,10 @@ UniValue getbalance(const UniValue& params, bool fHelp)
             + HelpExampleRpc("getbalance", "\"*\", 6")
         );
 
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
 
-    if (params.size() == 0)
-        return  ValueFromAmount(pwalletMain->GetBalance());
+    if (params.size() == 0) // 若无参数
+        return  ValueFromAmount(pwalletMain->GetBalance()); // 直接返回当前整个钱包的余额
 
     int nMinDepth = 1;
     if (params.size() > 1)
@@ -750,10 +750,10 @@ UniValue getbalance(const UniValue& params, bool fHelp)
         if(params[2].get_bool())
             filter = filter | ISMINE_WATCH_ONLY;
 
-    if (params[0].get_str() == "*") {
-        // Calculate total balance a different way from GetBalance()
-        // (GetBalance() sums up all unspent TxOuts)
-        // getbalance and "getbalance * 1 true" should return the same number
+    if (params[0].get_str() == "*") { // 若指定账户名为 "*"
+        // Calculate total balance a different way from GetBalance() // 以不同于 GetBalance() 的方式计算总余额
+        // (GetBalance() sums up all unspent TxOuts) // （GetBalance() 总计全部未花费的输出）
+        // getbalance and "getbalance * 1 true" should return the same number // getbalance 和 "getbalance * 1 true" 应该返回相同的数字
         CAmount nBalance = 0;
         for (map<uint256, CWalletTx>::iterator it = pwalletMain->mapWallet.begin(); it != pwalletMain->mapWallet.end(); ++it)
         {
@@ -778,11 +778,11 @@ UniValue getbalance(const UniValue& params, bool fHelp)
         return  ValueFromAmount(nBalance);
     }
 
-    string strAccount = AccountFromValue(params[0]);
+    string strAccount = AccountFromValue(params[0]); // 获取指定的账户名
 
-    CAmount nBalance = GetAccountBalance(strAccount, nMinDepth, filter);
+    CAmount nBalance = GetAccountBalance(strAccount, nMinDepth, filter); // 获取账户余额
 
-    return ValueFromAmount(nBalance);
+    return ValueFromAmount(nBalance); // 返回账户余额
 }
 
 UniValue getunconfirmedbalance(const UniValue &params, bool fHelp)
@@ -2247,7 +2247,7 @@ UniValue settxfee(const UniValue& params, bool fHelp)
     LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
 
     // Amount
-    CAmount nAmount = AmountFromValue(params[0]); // 获取指定交易费
+    CAmount nAmount = AmountFromValue(params[0]); // 获取指定交易费，包含范围检查
 
     payTxFee = CFeeRate(nAmount, 1000); // 设置交易费
     return true; // 设置成功返回 true

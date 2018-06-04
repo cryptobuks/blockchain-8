@@ -572,8 +572,8 @@ static inline bool ProcessMantissaDigit(char ch, int64_t &mantissa, int &mantiss
 
 bool ParseFixedPoint(const std::string &val, int decimals, int64_t *amount_out)
 {
-    int64_t mantissa = 0;
-    int64_t exponent = 0;
+    int64_t mantissa = 0; // 尾数（精度）
+    int64_t exponent = 0; // 指数
     int mantissa_tzeros = 0;
     bool mantissa_sign = false;
     bool exponent_sign = false;
@@ -657,7 +657,7 @@ bool ParseFixedPoint(const std::string &val, int decimals, int64_t *amount_out)
         return false; /* overflow */
 
     if (amount_out)
-        *amount_out = mantissa;
+        *amount_out = mantissa; // 获取最终结果
 
     return true;
 }

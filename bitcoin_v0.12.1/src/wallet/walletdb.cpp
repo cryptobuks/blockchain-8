@@ -177,8 +177,8 @@ bool CWalletDB::WriteMinVersion(int nVersion)
 
 bool CWalletDB::ReadAccount(const string& strAccount, CAccount& account)
 {
-    account.SetNull();
-    return Read(make_pair(string("acc"), strAccount), account);
+    account.SetNull(); // 清空账户对象
+    return Read(make_pair(string("acc"), strAccount), account); // 读取以 "acc"+帐户名 为关键字的账户信息
 }
 
 bool CWalletDB::WriteAccount(const string& strAccount, const CAccount& account)

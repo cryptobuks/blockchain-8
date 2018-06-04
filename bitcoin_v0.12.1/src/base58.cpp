@@ -237,14 +237,14 @@ bool CBitcoinAddress::Set(const CTxDestination& dest)
 
 bool CBitcoinAddress::IsValid() const
 {
-    return IsValid(Params());
+    return IsValid(Params()); // 转调有参重载函数
 }
 
 bool CBitcoinAddress::IsValid(const CChainParams& params) const
 {
-    bool fCorrectSize = vchData.size() == 20;
-    bool fKnownVersion = vchVersion == params.Base58Prefix(CChainParams::PUBKEY_ADDRESS) ||
-                         vchVersion == params.Base58Prefix(CChainParams::SCRIPT_ADDRESS);
+    bool fCorrectSize = vchData.size() == 20; // 真正编码数据大小是否为 20 字节
+    bool fKnownVersion = vchVersion == params.Base58Prefix(CChainParams::PUBKEY_ADDRESS) || // 版本号即地址前缀为公钥地址前缀
+                         vchVersion == params.Base58Prefix(CChainParams::SCRIPT_ADDRESS); // 或脚本地址前缀
     return fCorrectSize && fKnownVersion;
 }
 
@@ -253,9 +253,9 @@ CTxDestination CBitcoinAddress::Get() const
     if (!IsValid())
         return CNoDestination();
     uint160 id;
-    memcpy(&id, &vchData[0], 20);
+    memcpy(&id, &vchData[0], 20); // 复制编码数据的 20 位
     if (vchVersion == Params().Base58Prefix(CChainParams::PUBKEY_ADDRESS))
-        return CKeyID(id);
+        return CKeyID(id); // 返回公钥索引
     else if (vchVersion == Params().Base58Prefix(CChainParams::SCRIPT_ADDRESS))
         return CScriptID(id);
     else

@@ -156,7 +156,7 @@ extern std::vector<unsigned char> ParseHexV(const UniValue& v, std::string strNa
 extern std::vector<unsigned char> ParseHexO(const UniValue& o, std::string strKey);
 
 extern int64_t nWalletUnlockTime;
-extern CAmount AmountFromValue(const UniValue& value);
+extern CAmount AmountFromValue(const UniValue& value); // 从指定值获取金额，包含类型和范围检测
 extern UniValue ValueFromAmount(const CAmount& amount);
 extern double GetDifficulty(const CBlockIndex* blockindex = NULL);
 extern std::string HelpRequiringPassphrase();
@@ -196,18 +196,18 @@ extern UniValue estimatepriority(const UniValue& params, bool fHelp);
 extern UniValue estimatesmartfee(const UniValue& params, bool fHelp);
 extern UniValue estimatesmartpriority(const UniValue& params, bool fHelp);
 
-extern UniValue getnewaddress(const UniValue& params, bool fHelp); // in rpcwallet.cpp
-extern UniValue getaccountaddress(const UniValue& params, bool fHelp);
+extern UniValue getnewaddress(const UniValue& params, bool fHelp); // 获取新地址
+extern UniValue getaccountaddress(const UniValue& params, bool fHelp); // 获取账户找零地址
 extern UniValue getrawchangeaddress(const UniValue& params, bool fHelp);
 extern UniValue setaccount(const UniValue& params, bool fHelp);
-extern UniValue getaccount(const UniValue& params, bool fHelp);
-extern UniValue getaddressesbyaccount(const UniValue& params, bool fHelp);
+extern UniValue getaccount(const UniValue& params, bool fHelp); // 获取地址所属账户
+extern UniValue getaddressesbyaccount(const UniValue& params, bool fHelp); // 获取账户下的所有地址
 extern UniValue sendtoaddress(const UniValue& params, bool fHelp);
 extern UniValue signmessage(const UniValue& params, bool fHelp);
 extern UniValue verifymessage(const UniValue& params, bool fHelp);
 extern UniValue getreceivedbyaddress(const UniValue& params, bool fHelp);
 extern UniValue getreceivedbyaccount(const UniValue& params, bool fHelp);
-extern UniValue getbalance(const UniValue& params, bool fHelp);
+extern UniValue getbalance(const UniValue& params, bool fHelp); // 获取余额
 extern UniValue getunconfirmedbalance(const UniValue& params, bool fHelp);
 extern UniValue movecmd(const UniValue& params, bool fHelp);
 extern UniValue sendfrom(const UniValue& params, bool fHelp);

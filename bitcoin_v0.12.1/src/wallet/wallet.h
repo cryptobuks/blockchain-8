@@ -560,7 +560,7 @@ public:
     int64_t nOrderPosNext;
     std::map<uint256, int> mapRequestCount;
 
-    std::map<CTxDestination, CAddressBookData> mapAddressBook; // 地址簿映射列表
+    std::map<CTxDestination, CAddressBookData> mapAddressBook; // 地址簿映射列表 <地址， 地址簿数据>
 
     CPubKey vchDefaultKey; // 默认公钥
 
@@ -650,7 +650,7 @@ public:
     void ReacceptWalletTransactions();
     void ResendWalletTransactions(int64_t nBestBlockTime);
     std::vector<uint256> ResendWalletTransactionsBefore(int64_t nTime);
-    CAmount GetBalance() const;
+    CAmount GetBalance() const; // 获取钱包余额
     CAmount GetUnconfirmedBalance() const;
     CAmount GetImmatureBalance() const;
     CAmount GetWatchOnlyBalance() const;
@@ -691,7 +691,7 @@ public:
     void ReserveKeyFromKeyPool(int64_t& nIndex, CKeyPool& keypool);
     void KeepKey(int64_t nIndex);
     void ReturnKey(int64_t nIndex);
-    bool GetKeyFromPool(CPubKey &key);
+    bool GetKeyFromPool(CPubKey &key); // 从密钥池中获取一个密钥的公钥
     int64_t GetOldestKeyPoolTime();
     void GetAllReserveKeys(std::set<CKeyID>& setAddress) const; // 获取密钥池中全部预创建的密钥
 
@@ -717,7 +717,7 @@ public:
     DBErrors LoadWallet(bool& fFirstRunRet);
     DBErrors ZapWalletTx(std::vector<CWalletTx>& vWtx);
 
-    bool SetAddressBook(const CTxDestination& address, const std::string& strName, const std::string& purpose);
+    bool SetAddressBook(const CTxDestination& address, const std::string& strName, const std::string& purpose); // 设置地址簿（地址，所属账户，地址用途）
 
     bool DelAddressBook(const CTxDestination& address);
 
@@ -826,11 +826,11 @@ public:
 /** 
  * Account information.
  * Stored in wallet with key "acc"+string account name.
- */
+ */ // 账户信息。以 "acc"+账户名 为关键字存储在钱包中。
 class CAccount
 {
 public:
-    CPubKey vchPubKey;
+    CPubKey vchPubKey; // 公钥
 
     CAccount()
     {

@@ -156,7 +156,7 @@ public:
      * Check syntactic correctness.
      * 
      * Note that this is consensus critical as CheckSig() calls it!
-     */
+     */ // 检测句法正确性。
     bool IsValid() const
     {
         return size() > 0;

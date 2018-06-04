@@ -65,7 +65,7 @@ public:
  *  * CKeyID: TX_PUBKEYHASH destination
  *  * CScriptID: TX_SCRIPTHASH destination
  *  A CTxDestination is the internal data type encoded in a CBitcoinAddress
- */
+ */ // 一个带有特定目的的交易输出脚本模板。CTxDestination 是 CBitcoinAddress 中编码的内部数据类型
 typedef boost::variant<CNoDestination, CKeyID, CScriptID> CTxDestination;
 
 const char* GetTxnOutputType(txnouttype t);
