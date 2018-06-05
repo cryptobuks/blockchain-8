@@ -61,7 +61,7 @@ bool RPCIsInWarmup(std::string *statusOut); // 获取当前 RPC 的预热状态
  * Type-check arguments; throws JSONRPCError if wrong type given. Does not check that
  * the right number of arguments are passed, just that any passed are the correct type.
  * Use like:  RPCTypeCheck(params, boost::assign::list_of(str_type)(int_type)(obj_type));
- */
+ */ // 检查参数类型；如果给定错误类型，则抛出 JSONRPCError。不检查传递参数的个数，仅检查参数类型。
 void RPCTypeCheck(const UniValue& params,
                   const std::list<UniValue::VType>& typesExpected, bool fAllowNull=false);
 
@@ -237,9 +237,9 @@ extern UniValue setmocktime(const UniValue& params, bool fHelp);
 extern UniValue resendwallettransactions(const UniValue& params, bool fHelp);
 
 extern UniValue getrawtransaction(const UniValue& params, bool fHelp); // in rcprawtransaction.cpp
-extern UniValue listunspent(const UniValue& params, bool fHelp);
-extern UniValue lockunspent(const UniValue& params, bool fHelp);
-extern UniValue listlockunspent(const UniValue& params, bool fHelp);
+extern UniValue listunspent(const UniValue& params, bool fHelp); // 列出未花费的交易输出
+extern UniValue lockunspent(const UniValue& params, bool fHelp); // 加解锁未花费的交易输出
+extern UniValue listlockunspent(const UniValue& params, bool fHelp); // 列出锁定的未花费交易输出
 extern UniValue createrawtransaction(const UniValue& params, bool fHelp);
 extern UniValue decoderawtransaction(const UniValue& params, bool fHelp);
 extern UniValue decodescript(const UniValue& params, bool fHelp);

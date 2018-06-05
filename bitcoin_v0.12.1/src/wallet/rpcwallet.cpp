@@ -1605,7 +1605,7 @@ UniValue listaccounts(const UniValue& params, bool fHelp)
 
     const list<CAccountingEntry> & acentries = pwalletMain->laccentries; // 获取账户条目列表
     BOOST_FOREACH(const CAccountingEntry& entry, acentries) // 遍历该列表
-        mapAccountBalances[entry.strAccount] += entry.nCreditDebit; // 
+        mapAccountBalances[entry.strAccount] += entry.nCreditDebit; // 不明
 
     UniValue ret(UniValue::VOBJ); // 创建对象类型结果
     BOOST_FOREACH(const PAIRTYPE(string, CAmount)& accountBalance, mapAccountBalances) { // 遍历账户余额映射列表
@@ -2095,11 +2095,11 @@ UniValue encryptwallet(const UniValue& params, bool fHelp)
 
 UniValue lockunspent(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保当前钱包可用
         return NullUniValue;
     
-    if (fHelp || params.size() < 1 || params.size() > 2)
-        throw runtime_error(
+    if (fHelp || params.size() < 1 || params.size() > 2) // 参数只能是 1 个或 2 个
+        throw runtime_error( // 命令帮助反馈
             "lockunspent unlock [{\"txid\":\"txid\",\"vout\":n},...]\n"
             "\nUpdates list of temporarily unspendable outputs.\n"
             "Temporarily lock (unlock=false) or unlock (unlock=true) specified transaction outputs.\n"
@@ -2134,56 +2134,56 @@ UniValue lockunspent(const UniValue& params, bool fHelp)
             + HelpExampleRpc("lockunspent", "false, \"[{\\\"txid\\\":\\\"a08e6907dbbd3d809776dbfc5d82e371b764ed838b5655e72f463568df1aadf0\\\",\\\"vout\\\":1}]\"")
         );
 
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
 
-    if (params.size() == 1)
-        RPCTypeCheck(params, boost::assign::list_of(UniValue::VBOOL));
+    if (params.size() == 1) // 若只有一个参数
+        RPCTypeCheck(params, boost::assign::list_of(UniValue::VBOOL)); // 验证参数类型
     else
         RPCTypeCheck(params, boost::assign::list_of(UniValue::VBOOL)(UniValue::VARR));
 
-    bool fUnlock = params[0].get_bool();
+    bool fUnlock = params[0].get_bool(); // 获取加解锁的状态
 
-    if (params.size() == 1) {
-        if (fUnlock)
-            pwalletMain->UnlockAllCoins();
+    if (params.size() == 1) { // 若只有一个参数
+        if (fUnlock) // 若是解锁
+            pwalletMain->UnlockAllCoins(); // 解锁全部
         return true;
     }
 
-    UniValue outputs = params[1].get_array();
-    for (unsigned int idx = 0; idx < outputs.size(); idx++) {
-        const UniValue& output = outputs[idx];
+    UniValue outputs = params[1].get_array(); // 获取交易输出索引数组
+    for (unsigned int idx = 0; idx < outputs.size(); idx++) { // 遍历该数组
+        const UniValue& output = outputs[idx]; // 获取一个对象（交易输出索引）
         if (!output.isObject())
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, expected object");
-        const UniValue& o = output.get_obj();
+        const UniValue& o = output.get_obj(); // 获取该对象
 
-        RPCTypeCheckObj(o, boost::assign::map_list_of("txid", UniValue::VSTR)("vout", UniValue::VNUM));
+        RPCTypeCheckObj(o, boost::assign::map_list_of("txid", UniValue::VSTR)("vout", UniValue::VNUM)); // 检查对象类型，"交易索引" 为字符串，"交易输出索引" 为数字型
 
-        string txid = find_value(o, "txid").get_str();
-        if (!IsHex(txid))
+        string txid = find_value(o, "txid").get_str(); // 获取交易索引
+        if (!IsHex(txid)) // 判断是否为 16 进制
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, expected hex txid");
 
-        int nOutput = find_value(o, "vout").get_int();
-        if (nOutput < 0)
+        int nOutput = find_value(o, "vout").get_int(); // 获取交易输出索引
+        if (nOutput < 0) // 该值大于等于 0
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, vout must be positive");
 
-        COutPoint outpt(uint256S(txid), nOutput);
+        COutPoint outpt(uint256S(txid), nOutput); // 构建一个输出点对象
 
-        if (fUnlock)
-            pwalletMain->UnlockCoin(outpt);
-        else
-            pwalletMain->LockCoin(outpt);
+        if (fUnlock) // 若解锁
+            pwalletMain->UnlockCoin(outpt); // 解锁该交易输出
+        else // 加锁
+            pwalletMain->LockCoin(outpt); // 加锁该交易输出
     }
 
-    return true;
+    return true; // 成功返回 true
 }
 
 UniValue listlockunspent(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保当前钱包可用
         return NullUniValue;
     
-    if (fHelp || params.size() > 0)
-        throw runtime_error(
+    if (fHelp || params.size() > 0) // 没有参数
+        throw runtime_error( // 命令帮助反馈
             "listlockunspent\n"
             "\nReturns list of temporarily unspendable outputs.\n"
             "See the lockunspent call to lock and unlock transactions for spending.\n"
@@ -2208,22 +2208,22 @@ UniValue listlockunspent(const UniValue& params, bool fHelp)
             + HelpExampleRpc("listlockunspent", "")
         );
 
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
 
-    vector<COutPoint> vOutpts;
-    pwalletMain->ListLockedCoins(vOutpts);
+    vector<COutPoint> vOutpts; // 创建输出点列表
+    pwalletMain->ListLockedCoins(vOutpts); // 获取锁定的交易输出集合
 
-    UniValue ret(UniValue::VARR);
+    UniValue ret(UniValue::VARR); // 创建数组类型的结果集
 
-    BOOST_FOREACH(COutPoint &outpt, vOutpts) {
+    BOOST_FOREACH(COutPoint &outpt, vOutpts) { // 遍历输出点列表
         UniValue o(UniValue::VOBJ);
 
-        o.push_back(Pair("txid", outpt.hash.GetHex()));
-        o.push_back(Pair("vout", (int)outpt.n));
-        ret.push_back(o);
+        o.push_back(Pair("txid", outpt.hash.GetHex())); // 获取输出点的交易索引
+        o.push_back(Pair("vout", (int)outpt.n)); // 获取输出点的输出索引
+        ret.push_back(o); // 加入结果集
     }
 
-    return ret;
+    return ret; // 返回结果集
 }
 
 UniValue settxfee(const UniValue& params, bool fHelp)
@@ -2322,11 +2322,11 @@ UniValue resendwallettransactions(const UniValue& params, bool fHelp)
 
 UniValue listunspent(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保当前钱包可用
         return NullUniValue;
     
-    if (fHelp || params.size() > 3)
-        throw runtime_error(
+    if (fHelp || params.size() > 3) // 参数最多 3 个
+        throw runtime_error( // 命令帮助反馈
             "listunspent ( minconf maxconf  [\"address\",...] )\n"
             "\nReturns array of unspent transaction outputs\n"
             "with between minconf and maxconf (inclusive) confirmations.\n"
@@ -2361,76 +2361,76 @@ UniValue listunspent(const UniValue& params, bool fHelp)
             + HelpExampleRpc("listunspent", "6, 9999999 \"[\\\"1PGFqEzfmQch1gKD3ra4k18PNj3tTUUSqg\\\",\\\"1LtvqCaApEdUGFkpKMM4MstjcaL4dKg8SP\\\"]\"")
         );
 
-    RPCTypeCheck(params, boost::assign::list_of(UniValue::VNUM)(UniValue::VNUM)(UniValue::VARR));
+    RPCTypeCheck(params, boost::assign::list_of(UniValue::VNUM)(UniValue::VNUM)(UniValue::VARR)); // 检查参数类型
 
-    int nMinDepth = 1;
+    int nMinDepth = 1; // 最小深度，默认为 1
     if (params.size() > 0)
-        nMinDepth = params[0].get_int();
+        nMinDepth = params[0].get_int(); // 获取最小深度
 
-    int nMaxDepth = 9999999;
+    int nMaxDepth = 9999999; // 最大深度，默认为 9999999
     if (params.size() > 1)
-        nMaxDepth = params[1].get_int();
+        nMaxDepth = params[1].get_int(); // 获取最大深度
 
-    set<CBitcoinAddress> setAddress;
-    if (params.size() > 2) {
-        UniValue inputs = params[2].get_array();
-        for (unsigned int idx = 0; idx < inputs.size(); idx++) {
-            const UniValue& input = inputs[idx];
-            CBitcoinAddress address(input.get_str());
-            if (!address.IsValid())
+    set<CBitcoinAddress> setAddress; // 比特币地址集合
+    if (params.size() > 2) { // 若指定了地址集
+        UniValue inputs = params[2].get_array(); // 获取地址集
+        for (unsigned int idx = 0; idx < inputs.size(); idx++) { // 遍历地址集
+            const UniValue& input = inputs[idx]; // 获取一个地址
+            CBitcoinAddress address(input.get_str()); // 转换为字符串并包装为比特币地址对象
+            if (!address.IsValid()) // 检查该地址有效性
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, string("Invalid Bitcoin address: ")+input.get_str());
-            if (setAddress.count(address))
+            if (setAddress.count(address)) // 保证集合里没有该地址
                 throw JSONRPCError(RPC_INVALID_PARAMETER, string("Invalid parameter, duplicated address: ")+input.get_str());
-           setAddress.insert(address);
+           setAddress.insert(address); // 插入地址集合
         }
     }
 
-    UniValue results(UniValue::VARR);
-    vector<COutput> vecOutputs;
-    assert(pwalletMain != NULL);
-    LOCK2(cs_main, pwalletMain->cs_wallet);
-    pwalletMain->AvailableCoins(vecOutputs, false, NULL, true);
-    BOOST_FOREACH(const COutput& out, vecOutputs) {
-        if (out.nDepth < nMinDepth || out.nDepth > nMaxDepth)
+    UniValue results(UniValue::VARR); // 创建数组类型的结果集
+    vector<COutput> vecOutputs; // 输出列表
+    assert(pwalletMain != NULL); // 钱包可用
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
+    pwalletMain->AvailableCoins(vecOutputs, false, NULL, true); // 获取可花费的输出列表
+    BOOST_FOREACH(const COutput& out, vecOutputs) { // 遍历该列表
+        if (out.nDepth < nMinDepth || out.nDepth > nMaxDepth) // 深度（确认数）在指定范围内
             continue;
 
-        if (setAddress.size()) {
+        if (setAddress.size()) { // 若地址集大小大于 0
             CTxDestination address;
-            if (!ExtractDestination(out.tx->vout[out.i].scriptPubKey, address))
+            if (!ExtractDestination(out.tx->vout[out.i].scriptPubKey, address)) // 根据输出脚本提取地址
                 continue;
 
-            if (!setAddress.count(address))
+            if (!setAddress.count(address)) // 查看地址集中是否含此地址
                 continue;
-        }
+        } // 多余？
 
-        CAmount nValue = out.tx->vout[out.i].nValue;
-        const CScript& pk = out.tx->vout[out.i].scriptPubKey;
+        CAmount nValue = out.tx->vout[out.i].nValue; // 获取输出金额
+        const CScript& pk = out.tx->vout[out.i].scriptPubKey; // 获取公钥脚本
         UniValue entry(UniValue::VOBJ);
-        entry.push_back(Pair("txid", out.tx->GetHash().GetHex()));
-        entry.push_back(Pair("vout", out.i));
+        entry.push_back(Pair("txid", out.tx->GetHash().GetHex())); // 交易索引（16 进制形式）
+        entry.push_back(Pair("vout", out.i)); // 交易输出索引
         CTxDestination address;
-        if (ExtractDestination(out.tx->vout[out.i].scriptPubKey, address)) {
-            entry.push_back(Pair("address", CBitcoinAddress(address).ToString()));
-            if (pwalletMain->mapAddressBook.count(address))
-                entry.push_back(Pair("account", pwalletMain->mapAddressBook[address].name));
+        if (ExtractDestination(out.tx->vout[out.i].scriptPubKey, address)) { // 根据交易输出脚本获取交易地址
+            entry.push_back(Pair("address", CBitcoinAddress(address).ToString())); // 交易输出的公钥地址
+            if (pwalletMain->mapAddressBook.count(address)) // 若在地址簿中查到该地址
+                entry.push_back(Pair("account", pwalletMain->mapAddressBook[address].name)); // 获取帐户名
         }
-        entry.push_back(Pair("scriptPubKey", HexStr(pk.begin(), pk.end())));
-        if (pk.IsPayToScriptHash()) {
+        entry.push_back(Pair("scriptPubKey", HexStr(pk.begin(), pk.end()))); // 公钥脚本
+        if (pk.IsPayToScriptHash()) { // 是否支付到脚本哈希
             CTxDestination address;
             if (ExtractDestination(pk, address)) {
-                const CScriptID& hash = boost::get<CScriptID>(address);
+                const CScriptID& hash = boost::get<CScriptID>(address); // 通过地址获取脚本索引
                 CScript redeemScript;
-                if (pwalletMain->GetCScript(hash, redeemScript))
+                if (pwalletMain->GetCScript(hash, redeemScript)) // 通过索引获取赎回脚本
                     entry.push_back(Pair("redeemScript", HexStr(redeemScript.begin(), redeemScript.end())));
             }
         }
-        entry.push_back(Pair("amount",ValueFromAmount(nValue)));
-        entry.push_back(Pair("confirmations",out.nDepth));
-        entry.push_back(Pair("spendable", out.fSpendable));
-        results.push_back(entry);
+        entry.push_back(Pair("amount",ValueFromAmount(nValue))); // 可用余额
+        entry.push_back(Pair("confirmations",out.nDepth)); // 确认数（深度）
+        entry.push_back(Pair("spendable", out.fSpendable)); // 是否可花费
+        results.push_back(entry); // 加入结果集
     }
 
-    return results;
+    return results; // 返回结果集
 }
 
 UniValue fundrawtransaction(const UniValue& params, bool fHelp)

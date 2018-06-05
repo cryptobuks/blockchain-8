@@ -413,8 +413,8 @@ class COutput // 输出
 {
 public:
     const CWalletTx *tx; // 钱包交易指针
-    int i;
-    int nDepth;
+    int i; // 输出索引
+    int nDepth; // 所在交易的深度（确认数）
     bool fSpendable; // 是否可花费
 
     COutput(const CWalletTx *txIn, int iIn, int nDepthIn, bool fSpendableIn)
@@ -564,7 +564,7 @@ public:
 
     CPubKey vchDefaultKey; // 默认公钥
 
-    std::set<COutPoint> setLockedCoins;
+    std::set<COutPoint> setLockedCoins; // 锁定的交易输出集合
 
     int64_t nTimeFirstKey;
 
@@ -589,10 +589,10 @@ public:
     bool IsSpent(const uint256& hash, unsigned int n) const;
 
     bool IsLockedCoin(uint256 hash, unsigned int n) const;
-    void LockCoin(COutPoint& output);
-    void UnlockCoin(COutPoint& output);
-    void UnlockAllCoins();
-    void ListLockedCoins(std::vector<COutPoint>& vOutpts);
+    void LockCoin(COutPoint& output); // 锁定指定交易输出
+    void UnlockCoin(COutPoint& output); // 解锁指定交易输出
+    void UnlockAllCoins(); // 解锁全部交易输出
+    void ListLockedCoins(std::vector<COutPoint>& vOutpts); // 获取锁定的交易输出集合
 
     /**
      * keystore implementation

@@ -2798,27 +2798,27 @@ void CWallet::GetScriptForMining(boost::shared_ptr<CReserveScript> &script)
 void CWallet::LockCoin(COutPoint& output)
 {
     AssertLockHeld(cs_wallet); // setLockedCoins
-    setLockedCoins.insert(output);
+    setLockedCoins.insert(output); // 加入锁定的交易输出集合
 }
 
 void CWallet::UnlockCoin(COutPoint& output)
 {
     AssertLockHeld(cs_wallet); // setLockedCoins
-    setLockedCoins.erase(output);
+    setLockedCoins.erase(output); // 擦除指定的交易输出
 }
 
 void CWallet::UnlockAllCoins()
 {
     AssertLockHeld(cs_wallet); // setLockedCoins
-    setLockedCoins.clear();
+    setLockedCoins.clear(); // 清空锁定的交易输出集合
 }
 
 bool CWallet::IsLockedCoin(uint256 hash, unsigned int n) const
 {
     AssertLockHeld(cs_wallet); // setLockedCoins
-    COutPoint outpt(hash, n);
+    COutPoint outpt(hash, n); // 构建输出点对象
 
-    return (setLockedCoins.count(outpt) > 0);
+    return (setLockedCoins.count(outpt) > 0); // 若在锁定的交易集合中存在，返回 true
 }
 
 void CWallet::ListLockedCoins(std::vector<COutPoint>& vOutpts)
