@@ -359,7 +359,7 @@ bool IsFinalTx(const CTransaction &tx, int nBlockHeight, int64_t nBlockTime);
  * Calls IsFinalTx() with current block height and appropriate block time.
  *
  * See consensus/consensus.h for flag definitions.
- */
+ */ // 检查交易是否为创建的下一个区块的最终交易
 bool CheckFinalTx(const CTransaction &tx, int flags = -1);
 
 /**

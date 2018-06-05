@@ -28,7 +28,7 @@ enum isminetype
 /** used for bitflags of isminetype */ // 用于 isminetype 的标志位
 typedef uint8_t isminefilter; // 8 位
 
-isminetype IsMine(const CKeyStore& keystore, const CScript& scriptPubKey);
-isminetype IsMine(const CKeyStore& keystore, const CTxDestination& dest);
+isminetype IsMine(const CKeyStore& keystore, const CScript& scriptPubKey); // 是我的
+isminetype IsMine(const CKeyStore& keystore, const CTxDestination& dest); // 是我的
 
 #endif // BITCOIN_WALLET_WALLET_ISMINE_H

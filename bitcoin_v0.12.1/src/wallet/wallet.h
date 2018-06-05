@@ -551,7 +551,7 @@ public:
     }
 
     std::map<uint256, CWalletTx> mapWallet; // 钱包交易映射列表 <交易索引， 钱包交易>
-    std::list<CAccountingEntry> laccentries;
+    std::list<CAccountingEntry> laccentries; // 账户条目列表
 
     typedef std::pair<CWalletTx*, CAccountingEntry*> TxPair;
     typedef std::multimap<int64_t, TxPair > TxItems;
@@ -695,8 +695,8 @@ public:
     int64_t GetOldestKeyPoolTime();
     void GetAllReserveKeys(std::set<CKeyID>& setAddress) const; // 获取密钥池中全部预创建的密钥
 
-    std::set< std::set<CTxDestination> > GetAddressGroupings();
-    std::map<CTxDestination, CAmount> GetAddressBalances();
+    std::set< std::set<CTxDestination> > GetAddressGroupings(); // 获取地址分组集合
+    std::map<CTxDestination, CAmount> GetAddressBalances(); // 获取地址余额映射列表
 
     std::set<CTxDestination> GetAccountAddresses(const std::string& strAccount) const;
 
@@ -857,11 +857,11 @@ public:
 /** 
  * Internal transfers.
  * Database key is acentry<account><counter>.
- */
-class CAccountingEntry
+ */ // 内部转账。数据库关键字是<账户><计数器>。
+class CAccountingEntry // 账户条目类
 {
 public:
-    std::string strAccount;
+    std::string strAccount; // 账户名
     CAmount nCreditDebit;
     int64_t nTime;
     std::string strOtherAccount;

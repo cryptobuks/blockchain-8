@@ -458,11 +458,11 @@ UniValue sendtoaddress(const UniValue& params, bool fHelp)
 
 UniValue listaddressgroupings(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保当前钱包可用
         return NullUniValue;
     
-    if (fHelp)
-        throw runtime_error(
+    if (fHelp) // 没有参数
+        throw runtime_error( // 命令帮助反馈
             "listaddressgroupings\n"
             "\nLists groups of addresses which have had their common ownership\n"
             "made public by common use as inputs or as the resulting change\n"
@@ -484,27 +484,27 @@ UniValue listaddressgroupings(const UniValue& params, bool fHelp)
             + HelpExampleRpc("listaddressgroupings", "")
         );
 
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
 
-    UniValue jsonGroupings(UniValue::VARR);
-    map<CTxDestination, CAmount> balances = pwalletMain->GetAddressBalances();
-    BOOST_FOREACH(set<CTxDestination> grouping, pwalletMain->GetAddressGroupings())
+    UniValue jsonGroupings(UniValue::VARR); // 创建数组类型结果对象
+    map<CTxDestination, CAmount> balances = pwalletMain->GetAddressBalances(); // 获取地址余额映射列表
+    BOOST_FOREACH(set<CTxDestination> grouping, pwalletMain->GetAddressGroupings()) // 遍历地址分组集合
     {
         UniValue jsonGrouping(UniValue::VARR);
-        BOOST_FOREACH(CTxDestination address, grouping)
+        BOOST_FOREACH(CTxDestination address, grouping) // 遍历一个地址分组
         {
             UniValue addressInfo(UniValue::VARR);
-            addressInfo.push_back(CBitcoinAddress(address).ToString());
-            addressInfo.push_back(ValueFromAmount(balances[address]));
+            addressInfo.push_back(CBitcoinAddress(address).ToString()); // 获取地址
+            addressInfo.push_back(ValueFromAmount(balances[address])); // 获取地址余额
             {
-                if (pwalletMain->mapAddressBook.find(CBitcoinAddress(address).Get()) != pwalletMain->mapAddressBook.end())
-                    addressInfo.push_back(pwalletMain->mapAddressBook.find(CBitcoinAddress(address).Get())->second.name);
+                if (pwalletMain->mapAddressBook.find(CBitcoinAddress(address).Get()) != pwalletMain->mapAddressBook.end()) // 若在地址簿中找到该地址
+                    addressInfo.push_back(pwalletMain->mapAddressBook.find(CBitcoinAddress(address).Get())->second.name); // 把该地址关联的账户名加入地址信息
             }
             jsonGrouping.push_back(addressInfo);
         }
         jsonGroupings.push_back(jsonGrouping);
     }
-    return jsonGroupings;
+    return jsonGroupings; // 返回结果集
 }
 
 UniValue signmessage(const UniValue& params, bool fHelp)
@@ -1101,13 +1101,13 @@ UniValue addmultisigaddress(const UniValue& params, bool fHelp)
 }
 
 
-struct tallyitem
+struct tallyitem // 账目类
 {
-    CAmount nAmount;
-    int nConf;
-    vector<uint256> txids;
-    bool fIsWatchonly;
-    tallyitem()
+    CAmount nAmount; // 金额，默认为 0
+    int nConf; // 确认数，默认 int 的最大值
+    vector<uint256> txids; // 交易索引列表
+    bool fIsWatchonly; // 开启 watchonly 标志，默认关闭
+    tallyitem() // 无参构造
     {
         nAmount = 0;
         nConf = std::numeric_limits<int>::max();
@@ -1115,82 +1115,82 @@ struct tallyitem
     }
 };
 
-UniValue ListReceived(const UniValue& params, bool fByAccounts)
+UniValue ListReceived(const UniValue& params, bool fByAccounts) // fByAccounts = true
 {
-    // Minimum confirmations
-    int nMinDepth = 1;
+    // Minimum confirmations // 最低确认数
+    int nMinDepth = 1; // 最小深度，默认为 1
     if (params.size() > 0)
-        nMinDepth = params[0].get_int();
+        nMinDepth = params[0].get_int(); // 获取最小深度
 
     // Whether to include empty accounts
-    bool fIncludeEmpty = false;
+    bool fIncludeEmpty = false; // 包含空余额的账户标志，默认为 false
     if (params.size() > 1)
-        fIncludeEmpty = params[1].get_bool();
+        fIncludeEmpty = params[1].get_bool(); // 获取是否包含空余额的账户标志
 
-    isminefilter filter = ISMINE_SPENDABLE;
+    isminefilter filter = ISMINE_SPENDABLE; // 可花费
     if(params.size() > 2)
         if(params[2].get_bool())
-            filter = filter | ISMINE_WATCH_ONLY;
+            filter = filter | ISMINE_WATCH_ONLY; // 设置挖矿 watchonly
 
-    // Tally
-    map<CBitcoinAddress, tallyitem> mapTally;
+    // Tally // 记账
+    map<CBitcoinAddress, tallyitem> mapTally; // 地址账目映射列表
     for (map<uint256, CWalletTx>::iterator it = pwalletMain->mapWallet.begin(); it != pwalletMain->mapWallet.end(); ++it)
-    {
-        const CWalletTx& wtx = (*it).second;
+    { // 遍历钱包交易映射列表
+        const CWalletTx& wtx = (*it).second; // 获取钱包交易
 
-        if (wtx.IsCoinBase() || !CheckFinalTx(wtx))
+        if (wtx.IsCoinBase() || !CheckFinalTx(wtx)) // 非创币交易 且 为最终交易
             continue;
 
-        int nDepth = wtx.GetDepthInMainChain();
-        if (nDepth < nMinDepth)
+        int nDepth = wtx.GetDepthInMainChain(); // 获取该交易的链深度
+        if (nDepth < nMinDepth) // 深度不能小于最小深度（最低确认数）
             continue;
 
         BOOST_FOREACH(const CTxOut& txout, wtx.vout)
-        {
+        { // 遍历交易输出列表
             CTxDestination address;
-            if (!ExtractDestination(txout.scriptPubKey, address))
+            if (!ExtractDestination(txout.scriptPubKey, address)) // 通过交易输出公钥脚本获取公钥地址
                 continue;
 
             isminefilter mine = IsMine(*pwalletMain, address);
             if(!(mine & filter))
                 continue;
 
-            tallyitem& item = mapTally[address];
-            item.nAmount += txout.nValue;
-            item.nConf = min(item.nConf, nDepth);
-            item.txids.push_back(wtx.GetHash());
+            tallyitem& item = mapTally[address]; // 获取地址对应的账目
+            item.nAmount += txout.nValue; // 累加交易输出金额
+            item.nConf = min(item.nConf, nDepth); // 获取交易深度
+            item.txids.push_back(wtx.GetHash()); // 加入交易索引列表
             if (mine & ISMINE_WATCH_ONLY)
                 item.fIsWatchonly = true;
         }
     }
 
     // Reply
-    UniValue ret(UniValue::VARR);
-    map<string, tallyitem> mapAccountTally;
-    BOOST_FOREACH(const PAIRTYPE(CBitcoinAddress, CAddressBookData)& item, pwalletMain->mapAddressBook)
+    UniValue ret(UniValue::VARR); // 创建数组类型的结果对象
+    map<string, tallyitem> mapAccountTally; // 账户账目映射列表
+    BOOST_FOREACH(const PAIRTYPE(CBitcoinAddress, CAddressBookData)& item, pwalletMain->mapAddressBook) // 遍历地址簿映射列表
     {
-        const CBitcoinAddress& address = item.first;
-        const string& strAccount = item.second.name;
-        map<CBitcoinAddress, tallyitem>::iterator it = mapTally.find(address);
-        if (it == mapTally.end() && !fIncludeEmpty)
-            continue;
+        const CBitcoinAddress& address = item.first; // 获取地址
+        const string& strAccount = item.second.name; // 获取帐户名
+        map<CBitcoinAddress, tallyitem>::iterator it = mapTally.find(address); // 获取地址对应的账目
+        if (it == mapTally.end() && !fIncludeEmpty) // 未找到 且 包含空余额账户标志为 false
+            continue; // 跳过
 
-        CAmount nAmount = 0;
-        int nConf = std::numeric_limits<int>::max();
-        bool fIsWatchonly = false;
-        if (it != mapTally.end())
-        {
-            nAmount = (*it).second.nAmount;
-            nConf = (*it).second.nConf;
-            fIsWatchonly = (*it).second.fIsWatchonly;
+        CAmount nAmount = 0; // 金额
+        int nConf = std::numeric_limits<int>::max(); // 确认数，默认最大值
+        bool fIsWatchonly = false; // watchonly 标志，默认为 false
+        if (it != mapTally.end()) // 找到
+        { // 地址对应账目
+            nAmount = (*it).second.nAmount; // 获取地址金额
+            nConf = (*it).second.nConf; // 获取地址确认数
+            fIsWatchonly = (*it).second.fIsWatchonly; // 获取地址 watchonly 标志
         }
 
-        if (fByAccounts)
+        if (fByAccounts) // true
         {
-            tallyitem& item = mapAccountTally[strAccount];
-            item.nAmount += nAmount;
-            item.nConf = min(item.nConf, nConf);
-            item.fIsWatchonly = fIsWatchonly;
+            tallyitem& item = mapAccountTally[strAccount]; // 获取账户名对应的账目
+            item.nAmount += nAmount; // 累加金额
+            item.nConf = min(item.nConf, nConf); // 获取最小确认数
+            item.fIsWatchonly = fIsWatchonly; // 获取 watchonly 标志
         }
         else
         {
@@ -1216,32 +1216,32 @@ UniValue ListReceived(const UniValue& params, bool fByAccounts)
         }
     }
 
-    if (fByAccounts)
+    if (fByAccounts) // true
     {
         for (map<string, tallyitem>::iterator it = mapAccountTally.begin(); it != mapAccountTally.end(); ++it)
-        {
-            CAmount nAmount = (*it).second.nAmount;
-            int nConf = (*it).second.nConf;
-            UniValue obj(UniValue::VOBJ);
+        { // 遍历账户账目映射列表
+            CAmount nAmount = (*it).second.nAmount; // 获取余额
+            int nConf = (*it).second.nConf; // 获取确认数
+            UniValue obj(UniValue::VOBJ); 
             if((*it).second.fIsWatchonly)
-                obj.push_back(Pair("involvesWatchonly", true));
-            obj.push_back(Pair("account",       (*it).first));
-            obj.push_back(Pair("amount",        ValueFromAmount(nAmount)));
-            obj.push_back(Pair("confirmations", (nConf == std::numeric_limits<int>::max() ? 0 : nConf)));
-            ret.push_back(obj);
+                obj.push_back(Pair("involvesWatchonly", true)); // watchonly 标志
+            obj.push_back(Pair("account",       (*it).first)); // 帐户名
+            obj.push_back(Pair("amount",        ValueFromAmount(nAmount))); // 余额
+            obj.push_back(Pair("confirmations", (nConf == std::numeric_limits<int>::max() ? 0 : nConf))); // 确认数
+            ret.push_back(obj); // 加入结果集
         }
     }
 
-    return ret;
+    return ret; // 返回结果对象
 }
 
 UniValue listreceivedbyaddress(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保当前钱包可用
         return NullUniValue;
     
-    if (fHelp || params.size() > 3)
-        throw runtime_error(
+    if (fHelp || params.size() > 3) // 参数最多为 3 个
+        throw runtime_error( // 命令帮助反馈
             "listreceivedbyaddress ( minconf includeempty includeWatchonly)\n"
             "\nList balances by receiving address.\n"
             "\nArguments:\n"
@@ -1268,18 +1268,18 @@ UniValue listreceivedbyaddress(const UniValue& params, bool fHelp)
             + HelpExampleRpc("listreceivedbyaddress", "6, true, true")
         );
 
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
 
-    return ListReceived(params, false);
+    return ListReceived(params, false); // 获取接收金额列表并返回
 }
 
 UniValue listreceivedbyaccount(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保当前钱包可用
         return NullUniValue;
     
-    if (fHelp || params.size() > 3)
-        throw runtime_error(
+    if (fHelp || params.size() > 3) // 参数最多为 3 个
+        throw runtime_error( // 命令帮助反馈
             "listreceivedbyaccount ( minconf includeempty includeWatchonly)\n"
             "\nDEPRECATED. List balances by account.\n"
             "\nArguments:\n"
@@ -1305,9 +1305,9 @@ UniValue listreceivedbyaccount(const UniValue& params, bool fHelp)
             + HelpExampleRpc("listreceivedbyaccount", "6, true, true")
         );
 
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
 
-    return ListReceived(params, true);
+    return ListReceived(params, true); // 列出账户余额并返回
 }
 
 static void MaybePushAddress(UniValue & entry, const CTxDestination &dest)
@@ -1537,11 +1537,11 @@ UniValue listtransactions(const UniValue& params, bool fHelp)
 
 UniValue listaccounts(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保当前钱包可用
         return NullUniValue;
     
-    if (fHelp || params.size() > 2)
-        throw runtime_error(
+    if (fHelp || params.size() > 2) // 参数最多 2 个
+        throw runtime_error( // 命令帮助反馈
             "listaccounts ( minconf includeWatchonly)\n"
             "\nDEPRECATED. Returns Object that has account names as keys, account balances as values.\n"
             "\nArguments:\n"
@@ -1563,55 +1563,55 @@ UniValue listaccounts(const UniValue& params, bool fHelp)
             + HelpExampleRpc("listaccounts", "6")
         );
 
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
 
-    int nMinDepth = 1;
+    int nMinDepth = 1; // 最小深度
     if (params.size() > 0)
-        nMinDepth = params[0].get_int();
+        nMinDepth = params[0].get_int(); // 获取指定深度
     isminefilter includeWatchonly = ISMINE_SPENDABLE;
     if(params.size() > 1)
         if(params[1].get_bool())
-            includeWatchonly = includeWatchonly | ISMINE_WATCH_ONLY;
+            includeWatchonly = includeWatchonly | ISMINE_WATCH_ONLY; // 设置 watchonly
 
-    map<string, CAmount> mapAccountBalances;
-    BOOST_FOREACH(const PAIRTYPE(CTxDestination, CAddressBookData)& entry, pwalletMain->mapAddressBook) {
-        if (IsMine(*pwalletMain, entry.first) & includeWatchonly) // This address belongs to me
-            mapAccountBalances[entry.second.name] = 0;
+    map<string, CAmount> mapAccountBalances; // 账户余额映射列表
+    BOOST_FOREACH(const PAIRTYPE(CTxDestination, CAddressBookData)& entry, pwalletMain->mapAddressBook) { // 遍历地址簿
+        if (IsMine(*pwalletMain, entry.first) & includeWatchonly) // This address belongs to me // 该地址属于我
+            mapAccountBalances[entry.second.name] = 0; // 加入账户余额映射列表，并初始化余额为 0
     }
 
     for (map<uint256, CWalletTx>::iterator it = pwalletMain->mapWallet.begin(); it != pwalletMain->mapWallet.end(); ++it)
-    {
-        const CWalletTx& wtx = (*it).second;
-        CAmount nFee;
-        string strSentAccount;
-        list<COutputEntry> listReceived;
-        list<COutputEntry> listSent;
-        int nDepth = wtx.GetDepthInMainChain();
-        if (wtx.GetBlocksToMaturity() > 0 || nDepth < 0)
-            continue;
-        wtx.GetAmounts(listReceived, listSent, nFee, strSentAccount, includeWatchonly);
-        mapAccountBalances[strSentAccount] -= nFee;
-        BOOST_FOREACH(const COutputEntry& s, listSent)
-            mapAccountBalances[strSentAccount] -= s.amount;
-        if (nDepth >= nMinDepth)
+    { // 遍历钱包交易索引列表
+        const CWalletTx& wtx = (*it).second; // 获取钱包交易
+        CAmount nFee; // 交易费
+        string strSentAccount; // 发送账户名
+        list<COutputEntry> listReceived; // 接收列表
+        list<COutputEntry> listSent; // 发送列表
+        int nDepth = wtx.GetDepthInMainChain(); // 获取该交易的深度
+        if (wtx.GetBlocksToMaturity() > 0 || nDepth < 0) // 未成熟 或 未上链（深度小于 0）
+            continue; // 跳过
+        wtx.GetAmounts(listReceived, listSent, nFee, strSentAccount, includeWatchonly); // 获取相关金额
+        mapAccountBalances[strSentAccount] -= nFee; // 账户余额减去交易费
+        BOOST_FOREACH(const COutputEntry& s, listSent) // 遍历发送列表
+            mapAccountBalances[strSentAccount] -= s.amount; // 账户余额减去发送的金额
+        if (nDepth >= nMinDepth) // 交易深度大于等于最小深度
         {
-            BOOST_FOREACH(const COutputEntry& r, listReceived)
-                if (pwalletMain->mapAddressBook.count(r.destination))
-                    mapAccountBalances[pwalletMain->mapAddressBook[r.destination].name] += r.amount;
+            BOOST_FOREACH(const COutputEntry& r, listReceived) // 遍历接收列表
+                if (pwalletMain->mapAddressBook.count(r.destination)) // 若目标地址存在于地址簿中
+                    mapAccountBalances[pwalletMain->mapAddressBook[r.destination].name] += r.amount; // 对应账户余额加上接收金额
                 else
-                    mapAccountBalances[""] += r.amount;
+                    mapAccountBalances[""] += r.amount; // 否则默认账户余额加上该接收金额
         }
     }
 
-    const list<CAccountingEntry> & acentries = pwalletMain->laccentries;
-    BOOST_FOREACH(const CAccountingEntry& entry, acentries)
-        mapAccountBalances[entry.strAccount] += entry.nCreditDebit;
+    const list<CAccountingEntry> & acentries = pwalletMain->laccentries; // 获取账户条目列表
+    BOOST_FOREACH(const CAccountingEntry& entry, acentries) // 遍历该列表
+        mapAccountBalances[entry.strAccount] += entry.nCreditDebit; // 
 
-    UniValue ret(UniValue::VOBJ);
-    BOOST_FOREACH(const PAIRTYPE(string, CAmount)& accountBalance, mapAccountBalances) {
-        ret.push_back(Pair(accountBalance.first, ValueFromAmount(accountBalance.second)));
+    UniValue ret(UniValue::VOBJ); // 创建对象类型结果
+    BOOST_FOREACH(const PAIRTYPE(string, CAmount)& accountBalance, mapAccountBalances) { // 遍历账户余额映射列表
+        ret.push_back(Pair(accountBalance.first, ValueFromAmount(accountBalance.second))); // 账户名和余额配对加入结果集
     }
-    return ret;
+    return ret; // 返回结果
 }
 
 UniValue listsinceblock(const UniValue& params, bool fHelp)
