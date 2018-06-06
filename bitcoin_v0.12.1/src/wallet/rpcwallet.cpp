@@ -58,27 +58,27 @@ void EnsureWalletIsUnlocked()
 void WalletTxToJSON(const CWalletTx& wtx, UniValue& entry)
 {
     int confirms = wtx.GetDepthInMainChain();
-    entry.push_back(Pair("confirmations", confirms));
+    entry.push_back(Pair("confirmations", confirms)); // 确认数
     if (wtx.IsCoinBase())
-        entry.push_back(Pair("generated", true));
-    if (confirms > 0)
+        entry.push_back(Pair("generated", true)); // 为创币交易
+    if (confirms > 0) // 已上链
     {
-        entry.push_back(Pair("blockhash", wtx.hashBlock.GetHex()));
-        entry.push_back(Pair("blockindex", wtx.nIndex));
-        entry.push_back(Pair("blocktime", mapBlockIndex[wtx.hashBlock]->GetBlockTime()));
-    } else {
-        entry.push_back(Pair("trusted", wtx.IsTrusted()));
+        entry.push_back(Pair("blockhash", wtx.hashBlock.GetHex())); // 区块哈希
+        entry.push_back(Pair("blockindex", wtx.nIndex)); // 交易索引
+        entry.push_back(Pair("blocktime", mapBlockIndex[wtx.hashBlock]->GetBlockTime())); // 区块创建时间
+    } else { // 还在内存池中（未上链）
+        entry.push_back(Pair("trusted", wtx.IsTrusted())); // 该交易可信
     }
     uint256 hash = wtx.GetHash();
-    entry.push_back(Pair("txid", hash.GetHex()));
+    entry.push_back(Pair("txid", hash.GetHex())); // 交易索引
     UniValue conflicts(UniValue::VARR);
     BOOST_FOREACH(const uint256& conflict, wtx.GetConflicts())
         conflicts.push_back(conflict.GetHex());
-    entry.push_back(Pair("walletconflicts", conflicts));
-    entry.push_back(Pair("time", wtx.GetTxTime()));
-    entry.push_back(Pair("timereceived", (int64_t)wtx.nTimeReceived));
+    entry.push_back(Pair("walletconflicts", conflicts)); // 钱包冲突
+    entry.push_back(Pair("time", wtx.GetTxTime())); // 交易发起时间
+    entry.push_back(Pair("timereceived", (int64_t)wtx.nTimeReceived)); // 交易接收时间
 
-    // Add opt-in RBF status
+    // Add opt-in RBF status // 添加选择性的 RBF 状态
     std::string rbfStatus = "no";
     if (confirms <= 0) {
         LOCK(mempool.cs);
@@ -1319,74 +1319,74 @@ static void MaybePushAddress(UniValue & entry, const CTxDestination &dest)
 
 void ListTransactions(const CWalletTx& wtx, const string& strAccount, int nMinDepth, bool fLong, UniValue& ret, const isminefilter& filter)
 {
-    CAmount nFee;
-    string strSentAccount;
-    list<COutputEntry> listReceived;
-    list<COutputEntry> listSent;
+    CAmount nFee; // 交易费
+    string strSentAccount; // 发送账户
+    list<COutputEntry> listReceived; // 接收输出条目列表
+    list<COutputEntry> listSent; // 发送输出条目列表
 
-    wtx.GetAmounts(listReceived, listSent, nFee, strSentAccount, filter);
+    wtx.GetAmounts(listReceived, listSent, nFee, strSentAccount, filter); // 获取相应金额
 
-    bool fAllAccounts = (strAccount == string("*"));
-    bool involvesWatchonly = wtx.IsFromMe(ISMINE_WATCH_ONLY);
+    bool fAllAccounts = (strAccount == string("*")); // 全部账户标志
+    bool involvesWatchonly = wtx.IsFromMe(ISMINE_WATCH_ONLY); // watchonly 标志
 
     // Sent
     if ((!listSent.empty() || nFee != 0) && (fAllAccounts || strAccount == strSentAccount))
-    {
-        BOOST_FOREACH(const COutputEntry& s, listSent)
+    { // 发送列表非空 或 交易费非 0 且 全部账户 或 发送账户为指定账户（这里是 "*" 表示全部账户）
+        BOOST_FOREACH(const COutputEntry& s, listSent) // 遍历发送列表
         {
             UniValue entry(UniValue::VOBJ);
             if(involvesWatchonly || (::IsMine(*pwalletMain, s.destination) & ISMINE_WATCH_ONLY))
                 entry.push_back(Pair("involvesWatchonly", true));
-            entry.push_back(Pair("account", strSentAccount));
-            MaybePushAddress(entry, s.destination);
-            entry.push_back(Pair("category", "send"));
-            entry.push_back(Pair("amount", ValueFromAmount(-s.amount)));
+            entry.push_back(Pair("account", strSentAccount)); // 发送账户
+            MaybePushAddress(entry, s.destination); // 发送地址
+            entry.push_back(Pair("category", "send")); // 交易类别为发送
+            entry.push_back(Pair("amount", ValueFromAmount(-s.amount))); // 交易金额，符号表示发送
             if (pwalletMain->mapAddressBook.count(s.destination))
-                entry.push_back(Pair("label", pwalletMain->mapAddressBook[s.destination].name));
-            entry.push_back(Pair("vout", s.vout));
-            entry.push_back(Pair("fee", ValueFromAmount(-nFee)));
-            if (fLong)
-                WalletTxToJSON(wtx, entry);
-            entry.push_back(Pair("abandoned", wtx.isAbandoned()));
-            ret.push_back(entry);
+                entry.push_back(Pair("label", pwalletMain->mapAddressBook[s.destination].name)); // 标签为帐户名
+            entry.push_back(Pair("vout", s.vout)); // 输出索引
+            entry.push_back(Pair("fee", ValueFromAmount(-nFee))); // 交易费
+            if (fLong) // true
+                WalletTxToJSON(wtx, entry); // 钱包交易信息转化为 JSON 格式
+            entry.push_back(Pair("abandoned", wtx.isAbandoned())); // 是否被抛弃
+            ret.push_back(entry); // 加入交易信息集
         }
     }
 
     // Received
     if (listReceived.size() > 0 && wtx.GetDepthInMainChain() >= nMinDepth)
-    {
-        BOOST_FOREACH(const COutputEntry& r, listReceived)
+    { // 接收列表非空 且 该交易深度大于等于最小深度（确认数）
+        BOOST_FOREACH(const COutputEntry& r, listReceived) // 遍历接收列表
         {
             string account;
-            if (pwalletMain->mapAddressBook.count(r.destination))
-                account = pwalletMain->mapAddressBook[r.destination].name;
-            if (fAllAccounts || (account == strAccount))
+            if (pwalletMain->mapAddressBook.count(r.destination)) // 若该地址存在于地址簿
+                account = pwalletMain->mapAddressBook[r.destination].name; // 获取地址对应账户名
+            if (fAllAccounts || (account == strAccount)) // 全部账户 或 该账户为指定账户（"*"）
             {
                 UniValue entry(UniValue::VOBJ);
                 if(involvesWatchonly || (::IsMine(*pwalletMain, r.destination) & ISMINE_WATCH_ONLY))
                     entry.push_back(Pair("involvesWatchonly", true));
-                entry.push_back(Pair("account", account));
-                MaybePushAddress(entry, r.destination);
-                if (wtx.IsCoinBase())
+                entry.push_back(Pair("account", account)); // 账户名
+                MaybePushAddress(entry, r.destination); // 接收地址
+                if (wtx.IsCoinBase()) // 该交易为创币交易
                 {
-                    if (wtx.GetDepthInMainChain() < 1)
-                        entry.push_back(Pair("category", "orphan"));
-                    else if (wtx.GetBlocksToMaturity() > 0)
-                        entry.push_back(Pair("category", "immature"));
+                    if (wtx.GetDepthInMainChain() < 1) // 该交易在主链上的深度为 0
+                        entry.push_back(Pair("category", "orphan")); // 孤儿链
+                    else if (wtx.GetBlocksToMaturity() > 0) // 成熟所需区块数大于 0
+                        entry.push_back(Pair("category", "immature")); // 未成熟
                     else
-                        entry.push_back(Pair("category", "generate"));
+                        entry.push_back(Pair("category", "generate")); // regtest 生成
                 }
                 else
-                {
-                    entry.push_back(Pair("category", "receive"));
+                { // 普通交易（非创币交易）
+                    entry.push_back(Pair("category", "receive")); // 交易类别为接收
                 }
-                entry.push_back(Pair("amount", ValueFromAmount(r.amount)));
-                if (pwalletMain->mapAddressBook.count(r.destination))
-                    entry.push_back(Pair("label", account));
-                entry.push_back(Pair("vout", r.vout));
+                entry.push_back(Pair("amount", ValueFromAmount(r.amount))); // 交易金额
+                if (pwalletMain->mapAddressBook.count(r.destination)) // 若该地址存在于地址簿
+                    entry.push_back(Pair("label", account)); // 标签为该地址对应的帐户名
+                entry.push_back(Pair("vout", r.vout)); // 输出索引
                 if (fLong)
-                    WalletTxToJSON(wtx, entry);
-                ret.push_back(entry);
+                    WalletTxToJSON(wtx, entry); // 钱包交易信息转化为 JSON
+                ret.push_back(entry); // 加入交易信息集
             }
         }
     }
@@ -1411,11 +1411,11 @@ void AcentryToJSON(const CAccountingEntry& acentry, const string& strAccount, Un
 
 UniValue listtransactions(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保当前钱包可用
         return NullUniValue;
     
-    if (fHelp || params.size() > 4)
-        throw runtime_error(
+    if (fHelp || params.size() > 4) // 参数最多为 4 个
+        throw runtime_error( // 命令帮助反馈
             "listtransactions ( \"account\" count from includeWatchonly)\n"
             "\nReturns up to 'count' most recent transactions skipping the first 'from' transactions for account 'account'.\n"
             "\nArguments:\n"
@@ -1472,67 +1472,67 @@ UniValue listtransactions(const UniValue& params, bool fHelp)
             + HelpExampleRpc("listtransactions", "\"*\", 20, 100")
         );
 
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
 
-    string strAccount = "*";
+    string strAccount = "*"; // 账户名，默认为 "*" 表示全部账户
     if (params.size() > 0)
-        strAccount = params[0].get_str();
-    int nCount = 10;
+        strAccount = params[0].get_str(); // 获取帐户名
+    int nCount = 10; // 交易数，默认 10 条
     if (params.size() > 1)
-        nCount = params[1].get_int();
-    int nFrom = 0;
+        nCount = params[1].get_int(); // 获取交易数
+    int nFrom = 0; // 要跳过的交易数，默认 0 条
     if (params.size() > 2)
-        nFrom = params[2].get_int();
+        nFrom = params[2].get_int(); // 获取要跳过的交易数
     isminefilter filter = ISMINE_SPENDABLE;
     if(params.size() > 3)
         if(params[3].get_bool())
-            filter = filter | ISMINE_WATCH_ONLY;
+            filter = filter | ISMINE_WATCH_ONLY; // 设置 watchonly
 
-    if (nCount < 0)
+    if (nCount < 0) // 交易数非负
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Negative count");
-    if (nFrom < 0)
+    if (nFrom < 0) // 要跳过的交易数非负
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Negative from");
 
-    UniValue ret(UniValue::VARR);
+    UniValue ret(UniValue::VARR); // 创建数组类型的结果集
 
-    const CWallet::TxItems & txOrdered = pwalletMain->wtxOrdered;
+    const CWallet::TxItems & txOrdered = pwalletMain->wtxOrdered; // 获取有序的交易列表
 
-    // iterate backwards until we have nCount items to return:
+    // iterate backwards until we have nCount items to return: // 向后迭代，直到我们有 nCount 个条目返回
     for (CWallet::TxItems::const_reverse_iterator it = txOrdered.rbegin(); it != txOrdered.rend(); ++it)
-    {
-        CWalletTx *const pwtx = (*it).second.first;
+    { // 遍历有序的交易列表
+        CWalletTx *const pwtx = (*it).second.first; // 获取钱包交易
         if (pwtx != 0)
-            ListTransactions(*pwtx, strAccount, 0, true, ret, filter);
-        CAccountingEntry *const pacentry = (*it).second.second;
+            ListTransactions(*pwtx, strAccount, 0, true, ret, filter); // 获取交易信息到结果集
+        CAccountingEntry *const pacentry = (*it).second.second; // 获取对应的账户条目
         if (pacentry != 0)
-            AcentryToJSON(*pacentry, strAccount, ret);
+            AcentryToJSON(*pacentry, strAccount, ret); // 账户条目转换为 JSON 格式
 
-        if ((int)ret.size() >= (nCount+nFrom)) break;
+        if ((int)ret.size() >= (nCount+nFrom)) break; // 若结果集大小大于等于 要获取的交易数量与要跳过交易数量的和，跳出
     }
-    // ret is newest to oldest
+    // ret is newest to oldest // 结果集是从最新到最旧
 
-    if (nFrom > (int)ret.size())
-        nFrom = ret.size();
+    if (nFrom > (int)ret.size()) // 结果集大小小于要跳过的交易数
+        nFrom = ret.size(); // 要跳过的交易数等于结果集大小
     if ((nFrom + nCount) > (int)ret.size())
         nCount = ret.size() - nFrom;
 
-    vector<UniValue> arrTmp = ret.getValues();
+    vector<UniValue> arrTmp = ret.getValues(); // 获取结果集中的数组作为临时对象
 
     vector<UniValue>::iterator first = arrTmp.begin();
-    std::advance(first, nFrom);
+    std::advance(first, nFrom); // 增加 first 迭代器 nFrom
     vector<UniValue>::iterator last = arrTmp.begin();
-    std::advance(last, nFrom+nCount);
+    std::advance(last, nFrom+nCount); // 增加 last 迭代器 nFrom+nCount
 
-    if (last != arrTmp.end()) arrTmp.erase(last, arrTmp.end());
-    if (first != arrTmp.begin()) arrTmp.erase(arrTmp.begin(), first);
+    if (last != arrTmp.end()) arrTmp.erase(last, arrTmp.end()); // 擦除尾部多余部分
+    if (first != arrTmp.begin()) arrTmp.erase(arrTmp.begin(), first); // 擦除头部多余部分
 
-    std::reverse(arrTmp.begin(), arrTmp.end()); // Return oldest to newest
+    std::reverse(arrTmp.begin(), arrTmp.end()); // Return oldest to newest // 反转后为最老到最新，列表从上到下：旧->新
 
-    ret.clear();
-    ret.setArray();
-    ret.push_backV(arrTmp);
+    ret.clear(); // 清空结果集
+    ret.setArray(); // 设置为数组类型
+    ret.push_backV(arrTmp); // 加入临时数组
 
-    return ret;
+    return ret; // 返回结果集
 }
 
 UniValue listaccounts(const UniValue& params, bool fHelp)
@@ -1616,11 +1616,11 @@ UniValue listaccounts(const UniValue& params, bool fHelp)
 
 UniValue listsinceblock(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保当前钱包可用
         return NullUniValue;
     
-    if (fHelp)
-        throw runtime_error(
+    if (fHelp) // 只处理帮助信息
+        throw runtime_error( // 命令帮助反馈
             "listsinceblock ( \"blockhash\" target-confirmations includeWatchonly)\n"
             "\nGet all transactions in blocks since block [blockhash], or all transactions if omitted\n"
             "\nArguments:\n"
@@ -1656,54 +1656,54 @@ UniValue listsinceblock(const UniValue& params, bool fHelp)
             + HelpExampleRpc("listsinceblock", "\"000000000000000bacf66f7497b7dc45ef753ee9a7d38571037cdb1a57f663ad\", 6")
         );
 
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
 
-    CBlockIndex *pindex = NULL;
-    int target_confirms = 1;
-    isminefilter filter = ISMINE_SPENDABLE;
+    CBlockIndex *pindex = NULL; // 从某个区块开始
+    int target_confirms = 1; // 确认数，默认为 1
+    isminefilter filter = ISMINE_SPENDABLE; // watchonly
 
-    if (params.size() > 0)
+    if (params.size() > 0) // 有 1 个以上的参数
     {
         uint256 blockId;
 
-        blockId.SetHex(params[0].get_str());
-        BlockMap::iterator it = mapBlockIndex.find(blockId);
-        if (it != mapBlockIndex.end())
-            pindex = it->second;
+        blockId.SetHex(params[0].get_str()); // 获取区块索引
+        BlockMap::iterator it = mapBlockIndex.find(blockId); // 在区块索引映射列表中查找该区块
+        if (it != mapBlockIndex.end()) // 若找到
+            pindex = it->second; // 获取该区块索引指针
     }
 
-    if (params.size() > 1)
+    if (params.size() > 1) // 若参数有 2 个以上
     {
-        target_confirms = params[1].get_int();
+        target_confirms = params[1].get_int(); // 获取确认数
 
-        if (target_confirms < 1)
+        if (target_confirms < 1) // 确认数最小为 1
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter");
     }
 
-    if(params.size() > 2)
+    if(params.size() > 2) // 若参数有 3 个以上
         if(params[2].get_bool())
-            filter = filter | ISMINE_WATCH_ONLY;
+            filter = filter | ISMINE_WATCH_ONLY; // 设置 watchonly
 
-    int depth = pindex ? (1 + chainActive.Height() - pindex->nHeight) : -1;
+    int depth = pindex ? (1 + chainActive.Height() - pindex->nHeight) : -1; // 获取指定区块的深度
 
-    UniValue transactions(UniValue::VARR);
+    UniValue transactions(UniValue::VARR); // 创建数组类型的交易信息集
 
-    for (map<uint256, CWalletTx>::iterator it = pwalletMain->mapWallet.begin(); it != pwalletMain->mapWallet.end(); it++)
+    for (map<uint256, CWalletTx>::iterator it = pwalletMain->mapWallet.begin(); it != pwalletMain->mapWallet.end(); it++) // 遍历钱包交易映射列表
     {
-        CWalletTx tx = (*it).second;
+        CWalletTx tx = (*it).second; // 获取钱包交易
 
-        if (depth == -1 || tx.GetDepthInMainChain() < depth)
-            ListTransactions(tx, "*", 0, true, transactions, filter);
+        if (depth == -1 || tx.GetDepthInMainChain() < depth) // 若未指定区块 或 该交易深度小于指定区块深度
+            ListTransactions(tx, "*", 0, true, transactions, filter); // 以钱包交易为索引获取交易信息集
     }
 
-    CBlockIndex *pblockLast = chainActive[chainActive.Height() + 1 - target_confirms];
-    uint256 lastblock = pblockLast ? pblockLast->GetBlockHash() : uint256();
+    CBlockIndex *pblockLast = chainActive[chainActive.Height() + 1 - target_confirms]; // 若确认数为 1，获取最佳区块索引
+    uint256 lastblock = pblockLast ? pblockLast->GetBlockHash() : uint256(); // 获取该区块哈希值
 
-    UniValue ret(UniValue::VOBJ);
-    ret.push_back(Pair("transactions", transactions));
-    ret.push_back(Pair("lastblock", lastblock.GetHex()));
+    UniValue ret(UniValue::VOBJ); // 对象类型的结果
+    ret.push_back(Pair("transactions", transactions)); // 交易集
+    ret.push_back(Pair("lastblock", lastblock.GetHex())); // 最佳区块哈希值
 
-    return ret;
+    return ret; // 返回结果对象
 }
 
 UniValue gettransaction(const UniValue& params, bool fHelp)

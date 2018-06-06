@@ -216,10 +216,10 @@ extern UniValue addmultisigaddress(const UniValue& params, bool fHelp);
 extern UniValue createmultisig(const UniValue& params, bool fHelp);
 extern UniValue listreceivedbyaddress(const UniValue& params, bool fHelp); // 列出地址余额
 extern UniValue listreceivedbyaccount(const UniValue& params, bool fHelp); // 列出账户余额
-extern UniValue listtransactions(const UniValue& params, bool fHelp);
+extern UniValue listtransactions(const UniValue& params, bool fHelp); // 列出最近的交易信息
 extern UniValue listaddressgroupings(const UniValue& params, bool fHelp); // 列出地址分组
 extern UniValue listaccounts(const UniValue& params, bool fHelp); // 列出账户及其余额
-extern UniValue listsinceblock(const UniValue& params, bool fHelp);
+extern UniValue listsinceblock(const UniValue& params, bool fHelp); // 列出指定区块开始区块上的全部交易
 extern UniValue gettransaction(const UniValue& params, bool fHelp);
 extern UniValue abandontransaction(const UniValue& params, bool fHelp); // 抛弃钱包内的交易
 extern UniValue backupwallet(const UniValue& params, bool fHelp); // 备份钱包

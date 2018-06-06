@@ -394,7 +394,7 @@ public:
     bool IsEquivalentTo(const CWalletTx& tx) const;
 
     bool InMempool() const;
-    bool IsTrusted() const;
+    bool IsTrusted() const; // 如果该钱包交易的所有输入均在内存池中，则为可信
 
     bool WriteToDisk(CWalletDB *pwalletdb);
 
@@ -555,7 +555,7 @@ public:
 
     typedef std::pair<CWalletTx*, CAccountingEntry*> TxPair;
     typedef std::multimap<int64_t, TxPair > TxItems;
-    TxItems wtxOrdered;
+    TxItems wtxOrdered; // 交易有序列表
 
     int64_t nOrderPosNext;
     std::map<uint256, int> mapRequestCount;
