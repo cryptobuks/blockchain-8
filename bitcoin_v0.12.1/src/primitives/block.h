@@ -74,7 +74,7 @@ class CBlock : public CBlockHeader
 {
 public:
     // network and disk
-    std::vector<CTransaction> vtx; // 区块体部分（交易合集，至少有一笔，即创币交易）
+    std::vector<CTransaction> vtx; // 区块体部分（交易列表，至少有一笔，即创币交易）
 
     // memory only
     mutable bool fChecked;

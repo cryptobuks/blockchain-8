@@ -74,11 +74,11 @@ std::string DecodeDumpString(const std::string &str) {
 
 UniValue importprivkey(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保当前钱包可用
         return NullUniValue;
     
-    if (fHelp || params.size() < 1 || params.size() > 3)
-        throw runtime_error(
+    if (fHelp || params.size() < 1 || params.size() > 3) // 参数至少为 1 个，至多为 3 个
+        throw runtime_error( // 命令帮助反馈
             "importprivkey \"bitcoinprivkey\" ( \"label\" rescan )\n"
             "\nAdds a private key (as returned by dumpprivkey) to your wallet.\n"
             "\nArguments:\n"
@@ -98,56 +98,56 @@ UniValue importprivkey(const UniValue& params, bool fHelp)
         );
 
 
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
 
-    EnsureWalletIsUnlocked();
+    EnsureWalletIsUnlocked(); // 确保钱包当前处于解密状态
 
-    string strSecret = params[0].get_str();
-    string strLabel = "";
+    string strSecret = params[0].get_str(); // 获取指定的私钥
+    string strLabel = ""; // 标签（账户），默认为 ""
     if (params.size() > 1)
-        strLabel = params[1].get_str();
+        strLabel = params[1].get_str(); // 获取指定的帐户名
 
-    // Whether to perform rescan after import
-    bool fRescan = true;
+    // Whether to perform rescan after import // 在导入私钥后是否执行再扫描
+    bool fRescan = true; // 再扫描标志，默认打开
     if (params.size() > 2)
-        fRescan = params[2].get_bool();
+        fRescan = params[2].get_bool(); // 获取指定的再扫描设置
 
-    if (fRescan && fPruneMode)
+    if (fRescan && fPruneMode) // 再扫描模式和修剪模式不能同时开启，二者不兼容
         throw JSONRPCError(RPC_WALLET_ERROR, "Rescan is disabled in pruned mode");
 
     CBitcoinSecret vchSecret;
-    bool fGood = vchSecret.SetString(strSecret);
+    bool fGood = vchSecret.SetString(strSecret); // 初始化比特币密钥对象
 
     if (!fGood) throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid private key encoding");
 
-    CKey key = vchSecret.GetKey();
+    CKey key = vchSecret.GetKey(); // 获取私钥
     if (!key.IsValid()) throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Private key outside allowed range");
 
-    CPubKey pubkey = key.GetPubKey();
-    assert(key.VerifyPubKey(pubkey));
-    CKeyID vchAddress = pubkey.GetID();
+    CPubKey pubkey = key.GetPubKey(); // 获取公钥
+    assert(key.VerifyPubKey(pubkey)); // 验证公私钥是否配对
+    CKeyID vchAddress = pubkey.GetID(); // 获取公钥索引
     {
-        pwalletMain->MarkDirty();
-        pwalletMain->SetAddressBook(vchAddress, strLabel, "receive");
+        pwalletMain->MarkDirty(); // 标记钱包以改变
+        pwalletMain->SetAddressBook(vchAddress, strLabel, "receive"); // 设置地址簿并关联账户指定用途
 
         // Don't throw error in case a key is already there
-        if (pwalletMain->HaveKey(vchAddress))
-            return NullUniValue;
+        if (pwalletMain->HaveKey(vchAddress)) // 若密钥已存在，不抛出错误
+            return NullUniValue; // 直接返回空值
 
-        pwalletMain->mapKeyMetadata[vchAddress].nCreateTime = 1;
+        pwalletMain->mapKeyMetadata[vchAddress].nCreateTime = 1; // 初始化创建时间为 1
 
-        if (!pwalletMain->AddKeyPubKey(key, pubkey))
+        if (!pwalletMain->AddKeyPubKey(key, pubkey)) // 添加公私钥到钱包
             throw JSONRPCError(RPC_WALLET_ERROR, "Error adding key to wallet");
 
-        // whenever a key is imported, we need to scan the whole chain
-        pwalletMain->nTimeFirstKey = 1; // 0 would be considered 'no value'
+        // whenever a key is imported, we need to scan the whole chain // 无论何时导入密钥，我们都需要扫描整个链
+        pwalletMain->nTimeFirstKey = 1; // 0 would be considered 'no value' // 0 会被当作 '没有价值'
 
-        if (fRescan) {
-            pwalletMain->ScanForWalletTransactions(chainActive.Genesis(), true);
+        if (fRescan) { // 若开启再扫描
+            pwalletMain->ScanForWalletTransactions(chainActive.Genesis(), true); // 再扫描整个钱包交易
         }
     }
 
-    return NullUniValue;
+    return NullUniValue; // 成功返回空值
 }
 
 void ImportAddress(const CBitcoinAddress& address, const string& strLabel);
@@ -410,11 +410,11 @@ UniValue importwallet(const UniValue& params, bool fHelp)
 
 UniValue dumpprivkey(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保当前钱包可用
         return NullUniValue;
     
-    if (fHelp || params.size() != 1)
-        throw runtime_error(
+    if (fHelp || params.size() != 1) // 参数必须为 1 个
+        throw runtime_error( // 命令帮助反馈
             "dumpprivkey \"bitcoinaddress\"\n"
             "\nReveals the private key corresponding to 'bitcoinaddress'.\n"
             "Then the importprivkey can be used with this output\n"
@@ -428,21 +428,21 @@ UniValue dumpprivkey(const UniValue& params, bool fHelp)
             + HelpExampleRpc("dumpprivkey", "\"myaddress\"")
         );
 
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
 
-    EnsureWalletIsUnlocked();
+    EnsureWalletIsUnlocked(); // 确保钱包当前解锁（为加密或加密了但处于解密状态）
 
-    string strAddress = params[0].get_str();
+    string strAddress = params[0].get_str(); // 获取指定的公钥地址
     CBitcoinAddress address;
-    if (!address.SetString(strAddress))
+    if (!address.SetString(strAddress)) // 初始化一个比特币地址对象
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Bitcoin address");
     CKeyID keyID;
-    if (!address.GetKeyID(keyID))
+    if (!address.GetKeyID(keyID)) // 获取该地址的索引
         throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to a key");
     CKey vchSecret;
-    if (!pwalletMain->GetKey(keyID, vchSecret))
+    if (!pwalletMain->GetKey(keyID, vchSecret)) // 通过索引获取对应的私钥
         throw JSONRPCError(RPC_WALLET_ERROR, "Private key for address " + strAddress + " is not known");
-    return CBitcoinSecret(vchSecret).ToString();
+    return CBitcoinSecret(vchSecret).ToString(); // 对私钥进行 Base58 编码并返回结果
 }
 
 

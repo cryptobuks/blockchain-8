@@ -32,8 +32,8 @@ bool CBasicKeyStore::GetPubKey(const CKeyID &address, CPubKey &vchPubKeyOut) con
 
 bool CBasicKeyStore::AddKeyPubKey(const CKey& key, const CPubKey &pubkey)
 {
-    LOCK(cs_KeyStore);
-    mapKeys[pubkey.GetID()] = key;
+    LOCK(cs_KeyStore); // 密钥库上锁
+    mapKeys[pubkey.GetID()] = key; // 加入公钥索引和私钥的映射列表
     return true;
 }
 

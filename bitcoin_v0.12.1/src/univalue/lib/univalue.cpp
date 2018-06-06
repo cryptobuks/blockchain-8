@@ -161,7 +161,7 @@ bool UniValue::setStr(const string& val_)
 
 bool UniValue::setArray()
 {
-    clear();
+    clear(); // 清空该对象的数据
     typ = VARR;
     return true;
 }

@@ -488,7 +488,7 @@ private:
      * mutated transactions where the mutant gets mined).
      */ // 用于跟踪花费输出点，并侦测和报告冲突（双花 或 挖矿突变导致的可变的交易）
     typedef std::multimap<COutPoint, uint256> TxSpends;
-    TxSpends mapTxSpends;
+    TxSpends mapTxSpends; // 交易花费映射列表
     void AddToSpends(const COutPoint& outpoint, const uint256& wtxid);
     void AddToSpends(const uint256& wtxid);
 
@@ -566,7 +566,7 @@ public:
 
     std::set<COutPoint> setLockedCoins; // 锁定的交易输出集合
 
-    int64_t nTimeFirstKey;
+    int64_t nTimeFirstKey; // 首个密钥创建时间，代表钱包的创建时间
 
     const CWalletTx* GetWalletTx(const uint256& hash) const;
 
@@ -597,12 +597,12 @@ public:
     /**
      * keystore implementation
      * Generate a new key
-     */
-    CPubKey GenerateNewKey();
+     */ // 密钥库
+    CPubKey GenerateNewKey(); // 生成一个新密钥
     //! Adds a key to the store, and saves it to disk.
-    bool AddKeyPubKey(const CKey& key, const CPubKey &pubkey);
+    bool AddKeyPubKey(const CKey& key, const CPubKey &pubkey); // 添加密钥到钱包，并本地化到磁盘
     //! Adds a key to the store, without saving it to disk (used by LoadWallet)
-    bool LoadKey(const CKey& key, const CPubKey &pubkey) { return CCryptoKeyStore::AddKeyPubKey(key, pubkey); }
+    bool LoadKey(const CKey& key, const CPubKey &pubkey) { return CCryptoKeyStore::AddKeyPubKey(key, pubkey); } // 添加一个密钥到钱包内存，不本地化到磁盘（用于 LoadWallet）
     //! Load metadata (used by LoadWallet)
     bool LoadKeyMetadata(const CPubKey &pubkey, const CKeyMetadata &metadata);
 
@@ -646,7 +646,7 @@ public:
     bool AddToWallet(const CWalletTx& wtxIn, bool fFromLoadWallet, CWalletDB* pwalletdb);
     void SyncTransaction(const CTransaction& tx, const CBlock* pblock);
     bool AddToWalletIfInvolvingMe(const CTransaction& tx, const CBlock* pblock, bool fUpdate);
-    int ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate = false);
+    int ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate = false); // 从指定区块开始扫描钱包交易
     void ReacceptWalletTransactions();
     void ResendWalletTransactions(int64_t nBestBlockTime);
     std::vector<uint256> ResendWalletTransactionsBefore(int64_t nTime);

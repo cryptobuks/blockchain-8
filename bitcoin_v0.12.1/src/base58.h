@@ -83,8 +83,8 @@ protected:
     void SetData(const std::vector<unsigned char> &vchVersionIn, const unsigned char *pbegin, const unsigned char *pend);
 
 public:
-    bool SetString(const char* psz, unsigned int nVersionBytes = 1);
-    bool SetString(const std::string& str);
+    bool SetString(const char* psz, unsigned int nVersionBytes = 1); // 使用 C 风格字符串初始化数据
+    bool SetString(const std::string& str); // 调用上面的重载函数
     std::string ToString() const; // 为要编码的数据附加前缀，通过该值计算两次 sha256 后取 4 bytes 的前缀附加在该值后面，再进行 Base58 编码得到公钥地址
     int CompareTo(const CBase58Data& b58) const;
 
@@ -115,7 +115,7 @@ public:
     CBitcoinAddress(const char* pszAddress) { SetString(pszAddress); }
 
     CTxDestination Get() const; // 获取公钥索引或脚本索引
-    bool GetKeyID(CKeyID &keyID) const;
+    bool GetKeyID(CKeyID &keyID) const; // 获取地址对应的公钥索引
     bool IsScript() const;
 };
 

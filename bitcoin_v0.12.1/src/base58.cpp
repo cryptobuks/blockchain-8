@@ -162,23 +162,23 @@ void CBase58Data::SetData(const std::vector<unsigned char>& vchVersionIn, const 
 bool CBase58Data::SetString(const char* psz, unsigned int nVersionBytes)
 {
     std::vector<unsigned char> vchTemp;
-    bool rc58 = DecodeBase58Check(psz, vchTemp);
-    if ((!rc58) || (vchTemp.size() < nVersionBytes)) {
-        vchData.clear();
-        vchVersion.clear();
-        return false;
+    bool rc58 = DecodeBase58Check(psz, vchTemp); // 解码 Base58 编码
+    if ((!rc58) || (vchTemp.size() < nVersionBytes)) { // 解码失败 或 解码后的数据小于 1 个字节
+        vchData.clear(); // 清空数据
+        vchVersion.clear(); // 清空版本号
+        return false; // 设置失败
     }
-    vchVersion.assign(vchTemp.begin(), vchTemp.begin() + nVersionBytes);
-    vchData.resize(vchTemp.size() - nVersionBytes);
-    if (!vchData.empty())
-        memcpy(&vchData[0], &vchTemp[nVersionBytes], vchData.size());
-    memory_cleanse(&vchTemp[0], vchData.size());
+    vchVersion.assign(vchTemp.begin(), vchTemp.begin() + nVersionBytes); // 验证版本号
+    vchData.resize(vchTemp.size() - nVersionBytes); // 重置大小为数据总大小 - 1 个字节的版本号，并初始化为 0
+    if (!vchData.empty()) // 非空（全为 0）
+        memcpy(&vchData[0], &vchTemp[nVersionBytes], vchData.size()); // 复制除版本号的数据
+    memory_cleanse(&vchTemp[0], vchData.size()); // 清空数据（保留了最后一个字节？）
     return true;
 }
 
 bool CBase58Data::SetString(const std::string& str)
 {
-    return SetString(str.c_str());
+    return SetString(str.c_str()); // 转调上面的重载函数
 }
 
 std::string CBase58Data::ToString() const
@@ -264,11 +264,11 @@ CTxDestination CBitcoinAddress::Get() const
 
 bool CBitcoinAddress::GetKeyID(CKeyID& keyID) const
 {
-    if (!IsValid() || vchVersion != Params().Base58Prefix(CChainParams::PUBKEY_ADDRESS))
+    if (!IsValid() || vchVersion != Params().Base58Prefix(CChainParams::PUBKEY_ADDRESS)) // 地址有效 且 版本号正确
         return false;
     uint160 id;
-    memcpy(&id, &vchData[0], 20);
-    keyID = CKeyID(id);
+    memcpy(&id, &vchData[0], 20); // 获取前 20 个字节
+    keyID = CKeyID(id); // 初始化公钥索引对象
     return true;
 }
 

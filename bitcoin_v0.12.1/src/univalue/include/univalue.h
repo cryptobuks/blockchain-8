@@ -59,8 +59,8 @@ public:
     bool setInt(int val) { return setInt((int64_t)val); }
     bool setFloat(double val);
     bool setStr(const std::string& val);
-    bool setArray();
-    bool setObject();
+    bool setArray(); // 重置类型为 数组
+    bool setObject(); // 重置类型为 对象
 
     enum VType getType() const { return typ; }
     const std::string& getValStr() const { return val; }

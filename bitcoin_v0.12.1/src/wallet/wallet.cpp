@@ -744,19 +744,19 @@ bool CWallet::AddToWallet(const CWalletTx& wtxIn, bool fFromLoadWallet, CWalletD
  * Add a transaction to the wallet, or update it.
  * pblock is optional, but should be provided if the transaction is known to be in a block.
  * If fUpdate is true, existing transactions will be updated.
- */
+ */ // 添加一笔交易到钱包，或升级它。pblock 为可选，但如果交易已知在一个区块中，应该提供该值。如果 fUpdate 为 true，现存的交易将被升级。
 bool CWallet::AddToWalletIfInvolvingMe(const CTransaction& tx, const CBlock* pblock, bool fUpdate)
 {
     {
         AssertLockHeld(cs_wallet);
 
-        if (pblock) {
-            BOOST_FOREACH(const CTxIn& txin, tx.vin) {
+        if (pblock) { // 如果指定了区块
+            BOOST_FOREACH(const CTxIn& txin, tx.vin) { // 遍历交易输入列表
                 std::pair<TxSpends::const_iterator, TxSpends::const_iterator> range = mapTxSpends.equal_range(txin.prevout);
                 while (range.first != range.second) {
                     if (range.first->second != tx.GetHash()) {
                         LogPrintf("Transaction %s (in block %s) conflicts with wallet transaction %s (both spend %s:%i)\n", tx.GetHash().ToString(), pblock->GetHash().ToString(), range.first->second.ToString(), range.first->first.hash.ToString(), range.first->first.n);
-                        MarkConflicted(pblock->GetHash(), range.first->second);
+                        MarkConflicted(pblock->GetHash(), range.first->second); // 标记哈希冲突
                     }
                     range.first++;
                 }
@@ -1188,37 +1188,37 @@ bool CWalletTx::WriteToDisk(CWalletDB *pwalletdb)
  */ // 扫描区块链（从 pindexStart 开始）的交易。如果 fUpdate 为 true，在钱包中已存在的找到的交易将会升级。
 int CWallet::ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate)
 {
-    int ret = 0;
-    int64_t nNow = GetTime();
-    const CChainParams& chainParams = Params();
+    int ret = 0; // 只要升级了一笔，该值就会 +1
+    int64_t nNow = GetTime(); // 获取当前时间
+    const CChainParams& chainParams = Params(); // 获取链参数
 
-    CBlockIndex* pindex = pindexStart;
+    CBlockIndex* pindex = pindexStart; // 拿到起始区块索引
     {
-        LOCK2(cs_main, cs_wallet);
+        LOCK2(cs_main, cs_wallet); // 钱包上锁
 
-        // no need to read and scan block, if block was created before
-        // our wallet birthday (as adjusted for block time variability)
-        while (pindex && nTimeFirstKey && (pindex->GetBlockTime() < (nTimeFirstKey - 7200)))
-            pindex = chainActive.Next(pindex);
+        // no need to read and scan block, if block was created before // 如果是在我们的钱包创建之前创建的块，
+        // our wallet birthday (as adjusted for block time variability) // 不需要读取和扫描区块信息（根据块时间可变性进行调整）
+        while (pindex && nTimeFirstKey && (pindex->GetBlockTime() < (nTimeFirstKey - 7200))) // 若区块时间在钱包创建前 2h
+            pindex = chainActive.Next(pindex); // 跳过此区块
 
         ShowProgress(_("Rescanning..."), 0); // show rescan progress in GUI as dialog or on splashscreen, if -rescan on startup
         double dProgressStart = Checkpoints::GuessVerificationProgress(chainParams.Checkpoints(), pindex, false);
         double dProgressTip = Checkpoints::GuessVerificationProgress(chainParams.Checkpoints(), chainActive.Tip(), false);
-        while (pindex)
+        while (pindex) // 若该区块存在
         {
-            if (pindex->nHeight % 100 == 0 && dProgressTip - dProgressStart > 0.0)
+            if (pindex->nHeight % 100 == 0 && dProgressTip - dProgressStart > 0.0) // 扫描进度
                 ShowProgress(_("Rescanning..."), std::max(1, std::min(99, (int)((Checkpoints::GuessVerificationProgress(chainParams.Checkpoints(), pindex, false) - dProgressStart) / (dProgressTip - dProgressStart) * 100))));
 
             CBlock block;
-            ReadBlockFromDisk(block, pindex, Params().GetConsensus());
-            BOOST_FOREACH(CTransaction& tx, block.vtx)
+            ReadBlockFromDisk(block, pindex, Params().GetConsensus()); // 从磁盘上读取区块信息
+            BOOST_FOREACH(CTransaction& tx, block.vtx) // 遍历区块交易列表
             {
-                if (AddToWalletIfInvolvingMe(tx, &block, fUpdate))
+                if (AddToWalletIfInvolvingMe(tx, &block, fUpdate)) // 升级一笔交易
                     ret++;
             }
-            pindex = chainActive.Next(pindex);
-            if (GetTime() >= nNow + 60) {
-                nNow = GetTime();
+            pindex = chainActive.Next(pindex); // 指向下一块
+            if (GetTime() >= nNow + 60) { // 时间若超过 60s
+                nNow = GetTime(); // 更新时间
                 LogPrintf("Still rescanning. At block %d. Progress=%f\n", pindex->nHeight, Checkpoints::GuessVerificationProgress(chainParams.Checkpoints(), pindex));
             }
         }
