@@ -206,12 +206,12 @@ public:
      * <0  : conflicts with a transaction this deep in the blockchain
      *  0  : in memory pool, waiting to be included in a block
      * >=1 : this many blocks deep in the main chain
-     */
+     */ // 返回交易所在区块在区块链上的深度：<0:与区块链中交易冲突；==0:在内存池中（未上链），等待被加入区块；>=1:主链上有很多区块
     int GetDepthInMainChain(const CBlockIndex* &pindexRet) const; // 获取该交易在主链上的深度
     int GetDepthInMainChain() const { const CBlockIndex *pindexRet; return GetDepthInMainChain(pindexRet); }
     bool IsInMainChain() const { const CBlockIndex *pindexRet; return GetDepthInMainChain(pindexRet) > 0; }
     int GetBlocksToMaturity() const; // 获取据成熟所需的区块数，101 - 当前所在区块链深度
-    bool AcceptToMemoryPool(bool fLimitFree=true, bool fRejectAbsurdFee=true);
+    bool AcceptToMemoryPool(bool fLimitFree=true, bool fRejectAbsurdFee=true); // 把当前交易添加到内存池
     bool hashUnset() const { return (hashBlock.IsNull() || hashBlock == ABANDON_HASH); } // 哈希未设置（为空或已抛弃的哈希）
     bool isAbandoned() const { return (hashBlock == ABANDON_HASH); } // 该交易是否标记为已抛弃
     void setAbandoned() { hashBlock = ABANDON_HASH; } // 标记该交易为已抛弃
@@ -234,7 +234,7 @@ public:
     unsigned int nTimeSmart;
     char fFromMe;
     std::string strFromAccount;
-    int64_t nOrderPos; //! position in ordered transaction list
+    int64_t nOrderPos; //! position in ordered transaction list // 在有序的交易列表中的位置
 
     // memory only
     mutable bool fDebitCached;
@@ -647,7 +647,7 @@ public:
     void SyncTransaction(const CTransaction& tx, const CBlock* pblock);
     bool AddToWalletIfInvolvingMe(const CTransaction& tx, const CBlock* pblock, bool fUpdate);
     int ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate = false); // 从指定区块开始扫描钱包交易
-    void ReacceptWalletTransactions();
+    void ReacceptWalletTransactions(); // 再次接受钱包交易，把交易放入内存池
     void ResendWalletTransactions(int64_t nBestBlockTime);
     std::vector<uint256> ResendWalletTransactionsBefore(int64_t nTime);
     CAmount GetBalance() const; // 获取钱包余额

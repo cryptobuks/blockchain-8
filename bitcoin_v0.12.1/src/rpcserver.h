@@ -178,7 +178,7 @@ extern UniValue clearbanned(const UniValue& params, bool fHelp); // 清空黑名单
 
 extern UniValue dumpprivkey(const UniValue& params, bool fHelp); // 导出私钥
 extern UniValue importprivkey(const UniValue& params, bool fHelp); // 导入私钥
-extern UniValue importaddress(const UniValue& params, bool fHelp); // 导入地址
+extern UniValue importaddress(const UniValue& params, bool fHelp); // 导入地址或脚本
 extern UniValue importpubkey(const UniValue& params, bool fHelp); // 导入公钥
 extern UniValue dumpwallet(const UniValue& params, bool fHelp); // 导出钱包
 extern UniValue importwallet(const UniValue& params, bool fHelp); // 导入钱包

@@ -47,18 +47,18 @@ public:
 };
 
 typedef std::map<CKeyID, CKey> KeyMap; // 密钥索引和私钥的映射
-typedef std::map<CKeyID, CPubKey> WatchKeyMap;
-typedef std::map<CScriptID, CScript > ScriptMap;
-typedef std::set<CScript> WatchOnlySet;
+typedef std::map<CKeyID, CPubKey> WatchKeyMap; // 密钥索引和公钥的映射
+typedef std::map<CScriptID, CScript > ScriptMap; // 脚本索引映射
+typedef std::set<CScript> WatchOnlySet; // watch-only 脚本集合
 
 /** Basic key store, that keeps keys in an address->secret map */
 class CBasicKeyStore : public CKeyStore // 基础密钥存储，以 address->secret 映射维持私钥
 {
 protected:
-    KeyMap mapKeys; // 密钥索引和私钥的映射列表
-    WatchKeyMap mapWatchKeys;
-    ScriptMap mapScripts;
-    WatchOnlySet setWatchOnly;
+    KeyMap mapKeys; // 私钥和索引的映射列表
+    WatchKeyMap mapWatchKeys; // 公钥和索引的映射列表，用于 watch-only
+    ScriptMap mapScripts; // 脚本索引映射列表
+    WatchOnlySet setWatchOnly; // watch-only 脚本集合
 
 public:
     bool AddKeyPubKey(const CKey& key, const CPubKey &pubkey);
@@ -98,17 +98,17 @@ public:
         }
         return false;
     }
-    virtual bool AddCScript(const CScript& redeemScript);
-    virtual bool HaveCScript(const CScriptID &hash) const;
-    virtual bool GetCScript(const CScriptID &hash, CScript& redeemScriptOut) const;
+    virtual bool AddCScript(const CScript& redeemScript); // 添加指定脚本
+    virtual bool HaveCScript(const CScriptID &hash) const; // 脚本索引列表是否含有指定脚本
+    virtual bool GetCScript(const CScriptID &hash, CScript& redeemScriptOut) const; // 通过脚本索引获取脚本
 
-    virtual bool AddWatchOnly(const CScript &dest);
-    virtual bool RemoveWatchOnly(const CScript &dest);
-    virtual bool HaveWatchOnly(const CScript &dest) const;
-    virtual bool HaveWatchOnly() const;
+    virtual bool AddWatchOnly(const CScript &dest); // 添加到 watch-only 脚本集合
+    virtual bool RemoveWatchOnly(const CScript &dest); // 从 watch-only 脚本集合移除
+    virtual bool HaveWatchOnly(const CScript &dest) const; // 判断 watch-only 集合中是否有指定脚本
+    virtual bool HaveWatchOnly() const; // watch-only 集合中是否有元素，判空
 };
 
-typedef std::vector<unsigned char, secure_allocator<unsigned char> > CKeyingMaterial; // 私钥
+typedef std::vector<unsigned char, secure_allocator<unsigned char> > CKeyingMaterial; // 私钥数据
 typedef std::map<CKeyID, std::pair<CPubKey, std::vector<unsigned char> > > CryptedKeyMap; // 密钥索引对应公钥私钥对映射
 
 #endif // BITCOIN_KEYSTORE_H
