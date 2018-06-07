@@ -13,8 +13,8 @@
 
 typedef int64_t CAmount; // ½ð¶î£¬64 Î»
 
-static const CAmount COIN = 100000000;
-static const CAmount CENT = 1000000;
+static const CAmount COIN = 100000000; // 10**8
+static const CAmount CENT = 1000000; // 10**6
 
 extern const std::string CURRENCY_UNIT; // "BTC"
 

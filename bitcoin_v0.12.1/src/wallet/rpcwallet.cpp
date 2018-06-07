@@ -219,11 +219,11 @@ UniValue getaccountaddress(const UniValue& params, bool fHelp)
 
 UniValue getrawchangeaddress(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保当前钱包可用
         return NullUniValue;
     
-    if (fHelp || params.size() > 1)
-        throw runtime_error(
+    if (fHelp || params.size() > 1) // 没有参数，这里错了
+        throw runtime_error( // 命令帮助反馈
             "getrawchangeaddress\n"
             "\nReturns a new Bitcoin address, for receiving change.\n"
             "This is for use with raw transactions, NOT normal use.\n"
@@ -234,21 +234,21 @@ UniValue getrawchangeaddress(const UniValue& params, bool fHelp)
             + HelpExampleRpc("getrawchangeaddress", "")
        );
 
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
 
-    if (!pwalletMain->IsLocked())
-        pwalletMain->TopUpKeyPool();
+    if (!pwalletMain->IsLocked()) // 若当前钱包处于未加密状态
+        pwalletMain->TopUpKeyPool(); // 填充密钥池
 
-    CReserveKey reservekey(pwalletMain);
+    CReserveKey reservekey(pwalletMain); // 创建一个密钥池条目
     CPubKey vchPubKey;
-    if (!reservekey.GetReservedKey(vchPubKey))
+    if (!reservekey.GetReservedKey(vchPubKey)) // 获取一个密钥池中的密钥的公钥
         throw JSONRPCError(RPC_WALLET_KEYPOOL_RAN_OUT, "Error: Keypool ran out, please call keypoolrefill first");
 
-    reservekey.KeepKey();
+    reservekey.KeepKey(); // 从密钥池中移除获取的密钥，并清空密钥池条目信息
 
-    CKeyID keyID = vchPubKey.GetID();
+    CKeyID keyID = vchPubKey.GetID(); // 获取公钥索引
 
-    return CBitcoinAddress(keyID).ToString();
+    return CBitcoinAddress(keyID).ToString(); // Base58 编码获取公钥地址并返回
 }
 
 
@@ -565,11 +565,11 @@ UniValue signmessage(const UniValue& params, bool fHelp)
 
 UniValue getreceivedbyaddress(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保当前钱包可用
         return NullUniValue;
     
-    if (fHelp || params.size() < 1 || params.size() > 2)
-        throw runtime_error(
+    if (fHelp || params.size() < 1 || params.size() > 2) // 参数为 1 或 2 个
+        throw runtime_error( // 命令帮助反馈
             "getreceivedbyaddress \"bitcoinaddress\" ( minconf )\n"
             "\nReturns the total amount received by the given bitcoinaddress in transactions with at least minconf confirmations.\n"
             "\nArguments:\n"
@@ -588,46 +588,46 @@ UniValue getreceivedbyaddress(const UniValue& params, bool fHelp)
             + HelpExampleRpc("getreceivedbyaddress", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\", 6")
        );
 
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
 
     // Bitcoin address
-    CBitcoinAddress address = CBitcoinAddress(params[0].get_str());
-    if (!address.IsValid())
+    CBitcoinAddress address = CBitcoinAddress(params[0].get_str()); // 获取指定的比特币地址
+    if (!address.IsValid()) // 判断该地址是否有效
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Bitcoin address");
-    CScript scriptPubKey = GetScriptForDestination(address.Get());
-    if (!IsMine(*pwalletMain,scriptPubKey))
+    CScript scriptPubKey = GetScriptForDestination(address.Get()); // 获取公钥脚本
+    if (!IsMine(*pwalletMain,scriptPubKey)) // 检查是否属于自己
         return (double)0.0;
 
-    // Minimum confirmations
-    int nMinDepth = 1;
+    // Minimum confirmations // 最小确认数
+    int nMinDepth = 1; // 最小深度，默认为 1
     if (params.size() > 1)
-        nMinDepth = params[1].get_int();
+        nMinDepth = params[1].get_int(); // 获取指定的确认数
 
-    // Tally
+    // Tally // 总计
     CAmount nAmount = 0;
-    for (map<uint256, CWalletTx>::iterator it = pwalletMain->mapWallet.begin(); it != pwalletMain->mapWallet.end(); ++it)
+    for (map<uint256, CWalletTx>::iterator it = pwalletMain->mapWallet.begin(); it != pwalletMain->mapWallet.end(); ++it) // 遍历钱包交易映射列表
     {
-        const CWalletTx& wtx = (*it).second;
-        if (wtx.IsCoinBase() || !CheckFinalTx(wtx))
-            continue;
+        const CWalletTx& wtx = (*it).second; // 获取钱包交易
+        if (wtx.IsCoinBase() || !CheckFinalTx(wtx)) // 若为创币交易 或 非最后一笔交易
+            continue; // 跳过
 
-        BOOST_FOREACH(const CTxOut& txout, wtx.vout)
-            if (txout.scriptPubKey == scriptPubKey)
-                if (wtx.GetDepthInMainChain() >= nMinDepth)
-                    nAmount += txout.nValue;
+        BOOST_FOREACH(const CTxOut& txout, wtx.vout) // 遍历交易输出列表
+            if (txout.scriptPubKey == scriptPubKey) // 若输出脚本为指定地址的公钥脚本
+                if (wtx.GetDepthInMainChain() >= nMinDepth) // 且交易深度大于等于最小深度
+                    nAmount += txout.nValue; // 累加交易金额
     }
 
-    return  ValueFromAmount(nAmount);
+    return  ValueFromAmount(nAmount); // 这里直接格式化 Satoshi 返回
 }
 
 
 UniValue getreceivedbyaccount(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保当前钱包可用
         return NullUniValue;
     
-    if (fHelp || params.size() < 1 || params.size() > 2)
-        throw runtime_error(
+    if (fHelp || params.size() < 1 || params.size() > 2) // 参数为 1 个或 2 个
+        throw runtime_error( // 命令参数反馈
             "getreceivedbyaccount \"account\" ( minconf )\n"
             "\nDEPRECATED. Returns the total amount received by addresses with <account> in transactions with at least [minconf] confirmations.\n"
             "\nArguments:\n"
@@ -646,35 +646,35 @@ UniValue getreceivedbyaccount(const UniValue& params, bool fHelp)
             + HelpExampleRpc("getreceivedbyaccount", "\"tabby\", 6")
         );
 
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
 
-    // Minimum confirmations
-    int nMinDepth = 1;
+    // Minimum confirmations // 最小确认数
+    int nMinDepth = 1; // 最小深度，默认为 1
     if (params.size() > 1)
-        nMinDepth = params[1].get_int();
+        nMinDepth = params[1].get_int(); // 获取指定确认数作为最小深度
 
-    // Get the set of pub keys assigned to account
-    string strAccount = AccountFromValue(params[0]);
-    set<CTxDestination> setAddress = pwalletMain->GetAccountAddresses(strAccount);
+    // Get the set of pub keys assigned to account // 获取指定账户的公钥集合
+    string strAccount = AccountFromValue(params[0]); // 获取指定账户
+    set<CTxDestination> setAddress = pwalletMain->GetAccountAddresses(strAccount); // 获取指定账户的地址集合
 
-    // Tally
-    CAmount nAmount = 0;
-    for (map<uint256, CWalletTx>::iterator it = pwalletMain->mapWallet.begin(); it != pwalletMain->mapWallet.end(); ++it)
+    // Tally // 总计
+    CAmount nAmount = 0; // int64_t
+    for (map<uint256, CWalletTx>::iterator it = pwalletMain->mapWallet.begin(); it != pwalletMain->mapWallet.end(); ++it) // 遍历钱包交易映射列表
     {
-        const CWalletTx& wtx = (*it).second;
-        if (wtx.IsCoinBase() || !CheckFinalTx(wtx))
-            continue;
+        const CWalletTx& wtx = (*it).second; // 获取钱包交易
+        if (wtx.IsCoinBase() || !CheckFinalTx(wtx)) // 若为创币交易 或 非最终交易
+            continue; // 跳过
 
-        BOOST_FOREACH(const CTxOut& txout, wtx.vout)
+        BOOST_FOREACH(const CTxOut& txout, wtx.vout) // 遍历该交易的输出列表
         {
             CTxDestination address;
-            if (ExtractDestination(txout.scriptPubKey, address) && IsMine(*pwalletMain, address) && setAddress.count(address))
-                if (wtx.GetDepthInMainChain() >= nMinDepth)
-                    nAmount += txout.nValue;
+            if (ExtractDestination(txout.scriptPubKey, address) && IsMine(*pwalletMain, address) && setAddress.count(address)) // 若从输出公钥脚本中提取地址 且 该地址为自己的 且 属于指定账户地址集
+                if (wtx.GetDepthInMainChain() >= nMinDepth) // 且交易深度大于最小深度
+                    nAmount += txout.nValue; // 累加输出的金额
         }
     }
 
-    return (double)nAmount / (double)COIN;
+    return (double)nAmount / (double)COIN; // 换算单位 Satoshi 为 BTC
 }
 
 
@@ -1708,11 +1708,11 @@ UniValue listsinceblock(const UniValue& params, bool fHelp)
 
 UniValue gettransaction(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保当前钱包可用
         return NullUniValue;
     
-    if (fHelp || params.size() < 1 || params.size() > 2)
-        throw runtime_error(
+    if (fHelp || params.size() < 1 || params.size() > 2) // 参数为 1 或 2 个
+        throw runtime_error( // 命令帮助反馈
             "gettransaction \"txid\" ( includeWatchonly )\n"
             "\nGet detailed information about in-wallet transaction <txid>\n"
             "\nArguments:\n"
@@ -1750,40 +1750,40 @@ UniValue gettransaction(const UniValue& params, bool fHelp)
             + HelpExampleRpc("gettransaction", "\"1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d\"")
         );
 
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
 
     uint256 hash;
-    hash.SetHex(params[0].get_str());
+    hash.SetHex(params[0].get_str()); // 获取交易哈希
 
     isminefilter filter = ISMINE_SPENDABLE;
     if(params.size() > 1)
         if(params[1].get_bool())
-            filter = filter | ISMINE_WATCH_ONLY;
+            filter = filter | ISMINE_WATCH_ONLY; // 设置 watch-only 选项
 
     UniValue entry(UniValue::VOBJ);
-    if (!pwalletMain->mapWallet.count(hash))
+    if (!pwalletMain->mapWallet.count(hash)) // 验证钱包中是否存在该交易
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid or non-wallet transaction id");
-    const CWalletTx& wtx = pwalletMain->mapWallet[hash];
+    const CWalletTx& wtx = pwalletMain->mapWallet[hash]; // 获取索引对应的钱包交易
 
-    CAmount nCredit = wtx.GetCredit(filter);
-    CAmount nDebit = wtx.GetDebit(filter);
-    CAmount nNet = nCredit - nDebit;
-    CAmount nFee = (wtx.IsFromMe(filter) ? wtx.GetValueOut() - nDebit : 0);
+    CAmount nCredit = wtx.GetCredit(filter); // 贷款金额
+    CAmount nDebit = wtx.GetDebit(filter); // 借出金额
+    CAmount nNet = nCredit - nDebit; // 净赚
+    CAmount nFee = (wtx.IsFromMe(filter) ? wtx.GetValueOut() - nDebit : 0); // 交易费
 
-    entry.push_back(Pair("amount", ValueFromAmount(nNet - nFee)));
-    if (wtx.IsFromMe(filter))
-        entry.push_back(Pair("fee", ValueFromAmount(nFee)));
+    entry.push_back(Pair("amount", ValueFromAmount(nNet - nFee))); // 余额
+    if (wtx.IsFromMe(filter)) // 如果该交易属于自己（发送）
+        entry.push_back(Pair("fee", ValueFromAmount(nFee))); // 余额
 
-    WalletTxToJSON(wtx, entry);
+    WalletTxToJSON(wtx, entry); // 钱包交易转换为 JSON 格式
 
     UniValue details(UniValue::VARR);
-    ListTransactions(wtx, "*", 0, false, details, filter);
-    entry.push_back(Pair("details", details));
+    ListTransactions(wtx, "*", 0, false, details, filter); // 获取交易细节
+    entry.push_back(Pair("details", details)); // 加入细节信息
 
-    string strHex = EncodeHexTx(static_cast<CTransaction>(wtx));
-    entry.push_back(Pair("hex", strHex));
+    string strHex = EncodeHexTx(static_cast<CTransaction>(wtx)); // 对钱包交易进行 16 进制编码
+    entry.push_back(Pair("hex", strHex)); // 交易的 16 进制编码形式（非交易索引）
 
-    return entry;
+    return entry; // 返回结果对象
 }
 
 UniValue abandontransaction(const UniValue& params, bool fHelp)

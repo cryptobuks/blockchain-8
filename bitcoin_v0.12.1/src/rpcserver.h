@@ -198,15 +198,15 @@ extern UniValue estimatesmartpriority(const UniValue& params, bool fHelp);
 
 extern UniValue getnewaddress(const UniValue& params, bool fHelp); // »ñÈ¡ĞÂµØÖ·
 extern UniValue getaccountaddress(const UniValue& params, bool fHelp); // »ñÈ¡ÕË»§ÕÒÁãµØÖ·
-extern UniValue getrawchangeaddress(const UniValue& params, bool fHelp);
+extern UniValue getrawchangeaddress(const UniValue& params, bool fHelp); // »ñÈ¡Ôª½»Ò×ÕÒÁãµØÖ·
 extern UniValue setaccount(const UniValue& params, bool fHelp);
 extern UniValue getaccount(const UniValue& params, bool fHelp); // »ñÈ¡µØÖ·ËùÊôÕË»§
 extern UniValue getaddressesbyaccount(const UniValue& params, bool fHelp); // »ñÈ¡ÕË»§ÏÂµÄËùÓĞµØÖ·
 extern UniValue sendtoaddress(const UniValue& params, bool fHelp);
 extern UniValue signmessage(const UniValue& params, bool fHelp);
 extern UniValue verifymessage(const UniValue& params, bool fHelp);
-extern UniValue getreceivedbyaddress(const UniValue& params, bool fHelp);
-extern UniValue getreceivedbyaccount(const UniValue& params, bool fHelp);
+extern UniValue getreceivedbyaddress(const UniValue& params, bool fHelp); // »ñÈ¡Ä³µØÖ·½ÓÊÕµ½µÄ½ğ¶î
+extern UniValue getreceivedbyaccount(const UniValue& params, bool fHelp); // »ñÈ¡Ä³ÕË»§½ÓÊÕµ½µÄ½ğ¶î
 extern UniValue getbalance(const UniValue& params, bool fHelp); // »ñÈ¡Óà¶î
 extern UniValue getunconfirmedbalance(const UniValue& params, bool fHelp); // »ñÈ¡Î´È·ÈÏµÄÓà¶î
 extern UniValue movecmd(const UniValue& params, bool fHelp);
@@ -220,7 +220,7 @@ extern UniValue listtransactions(const UniValue& params, bool fHelp); // ÁĞ³ö×î½
 extern UniValue listaddressgroupings(const UniValue& params, bool fHelp); // ÁĞ³öµØÖ··Ö×é
 extern UniValue listaccounts(const UniValue& params, bool fHelp); // ÁĞ³öÕË»§¼°ÆäÓà¶î
 extern UniValue listsinceblock(const UniValue& params, bool fHelp); // ÁĞ³öÖ¸¶¨Çø¿é¿ªÊ¼Çø¿éÉÏµÄÈ«²¿½»Ò×
-extern UniValue gettransaction(const UniValue& params, bool fHelp);
+extern UniValue gettransaction(const UniValue& params, bool fHelp); // »ñÈ¡½»Ò×ÏêÏ¸ĞÅÏ¢
 extern UniValue abandontransaction(const UniValue& params, bool fHelp); // Å×ÆúÇ®°üÄÚµÄ½»Ò×
 extern UniValue backupwallet(const UniValue& params, bool fHelp); // ±¸·İÇ®°ü
 extern UniValue keypoolrefill(const UniValue& params, bool fHelp); // ÔÙÌî³äÃÜÔ¿³Ø

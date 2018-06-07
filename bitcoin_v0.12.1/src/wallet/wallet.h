@@ -370,7 +370,7 @@ public:
         MarkDirty();
     }
 
-    //! filter decides which addresses will count towards the debit
+    //! filter decides which addresses will count towards the debit // 过滤器决定哪些地址将计入借账
     CAmount GetDebit(const isminefilter& filter) const;
     CAmount GetCredit(const isminefilter& filter) const;
     CAmount GetImmatureCredit(bool fUseCache=true) const;
@@ -689,7 +689,7 @@ public:
     bool NewKeyPool();
     bool TopUpKeyPool(unsigned int kpSize = 0); // 填充满密钥池
     void ReserveKeyFromKeyPool(int64_t& nIndex, CKeyPool& keypool);
-    void KeepKey(int64_t nIndex);
+    void KeepKey(int64_t nIndex); // 从密钥池中移除指定索引的密钥
     void ReturnKey(int64_t nIndex);
     bool GetKeyFromPool(CPubKey &key); // 从密钥池中获取一个密钥的公钥
     int64_t GetOldestKeyPoolTime();
@@ -698,7 +698,7 @@ public:
     std::set< std::set<CTxDestination> > GetAddressGroupings(); // 获取地址分组集合
     std::map<CTxDestination, CAmount> GetAddressBalances(); // 获取地址余额映射列表
 
-    std::set<CTxDestination> GetAccountAddresses(const std::string& strAccount) const;
+    std::set<CTxDestination> GetAccountAddresses(const std::string& strAccount) const; // 根据指定的账户获取相关联的地址集
 
     isminetype IsMine(const CTxIn& txin) const;
     CAmount GetDebit(const CTxIn& txin, const isminefilter& filter) const;
@@ -818,7 +818,7 @@ public:
 
     void ReturnKey();
     bool GetReservedKey(CPubKey &pubkey); // 从密钥池中获取一个公钥
-    void KeepKey();
+    void KeepKey(); // 从密钥池中移除密钥，并清空数据成员 vchPubKey
     void KeepScript() { KeepKey(); }
 };
 

@@ -2524,7 +2524,7 @@ void CWallet::ReserveKeyFromKeyPool(int64_t& nIndex, CKeyPool& keypool)
 
 void CWallet::KeepKey(int64_t nIndex)
 {
-    // Remove from key pool // 从密钥池移除指定索引的
+    // Remove from key pool // 从密钥池移除指定索引的密钥
     if (fFileBacked) // 若钱包文件已备份
     {
         CWalletDB walletdb(strWalletFile); // 通过钱包文件名构造钱包数据库对象
@@ -2708,16 +2708,16 @@ set< set<CTxDestination> > CWallet::GetAddressGroupings()
 
 std::set<CTxDestination> CWallet::GetAccountAddresses(const std::string& strAccount) const
 {
-    LOCK(cs_wallet);
-    set<CTxDestination> result;
-    BOOST_FOREACH(const PAIRTYPE(CTxDestination, CAddressBookData)& item, mapAddressBook)
+    LOCK(cs_wallet); // 钱包上锁
+    set<CTxDestination> result; // 交易目的地址集
+    BOOST_FOREACH(const PAIRTYPE(CTxDestination, CAddressBookData)& item, mapAddressBook) // 遍历地址簿映射列表
     {
-        const CTxDestination& address = item.first;
-        const string& strName = item.second.name;
-        if (strName == strAccount)
-            result.insert(address);
+        const CTxDestination& address = item.first; // 获取目的（交易输出）地址
+        const string& strName = item.second.name; // 获取账户名
+        if (strName == strAccount) // 若为指定账户名
+            result.insert(address); // 插入交易目的地址集
     }
-    return result;
+    return result; // 返回地址集
 }
 
 bool CReserveKey::GetReservedKey(CPubKey& pubkey) // 从密钥池中取一个公钥
@@ -2740,7 +2740,7 @@ bool CReserveKey::GetReservedKey(CPubKey& pubkey) // 从密钥池中取一个公钥
 void CReserveKey::KeepKey()
 {
     if (nIndex != -1)
-        pwallet->KeepKey(nIndex);
+        pwallet->KeepKey(nIndex); // 从密钥池中移除指定索引的密钥
     nIndex = -1;
     vchPubKey = CPubKey();
 }
