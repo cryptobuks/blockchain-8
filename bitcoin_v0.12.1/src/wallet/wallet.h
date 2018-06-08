@@ -555,9 +555,9 @@ public:
 
     typedef std::pair<CWalletTx*, CAccountingEntry*> TxPair;
     typedef std::multimap<int64_t, TxPair > TxItems;
-    TxItems wtxOrdered; // 交易有序列表
+    TxItems wtxOrdered; // 有序交易映射列表
 
-    int64_t nOrderPosNext;
+    int64_t nOrderPosNext; // 下一条交易的序号
     std::map<uint256, int> mapRequestCount;
 
     std::map<CTxDestination, CAddressBookData> mapAddressBook; // 地址簿映射列表 <地址， 地址簿数据>
@@ -639,7 +639,7 @@ public:
     /** 
      * Increment the next transaction order id
      * @return next transaction order id
-     */
+     */ // 增加下一条交易序号，返回下一个交易的序号
     int64_t IncOrderPosNext(CWalletDB *pwalletdb = NULL);
 
     void MarkDirty(); // 标记已变动
@@ -666,12 +666,12 @@ public:
     /**
      * Create a new transaction paying the recipients with a set of coins
      * selected by SelectCoins(); Also create the change output, when needed
-     */
+     */ // 通过 SelectCoins() 筛选的一组金额创建一笔支付给接收者新交易；在需要时也创建找零输出。
     bool CreateTransaction(const std::vector<CRecipient>& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, CAmount& nFeeRet, int& nChangePosRet,
                            std::string& strFailReason, const CCoinControl *coinControl = NULL, bool sign = true);
-    bool CommitTransaction(CWalletTx& wtxNew, CReserveKey& reservekey);
+    bool CommitTransaction(CWalletTx& wtxNew, CReserveKey& reservekey); // 提交交易
 
-    bool AddAccountingEntry(const CAccountingEntry&, CWalletDB & pwalletdb);
+    bool AddAccountingEntry(const CAccountingEntry&, CWalletDB & pwalletdb); // 添加账户条目到钱包数据库
 
     static CFeeRate minTxFee; // 最小交易费
     static CFeeRate fallbackFee; // 撤销交易费
@@ -861,13 +861,13 @@ public:
 class CAccountingEntry // 账户条目类
 {
 public:
-    std::string strAccount; // 账户名
-    CAmount nCreditDebit;
-    int64_t nTime;
-    std::string strOtherAccount;
-    std::string strComment;
+    std::string strAccount; // 账户名（借出、贷入）
+    CAmount nCreditDebit; // 贷入借出金额
+    int64_t nTime; // 转账时间（转出、到账）
+    std::string strOtherAccount; // 对方账户名
+    std::string strComment; // 备注信息
     mapValue_t mapValue;
-    int64_t nOrderPos;  //! position in ordered transaction list
+    int64_t nOrderPos;  //! position in ordered transaction list // 在有序交易清单中的位置
     uint64_t nEntryNo;
 
     CAccountingEntry()

@@ -199,17 +199,17 @@ extern UniValue estimatesmartpriority(const UniValue& params, bool fHelp);
 extern UniValue getnewaddress(const UniValue& params, bool fHelp); // 获取新地址
 extern UniValue getaccountaddress(const UniValue& params, bool fHelp); // 获取账户找零地址
 extern UniValue getrawchangeaddress(const UniValue& params, bool fHelp); // 获取元交易找零地址
-extern UniValue setaccount(const UniValue& params, bool fHelp);
+extern UniValue setaccount(const UniValue& params, bool fHelp); // 设置地址关联账户
 extern UniValue getaccount(const UniValue& params, bool fHelp); // 获取地址所属账户
 extern UniValue getaddressesbyaccount(const UniValue& params, bool fHelp); // 获取账户下的所有地址
-extern UniValue sendtoaddress(const UniValue& params, bool fHelp);
+extern UniValue sendtoaddress(const UniValue& params, bool fHelp); // 发送比特币到指定地址
 extern UniValue signmessage(const UniValue& params, bool fHelp);
 extern UniValue verifymessage(const UniValue& params, bool fHelp);
 extern UniValue getreceivedbyaddress(const UniValue& params, bool fHelp); // 获取某地址接收到的金额
 extern UniValue getreceivedbyaccount(const UniValue& params, bool fHelp); // 获取某账户接收到的金额
 extern UniValue getbalance(const UniValue& params, bool fHelp); // 获取余额
 extern UniValue getunconfirmedbalance(const UniValue& params, bool fHelp); // 获取未确认的余额
-extern UniValue movecmd(const UniValue& params, bool fHelp);
+extern UniValue movecmd(const UniValue& params, bool fHelp); // 账户间转移资金
 extern UniValue sendfrom(const UniValue& params, bool fHelp);
 extern UniValue sendmany(const UniValue& params, bool fHelp);
 extern UniValue addmultisigaddress(const UniValue& params, bool fHelp);

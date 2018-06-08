@@ -202,7 +202,7 @@ class CTransaction // 该交易为不易变版本，一经生成不能改变（网络中广播和区块打包
 {
 private:
     /** Memory only. */
-    const uint256 hash;
+    const uint256 hash; // 交易哈希
     void UpdateHash() const;
 
 public:
@@ -280,7 +280,7 @@ public:
         return a.hash != b.hash;
     }
 
-    std::string ToString() const;
+    std::string ToString() const; // 输出交易信息
 };
 
 /** A mutable version of CTransaction. */

@@ -87,7 +87,7 @@ public:
     }
 };
 
-extern CDBEnv bitdb;
+extern CDBEnv bitdb; // 钱包数据库环境对象
 
 
 /** RAII class that provides access to a Berkeley database */
@@ -96,7 +96,7 @@ class CDB // （钱包）数据库（提供访问 Berkeley 数据库的 RAII 类）
 protected:
     Db* pdb; // Berkeley DB 内置类型
     std::string strFile; // 钱包文件名
-    DbTxn* activeTxn;
+    DbTxn* activeTxn; // 钱包数据库环境 bitdb.TxnBegin()
     bool fReadOnly; // 只读标志
     bool fFlushOnClose; // 关闭并刷新标志
 
@@ -277,11 +277,11 @@ public:
         return true;
     }
 
-    bool TxnCommit()
+    bool TxnCommit() // 交易提交
     {
-        if (!pdb || !activeTxn)
+        if (!pdb || !activeTxn) // 钱包数据库和数据库环境
             return false;
-        int ret = activeTxn->commit(0);
+        int ret = activeTxn->commit(0); 
         activeTxn = NULL;
         return (ret == 0);
     }

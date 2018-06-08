@@ -587,13 +587,13 @@ bool CWallet::EncryptWallet(const SecureString& strWalletPassphrase)
 int64_t CWallet::IncOrderPosNext(CWalletDB *pwalletdb)
 {
     AssertLockHeld(cs_wallet); // nOrderPosNext
-    int64_t nRet = nOrderPosNext++;
-    if (pwalletdb) {
-        pwalletdb->WriteOrderPosNext(nOrderPosNext);
+    int64_t nRet = nOrderPosNext++; // 序号 +1
+    if (pwalletdb) { // 若钱包数据库对象存在
+        pwalletdb->WriteOrderPosNext(nOrderPosNext); // 写入数据库
     } else {
         CWalletDB(strWalletFile).WriteOrderPosNext(nOrderPosNext);
     }
-    return nRet;
+    return nRet; // 返回增加后的下一条交易序号
 }
 
 void CWallet::MarkDirty()
@@ -2238,30 +2238,30 @@ bool CWallet::CreateTransaction(const vector<CRecipient>& vecSend, CWalletTx& wt
 
 /**
  * Call after CreateTransaction unless you want to abort
- */
+ */ // 除非你想要崩溃，在 CreateTransaction 之后调用
 bool CWallet::CommitTransaction(CWalletTx& wtxNew, CReserveKey& reservekey)
 {
     {
-        LOCK2(cs_main, cs_wallet);
-        LogPrintf("CommitTransaction:\n%s", wtxNew.ToString());
+        LOCK2(cs_main, cs_wallet); // 钱包上锁
+        LogPrintf("CommitTransaction:\n%s", wtxNew.ToString()); // 记录交易信息
         {
-            // This is only to keep the database open to defeat the auto-flush for the
-            // duration of this scope.  This is the only place where this optimization
-            // maybe makes sense; please don't do it anywhere else.
+            // This is only to keep the database open to defeat the auto-flush for the // 这只是为了在该期间内保持数据库打开以防自动刷新。
+            // duration of this scope.  This is the only place where this optimization // 这是唯一这种优化可能有意义的地方。
+            // maybe makes sense; please don't do it anywhere else. // 请不要在其他地方做这个。
             CWalletDB* pwalletdb = fFileBacked ? new CWalletDB(strWalletFile,"r+") : NULL;
 
-            // Take key pair from key pool so it won't be used again
+            // Take key pair from key pool so it won't be used again // 从密钥池中拿出密钥对，以至它无法再次被使用
             reservekey.KeepKey();
 
-            // Add tx to wallet, because if it has change it's also ours,
-            // otherwise just for transaction history.
+            // Add tx to wallet, because if it has change it's also ours, // 添加交易到钱包，因为如果它有找零也是我们的，
+            // otherwise just for transaction history. // 否则仅用于交易交易历史记录。
             AddToWallet(wtxNew, false, pwalletdb);
 
-            // Notify that old coins are spent
-            set<CWalletTx*> setCoins;
-            BOOST_FOREACH(const CTxIn& txin, wtxNew.vin)
+            // Notify that old coins are spent // 通知旧的币被花费
+            set<CWalletTx*> setCoins; // 钱包交易索引集合
+            BOOST_FOREACH(const CTxIn& txin, wtxNew.vin) // 遍历新交易的输入列表
             {
-                CWalletTx &coin = mapWallet[txin.prevout.hash];
+                CWalletTx &coin = mapWallet[txin.prevout.hash]; // 获取输入的上一个输出对应的钱包交易
                 coin.BindWallet(this);
                 NotifyTransactionChanged(this, coin.GetHash(), CT_UPDATED);
             }
@@ -2290,12 +2290,12 @@ bool CWallet::CommitTransaction(CWalletTx& wtxNew, CReserveKey& reservekey)
 
 bool CWallet::AddAccountingEntry(const CAccountingEntry& acentry, CWalletDB & pwalletdb)
 {
-    if (!pwalletdb.WriteAccountingEntry_Backend(acentry))
+    if (!pwalletdb.WriteAccountingEntry_Backend(acentry)) // 写入账户条目末端
         return false;
 
-    laccentries.push_back(acentry);
-    CAccountingEntry & entry = laccentries.back();
-    wtxOrdered.insert(make_pair(entry.nOrderPos, TxPair((CWalletTx*)0, &entry)));
+    laccentries.push_back(acentry); // 加入账户条目列表
+    CAccountingEntry & entry = laccentries.back(); // 获取列表中的最后一个（该）条目
+    wtxOrdered.insert(make_pair(entry.nOrderPos, TxPair((CWalletTx*)0, &entry))); // 插入有序交易映射列表
 
     return true;
 }

@@ -102,7 +102,7 @@ public:
     bool WriteBestBlock(const CBlockLocator& locator);
     bool ReadBestBlock(CBlockLocator& locator);
 
-    bool WriteOrderPosNext(int64_t nOrderPosNext);
+    bool WriteOrderPosNext(int64_t nOrderPosNext); // 把下一条交易序号写入数据库
 
     bool WriteDefaultKey(const CPubKey& vchPubKey);
 
@@ -114,7 +114,7 @@ public:
 
     /// This writes directly to the database, and will not update the CWallet's cached accounting entries!
     /// Use wallet.AddAccountingEntry instead, to write *and* update its caches.
-    bool WriteAccountingEntry_Backend(const CAccountingEntry& acentry);
+    bool WriteAccountingEntry_Backend(const CAccountingEntry& acentry); // 写入账户条目末端
     bool ReadAccount(const std::string& strAccount, CAccount& account);
     bool WriteAccount(const std::string& strAccount, const CAccount& account);
 

@@ -143,8 +143,8 @@ bool CWalletDB::ReadBestBlock(CBlockLocator& locator)
 
 bool CWalletDB::WriteOrderPosNext(int64_t nOrderPosNext)
 {
-    nWalletDBUpdated++;
-    return Write(std::string("orderposnext"), nOrderPosNext);
+    nWalletDBUpdated++; // 更新次数
+    return Write(std::string("orderposnext"), nOrderPosNext); // 下一条交易的序号写入钱包数据库
 }
 
 bool CWalletDB::WriteDefaultKey(const CPubKey& vchPubKey)
