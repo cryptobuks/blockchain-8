@@ -226,7 +226,7 @@ public:
     const uint32_t nLockTime; // 锁定时间
 
     /** Construct a CTransaction that qualifies as IsNull() */
-    CTransaction();
+    CTransaction(); // 构建一笔符合 IsNull() 的交易
 
     /** Convert a CMutableTransaction into a CTransaction. */
     CTransaction(const CMutableTransaction &tx);
@@ -246,7 +246,7 @@ public:
             UpdateHash();
     }
 
-    bool IsNull() const {
+    bool IsNull() const { // 输入和输出均非空
         return vin.empty() && vout.empty();
     }
 

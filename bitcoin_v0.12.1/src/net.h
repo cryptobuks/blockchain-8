@@ -188,7 +188,7 @@ class CNodeStats // 节点状态类
 public:
     NodeId nodeid;
     uint64_t nServices;
-    bool fRelayTxes;
+    bool fRelayTxes; // 中继交易标志
     int64_t nLastSend;
     int64_t nLastRecv;
     int64_t nTimeConnected;
@@ -311,7 +311,7 @@ public:
 typedef std::map<CSubNet, CBanEntry> banmap_t; // 禁止列表：子网与禁止条目的映射
 
 /** Information about a peer */
-class CNode // 关于同辈的信息
+class CNode // 关于对端节点的信息
 {
 public:
     // socket
@@ -388,9 +388,9 @@ public:
     int64_t nNextAddrSend;
     int64_t nNextLocalAddrSend;
 
-    // inventory based relay
-    CRollingBloomFilter filterInventoryKnown;
-    std::vector<CInv> vInventoryToSend;
+    // inventory based relay // 用于中继的库存数据
+    CRollingBloomFilter filterInventoryKnown; // 布鲁姆过滤器
+    std::vector<CInv> vInventoryToSend; // 发送库存列表
     CCriticalSection cs_inventory;
     std::set<uint256> setAskFor;
     std::multimap<int64_t, CInv> mapAskFor;
@@ -506,10 +506,10 @@ public:
     void PushInventory(const CInv& inv)
     {
         {
-            LOCK(cs_inventory);
-            if (inv.type == MSG_TX && filterInventoryKnown.contains(inv.hash))
-                return;
-            vInventoryToSend.push_back(inv);
+            LOCK(cs_inventory); // 库存上锁
+            if (inv.type == MSG_TX && filterInventoryKnown.contains(inv.hash)) // 若为交易类型 且 布鲁姆过滤器包含了该交易所在 inv 的哈希
+                return; // 啥也不做直接返回
+            vInventoryToSend.push_back(inv); // 否则加入发送库存列表
         }
     }
 
@@ -761,8 +761,8 @@ public:
 
 
 class CTransaction;
-void RelayTransaction(const CTransaction& tx);
-void RelayTransaction(const CTransaction& tx, const CDataStream& ss);
+void RelayTransaction(const CTransaction& tx); // 转调下面重载函数
+void RelayTransaction(const CTransaction& tx, const CDataStream& ss); // 中继交易
 
 /** Access to the (IP) address database (peers.dat) */
 class CAddrDB // IP 地址数据库（用于保存 peers.dat 中记录的 IP）

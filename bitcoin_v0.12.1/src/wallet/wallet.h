@@ -233,7 +233,7 @@ public:
     unsigned int nTimeReceived; //! time received by this node
     unsigned int nTimeSmart;
     char fFromMe;
-    std::string strFromAccount;
+    std::string strFromAccount; // 该交易是从哪个账户发送
     int64_t nOrderPos; //! position in ordered transaction list // 在有序的交易列表中的位置
 
     // memory only
@@ -558,7 +558,7 @@ public:
     TxItems wtxOrdered; // 有序交易映射列表
 
     int64_t nOrderPosNext; // 下一条交易的序号
-    std::map<uint256, int> mapRequestCount;
+    std::map<uint256, int> mapRequestCount; // 交易请求（getdata）次数映射列表
 
     std::map<CTxDestination, CAddressBookData> mapAddressBook; // 地址簿映射列表 <地址， 地址簿数据>
 
@@ -788,8 +788,8 @@ public:
     /** Watch-only address added */
     boost::signals2::signal<void (bool fHaveWatchOnly)> NotifyWatchonlyChanged;
 
-    /** Inquire whether this wallet broadcasts transactions. */
-    bool GetBroadcastTransactions() const { return fBroadcastTransactions; }
+    /** Inquire whether this wallet broadcasts transactions. */ // 查询该钱包是否广播交易
+    bool GetBroadcastTransactions() const { return fBroadcastTransactions; } // 返回广播交易标志
     /** Set whether this wallet broadcasts transactions. */
     void SetBroadcastTransactions(bool broadcast) { fBroadcastTransactions = broadcast; }
 

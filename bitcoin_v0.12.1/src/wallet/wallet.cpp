@@ -1261,12 +1261,12 @@ void CWallet::ReacceptWalletTransactions()
 
 bool CWalletTx::RelayWalletTransaction()
 {
-    assert(pwallet->GetBroadcastTransactions());
-    if (!IsCoinBase())
+    assert(pwallet->GetBroadcastTransactions()); // 验证钱包是否广播交易
+    if (!IsCoinBase()) // 该交易非创币交易
     {
-        if (GetDepthInMainChain() == 0 && !isAbandoned()) {
-            LogPrintf("Relaying wtx %s\n", GetHash().ToString());
-            RelayTransaction((CTransaction)*this);
+        if (GetDepthInMainChain() == 0 && !isAbandoned()) { // 链深度为 0（即未上链）且 未被标记为已抛弃
+            LogPrintf("Relaying wtx %s\n", GetHash().ToString()); // 记录中继交易哈希
+            RelayTransaction((CTransaction)*this); // 进行交易中继
             return true;
         }
     }
@@ -2262,27 +2262,27 @@ bool CWallet::CommitTransaction(CWalletTx& wtxNew, CReserveKey& reservekey)
             BOOST_FOREACH(const CTxIn& txin, wtxNew.vin) // 遍历新交易的输入列表
             {
                 CWalletTx &coin = mapWallet[txin.prevout.hash]; // 获取输入的上一个输出对应的钱包交易
-                coin.BindWallet(this);
-                NotifyTransactionChanged(this, coin.GetHash(), CT_UPDATED);
+                coin.BindWallet(this); // 绑定钱包，并标记钱包已变动
+                NotifyTransactionChanged(this, coin.GetHash(), CT_UPDATED); // 通知钱包交易改变（更新）
             }
 
-            if (fFileBacked)
-                delete pwalletdb;
+            if (fFileBacked) // 若钱包文件已备份
+                delete pwalletdb; // 销毁钱包数据库对象
         }
 
         // Track how many getdata requests our transaction gets
-        mapRequestCount[wtxNew.GetHash()] = 0;
+        mapRequestCount[wtxNew.GetHash()] = 0; // 追踪我们的交易获取了多少次 getdata 请求，初始化为 0 次
 
-        if (fBroadcastTransactions)
+        if (fBroadcastTransactions) // 若开启了交易广播标志
         {
-            // Broadcast
-            if (!wtxNew.AcceptToMemoryPool(false))
-            {
+            // Broadcast // 广播
+            if (!wtxNew.AcceptToMemoryPool(false)) // 把交易添加到内存池中
+            { // 这步不能失败。该交易已经签署并记录。
                 // This must not fail. The transaction has already been signed and recorded.
                 LogPrintf("CommitTransaction(): Error: Transaction not valid\n");
                 return false;
             }
-            wtxNew.RelayWalletTransaction();
+            wtxNew.RelayWalletTransaction(); // 中继钱包交易
         }
     }
     return true;

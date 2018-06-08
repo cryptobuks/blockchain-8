@@ -50,7 +50,7 @@ LEAVE_CRITICAL_SECTION(mutex); // no RAII
 /**
  * Template mixin that adds -Wthread-safety locking
  * annotations to a subset of the mutex API.
- */
+ */ // 用于一个 mutex API 的子集的添加了 -Wthread-safety 锁注释的模板 mixin 
 template <typename PARENT>
 class LOCKABLE AnnotatedMixin : public PARENT
 {
@@ -74,7 +74,7 @@ public:
 /**
  * Wrapped boost mutex: supports recursive locking, but no waiting
  * TODO: We should move away from using the recursive lock by default.
- */
+ */ // 包装的 boost mutex：支持递归锁，但不会等待
 typedef AnnotatedMixin<boost::recursive_mutex> CCriticalSection;
 
 /** Wrapped boost mutex: supports waiting but not recursive locking */

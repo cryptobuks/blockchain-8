@@ -89,9 +89,9 @@ std::string strSubVersion;
 
 vector<CNode*> vNodes; // 成功建立连接的节点列表
 CCriticalSection cs_vNodes;
-map<CInv, CDataStream> mapRelay;
-deque<pair<int64_t, CInv> > vRelayExpiration;
-CCriticalSection cs_mapRelay;
+map<CInv, CDataStream> mapRelay; // 中继数据映射列表
+deque<pair<int64_t, CInv> > vRelayExpiration; // 中继到期队列 <过期时间，消息库存条目（用于中继）>
+CCriticalSection cs_mapRelay; // 中继映射锁
 limitedmap<CInv, int64_t> mapAlreadyAskedFor(MAX_INV_SZ);
 
 static deque<string> vOneShots; // 意味不明 pending
@@ -2051,39 +2051,39 @@ instance_of_cnetcleanup;
 void RelayTransaction(const CTransaction& tx)
 {
     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-    ss.reserve(10000);
-    ss << tx;
-    RelayTransaction(tx, ss);
+    ss.reserve(10000); // 预开辟 10000 个字节
+    ss << tx; // 导入交易
+    RelayTransaction(tx, ss); // 开始中继
 }
 
 void RelayTransaction(const CTransaction& tx, const CDataStream& ss)
 {
-    CInv inv(MSG_TX, tx.GetHash());
+    CInv inv(MSG_TX, tx.GetHash()); // 根据交易哈希创建 inv 对象
     {
         LOCK(cs_mapRelay);
-        // Expire old relay messages
+        // Expire old relay messages // 使旧的中继数据过期
         while (!vRelayExpiration.empty() && vRelayExpiration.front().first < GetTime())
-        {
-            mapRelay.erase(vRelayExpiration.front().second);
-            vRelayExpiration.pop_front();
+        { // 中继到期队列非空 且 中继过期队列队头元素过期时间小于当前时间（表示已过期）
+            mapRelay.erase(vRelayExpiration.front().second); // 从中继数据映射列表中擦除中继过期队列的队头
+            vRelayExpiration.pop_front(); // 中继过期队列出队
         }
 
-        // Save original serialized message so newer versions are preserved
-        mapRelay.insert(std::make_pair(inv, ss));
-        vRelayExpiration.push_back(std::make_pair(GetTime() + 15 * 60, inv));
+        // Save original serialized message so newer versions are preserved // 保存原始的序列化消息，以便保留新版本
+        mapRelay.insert(std::make_pair(inv, ss)); // 插入中继数据映射列表
+        vRelayExpiration.push_back(std::make_pair(GetTime() + 15 * 60, inv)); // 加上 15min 的过期时间，加入过期队列
     }
     LOCK(cs_vNodes);
-    BOOST_FOREACH(CNode* pnode, vNodes)
+    BOOST_FOREACH(CNode* pnode, vNodes) // 遍历当前已建立链接的节点列表
     {
-        if(!pnode->fRelayTxes)
-            continue;
+        if(!pnode->fRelayTxes) // 若中继交易状态为 false
+            continue; // 跳过该节点
         LOCK(pnode->cs_filter);
-        if (pnode->pfilter)
+        if (pnode->pfilter) // 布鲁姆过滤器
         {
             if (pnode->pfilter->IsRelevantAndUpdate(tx))
                 pnode->PushInventory(inv);
-        } else
-            pnode->PushInventory(inv);
+        } else // 没有使用 bloom filter
+            pnode->PushInventory(inv); // 直接推送 inv 消息到该节点
     }
 }
 

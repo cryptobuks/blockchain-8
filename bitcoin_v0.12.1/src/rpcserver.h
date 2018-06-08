@@ -210,8 +210,8 @@ extern UniValue getreceivedbyaccount(const UniValue& params, bool fHelp); // »ñÈ
 extern UniValue getbalance(const UniValue& params, bool fHelp); // »ñÈ¡Óà¶î
 extern UniValue getunconfirmedbalance(const UniValue& params, bool fHelp); // »ñÈ¡Î´È·ÈÏµÄÓà¶î
 extern UniValue movecmd(const UniValue& params, bool fHelp); // ÕË»§¼ä×ªÒÆ×Ê½ğ
-extern UniValue sendfrom(const UniValue& params, bool fHelp);
-extern UniValue sendmany(const UniValue& params, bool fHelp);
+extern UniValue sendfrom(const UniValue& params, bool fHelp); // ´ÓÖ¸¶¨ÕË»§·¢ËÍ½ğ¶î
+extern UniValue sendmany(const UniValue& params, bool fHelp); // ·¢ËÍ½ğ¶îµ½¶à¸öµØÖ·
 extern UniValue addmultisigaddress(const UniValue& params, bool fHelp);
 extern UniValue createmultisig(const UniValue& params, bool fHelp);
 extern UniValue listreceivedbyaddress(const UniValue& params, bool fHelp); // ÁĞ³öµØÖ·Óà¶î

@@ -18,11 +18,11 @@ class uint256;
 class CBlockIndex;
 
 /** General change type (added, updated, removed). */
-enum ChangeType
+enum ChangeType // 一般改变类型（添加，更新，移除）枚举
 {
-    CT_NEW,
-    CT_UPDATED,
-    CT_DELETED
+    CT_NEW, // 0 添加
+    CT_UPDATED, // 1 更新
+    CT_DELETED // 2 移除
 };
 
 /** Signals for UI communication. */

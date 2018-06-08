@@ -390,7 +390,7 @@ static void SendMoney(const CTxDestination &address, CAmount nValue, bool fSubtr
     CRecipient recipient = {scriptPubKey, nValue, fSubtractFeeFromAmount}; // 初始化一个接收者对象
     vecSend.push_back(recipient); // 加入发送列表
     if (!pwalletMain->CreateTransaction(vecSend, wtxNew, reservekey, nFeeRequired, nChangePosRet, strError)) { // 创建一笔交易
-        if (!fSubtractFeeFromAmount && nValue + nFeeRequired > pwalletMain->GetBalance()) // 发送金额与交易费的和大于钱包余额
+        if (!fSubtractFeeFromAmount && nValue + nFeeRequired > pwalletMain->GetBalance()) // 若发送金额不包含交易费，发送金额与交易费的和不能大于钱包余额
             strError = strprintf("Error: This transaction requires a transaction fee of at least %s because of its amount, complexity, or use of recently received funds!", FormatMoney(nFeeRequired));
         throw JSONRPCError(RPC_WALLET_ERROR, strError);
     }
@@ -876,11 +876,11 @@ UniValue movecmd(const UniValue& params, bool fHelp)
 
 UniValue sendfrom(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保当前钱包可用
         return NullUniValue;
     
-    if (fHelp || params.size() < 3 || params.size() > 6)
-        throw runtime_error(
+    if (fHelp || params.size() < 3 || params.size() > 6) // 参数至少为 3 个，至多为 6 个
+        throw runtime_error( // 命令帮助反馈
             "sendfrom \"fromaccount\" \"tobitcoinaddress\" amount ( minconf \"comment\" \"comment-to\" )\n"
             "\nDEPRECATED (use sendtoaddress). Sent an amount from an account to a bitcoin address."
             + HelpRequiringPassphrase() + "\n"
@@ -905,46 +905,46 @@ UniValue sendfrom(const UniValue& params, bool fHelp)
             + HelpExampleRpc("sendfrom", "\"tabby\", \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\", 0.01, 6, \"donation\", \"seans outpost\"")
         );
 
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
 
-    string strAccount = AccountFromValue(params[0]);
-    CBitcoinAddress address(params[1].get_str());
-    if (!address.IsValid())
+    string strAccount = AccountFromValue(params[0]); // 获取指定账户
+    CBitcoinAddress address(params[1].get_str()); // 获取目标比特币地址
+    if (!address.IsValid()) // 验证地址是否有效
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Bitcoin address");
-    CAmount nAmount = AmountFromValue(params[2]);
-    if (nAmount <= 0)
+    CAmount nAmount = AmountFromValue(params[2]); // 获取发送金额
+    if (nAmount <= 0) // 该金额必须大于 0
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount for send");
-    int nMinDepth = 1;
+    int nMinDepth = 1; // 最小深度（确认数）
     if (params.size() > 3)
-        nMinDepth = params[3].get_int();
+        nMinDepth = params[3].get_int(); // 获取最小确认数
 
-    CWalletTx wtx;
-    wtx.strFromAccount = strAccount;
+    CWalletTx wtx; // 创建钱包交易
+    wtx.strFromAccount = strAccount; // 初始化发送账户
     if (params.size() > 4 && !params[4].isNull() && !params[4].get_str().empty())
-        wtx.mapValue["comment"] = params[4].get_str();
+        wtx.mapValue["comment"] = params[4].get_str(); // 交易备注
     if (params.size() > 5 && !params[5].isNull() && !params[5].get_str().empty())
-        wtx.mapValue["to"]      = params[5].get_str();
+        wtx.mapValue["to"]      = params[5].get_str(); // 交易人或组织备注
 
-    EnsureWalletIsUnlocked();
+    EnsureWalletIsUnlocked(); // 确保当前钱包处于为解密状态
 
-    // Check funds
-    CAmount nBalance = GetAccountBalance(strAccount, nMinDepth, ISMINE_SPENDABLE);
-    if (nAmount > nBalance)
+    // Check funds // 检查资金
+    CAmount nBalance = GetAccountBalance(strAccount, nMinDepth, ISMINE_SPENDABLE); // 获取指定账户余额
+    if (nAmount > nBalance) // 发送金额不能大于该账户余额
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account has insufficient funds");
 
-    SendMoney(address.Get(), nAmount, false, wtx);
+    SendMoney(address.Get(), nAmount, false, wtx); // 发送金额
 
-    return wtx.GetHash().GetHex();
+    return wtx.GetHash().GetHex(); // 获取交易哈希，转换为 16 进制并返回
 }
 
 
 UniValue sendmany(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保当前钱包可用
         return NullUniValue;
     
-    if (fHelp || params.size() < 2 || params.size() > 5)
-        throw runtime_error(
+    if (fHelp || params.size() < 2 || params.size() > 5) // 参数至少为 2 个，至多为 5 个
+        throw runtime_error( // 命令帮助反馈
             "sendmany \"fromaccount\" {\"address\":amount,...} ( minconf \"comment\" [\"address\",...] )\n"
             "\nSend multiple times. Amounts are double-precision floating point numbers."
             + HelpRequiringPassphrase() + "\n"
@@ -979,74 +979,74 @@ UniValue sendmany(const UniValue& params, bool fHelp)
             + HelpExampleRpc("sendmany", "\"\", \"{\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\\\":0.01,\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}\", 6, \"testing\"")
         );
 
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
 
-    string strAccount = AccountFromValue(params[0]);
-    UniValue sendTo = params[1].get_obj();
-    int nMinDepth = 1;
+    string strAccount = AccountFromValue(params[0]); // 获取指定账户
+    UniValue sendTo = params[1].get_obj(); // 获取发送对象（地址和金额）
+    int nMinDepth = 1; // 最小深度，默认为 1
     if (params.size() > 2)
-        nMinDepth = params[2].get_int();
+        nMinDepth = params[2].get_int(); // 获取最小确认数
 
-    CWalletTx wtx;
-    wtx.strFromAccount = strAccount;
+    CWalletTx wtx; // 创建一笔钱包交易
+    wtx.strFromAccount = strAccount; // 初始化发送账户
     if (params.size() > 3 && !params[3].isNull() && !params[3].get_str().empty())
-        wtx.mapValue["comment"] = params[3].get_str();
+        wtx.mapValue["comment"] = params[3].get_str(); // 获取交易备注
 
     UniValue subtractFeeFromAmount(UniValue::VARR);
     if (params.size() > 4)
-        subtractFeeFromAmount = params[4].get_array();
+        subtractFeeFromAmount = params[4].get_array(); // 获取数组类型的从金额中减去交易费
 
-    set<CBitcoinAddress> setAddress;
-    vector<CRecipient> vecSend;
+    set<CBitcoinAddress> setAddress; // 比特币地址集
+    vector<CRecipient> vecSend; // 发送列表
 
-    CAmount totalAmount = 0;
-    vector<string> keys = sendTo.getKeys();
-    BOOST_FOREACH(const string& name_, keys)
+    CAmount totalAmount = 0; // 要发送的总金额
+    vector<string> keys = sendTo.getKeys(); // 获取目的地址列表
+    BOOST_FOREACH(const string& name_, keys) // 遍历地址列表
     {
-        CBitcoinAddress address(name_);
-        if (!address.IsValid())
+        CBitcoinAddress address(name_); // 比特币地址对象
+        if (!address.IsValid()) // 验证地址是否有效
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, string("Invalid Bitcoin address: ")+name_);
 
-        if (setAddress.count(address))
+        if (setAddress.count(address)) // 地址集中不应该存在当前地址，保证发送到的地址不重复
             throw JSONRPCError(RPC_INVALID_PARAMETER, string("Invalid parameter, duplicated address: ")+name_);
-        setAddress.insert(address);
+        setAddress.insert(address); // 插入地址集
 
-        CScript scriptPubKey = GetScriptForDestination(address.Get());
-        CAmount nAmount = AmountFromValue(sendTo[name_]);
-        if (nAmount <= 0)
+        CScript scriptPubKey = GetScriptForDestination(address.Get()); // 从地址获取公钥脚本
+        CAmount nAmount = AmountFromValue(sendTo[name_]); // 获取该地址对应的金额
+        if (nAmount <= 0) // 金额必须大于 0
             throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount for send");
-        totalAmount += nAmount;
+        totalAmount += nAmount; // 累加金额
 
-        bool fSubtractFeeFromAmount = false;
-        for (unsigned int idx = 0; idx < subtractFeeFromAmount.size(); idx++) {
-            const UniValue& addr = subtractFeeFromAmount[idx];
-            if (addr.get_str() == name_)
-                fSubtractFeeFromAmount = true;
+        bool fSubtractFeeFromAmount = false; // 是否从金额中减去交易费标志，初始化为 false
+        for (unsigned int idx = 0; idx < subtractFeeFromAmount.size(); idx++) { // 遍历该对象
+            const UniValue& addr = subtractFeeFromAmount[idx]; // 获取地址
+            if (addr.get_str() == name_) // 若为指定的目的地址
+                fSubtractFeeFromAmount = true; // 标志置为 true
         }
 
-        CRecipient recipient = {scriptPubKey, nAmount, fSubtractFeeFromAmount};
-        vecSend.push_back(recipient);
+        CRecipient recipient = {scriptPubKey, nAmount, fSubtractFeeFromAmount}; // 初始化一个接收对象
+        vecSend.push_back(recipient); // 加入发送列表
     }
 
-    EnsureWalletIsUnlocked();
+    EnsureWalletIsUnlocked(); // 确保当前钱包处于解密状态
 
-    // Check funds
-    CAmount nBalance = GetAccountBalance(strAccount, nMinDepth, ISMINE_SPENDABLE);
-    if (totalAmount > nBalance)
+    // Check funds // 检查资金
+    CAmount nBalance = GetAccountBalance(strAccount, nMinDepth, ISMINE_SPENDABLE); // 获取指定账户余额
+    if (totalAmount > nBalance) // 发送总金额不能大于账户余额
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account has insufficient funds");
 
-    // Send
-    CReserveKey keyChange(pwalletMain);
-    CAmount nFeeRequired = 0;
+    // Send // 发送
+    CReserveKey keyChange(pwalletMain); // 创建一个密钥池中的密钥条目
+    CAmount nFeeRequired = 0; // 所需交易费
     int nChangePosRet = -1;
-    string strFailReason;
-    bool fCreated = pwalletMain->CreateTransaction(vecSend, wtx, keyChange, nFeeRequired, nChangePosRet, strFailReason);
-    if (!fCreated)
+    string strFailReason; // 保存错误信息
+    bool fCreated = pwalletMain->CreateTransaction(vecSend, wtx, keyChange, nFeeRequired, nChangePosRet, strFailReason); // 创建一笔交易
+    if (!fCreated) // 检查交易状态
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, strFailReason);
-    if (!pwalletMain->CommitTransaction(wtx, keyChange))
+    if (!pwalletMain->CommitTransaction(wtx, keyChange)) // 提交交易
         throw JSONRPCError(RPC_WALLET_ERROR, "Transaction commit failed");
 
-    return wtx.GetHash().GetHex();
+    return wtx.GetHash().GetHex(); // 获取交易哈希，转换为 16 进制并返回
 }
 
 // Defined in rpcmisc.cpp

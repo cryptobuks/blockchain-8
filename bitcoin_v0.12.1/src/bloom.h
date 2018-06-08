@@ -112,7 +112,7 @@ public:
  *
  * contains(item) will always return true if item was one of the last N things
  * insert()'ed ... but may also return true for items that were not inserted.
- */
+ */ // RollingBloomFilter 是一个概率性的“跟踪最近插入的”集合。
 class CRollingBloomFilter
 {
 public:

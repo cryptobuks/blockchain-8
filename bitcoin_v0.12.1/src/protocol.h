@@ -282,7 +282,7 @@ public:
 };
 
 /** inv message data */
-class CInv
+class CInv // inv 库存消息数据类
 {
 public:
     CInv();
@@ -306,13 +306,13 @@ public:
 
     // TODO: make private (improves encapsulation)
 public:
-    int type;
-    uint256 hash;
+    int type; // 消息类型（交易、区块）
+    uint256 hash; // 交易或区块哈希
 };
 
 enum {
-    MSG_TX = 1,
-    MSG_BLOCK,
+    MSG_TX = 1, // 1 交易
+    MSG_BLOCK, // 2 区块
     // Nodes may always request a MSG_FILTERED_BLOCK in a getdata, however,
     // MSG_FILTERED_BLOCK should not appear in any invs except as a part of getdata.
     MSG_FILTERED_BLOCK,
