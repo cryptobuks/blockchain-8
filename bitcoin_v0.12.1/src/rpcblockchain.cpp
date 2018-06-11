@@ -468,8 +468,8 @@ UniValue gettxoutsetinfo(const UniValue& params, bool fHelp)
 
 UniValue gettxout(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() < 2 || params.size() > 3) // 参数至少为 2 个（交易索引、交易输出号）
-        throw runtime_error( // 帮助信息反馈
+    if (fHelp || params.size() < 2 || params.size() > 3) // 参数为 2 个或 3 个
+        throw runtime_error( // 命令帮助反馈
             "gettxout \"txid\" n ( includemempool )\n"
             "\nReturns details about an unspent transaction output.\n"
             "\nArguments:\n"
@@ -506,42 +506,42 @@ UniValue gettxout(const UniValue& params, bool fHelp)
 
     LOCK(cs_main);
 
-    UniValue ret(UniValue::VOBJ); // 目标对象
+    UniValue ret(UniValue::VOBJ); // 目标类型的结果对象
 
-    std::string strHash = params[0].get_str(); // 获取交易索引哈希字符串
-    uint256 hash(uint256S(strHash)); // 构建 uint256 字符串
-    int n = params[1].get_int(); // 获取交易输出号
-    bool fMempool = true; // 内存池标志，默认为 true
+    std::string strHash = params[0].get_str(); // 获取交易索引
+    uint256 hash(uint256S(strHash));
+    int n = params[1].get_int(); // 获取交易输出索引
+    bool fMempool = true; // 是否包含内存池内交易的标志，默认为 true
     if (params.size() > 2)
         fMempool = params[2].get_bool(); // 获取指定的内存池标志
 
-    CCoins coins; // 创建一个被修剪得交易版本对象（只包含元数据和交易输出）
-    if (fMempool) {
-        LOCK(mempool.cs);
-        CCoinsViewMemPool view(pcoinsTip, mempool); // 传入内存池对象创建其引用查看对象
-        if (!view.GetCoins(hash, coins))
+    CCoins coins; // 创建一个被修剪的交易版本对象（只包含元数据和未花费的交易输出）
+    if (fMempool) { // 若包含内存池中的交易
+        LOCK(mempool.cs); // 内存池上锁
+        CCoinsViewMemPool view(pcoinsTip, mempool); // 创建内存池引用查看对象
+        if (!view.GetCoins(hash, coins)) // 获取修剪版交易
             return NullUniValue;
         mempool.pruneSpent(hash, coins); // TODO: this should be done by the CCoinsViewMemPool
-    } else {
-        if (!pcoinsTip->GetCoins(hash, coins))
+    } else { // 若不包含内存池的交易
+        if (!pcoinsTip->GetCoins(hash, coins)) // 直接获取真正缓存的币数据
             return NullUniValue;
     }
-    if (n<0 || (unsigned int)n>=coins.vout.size() || coins.vout[n].IsNull())
+    if (n<0 || (unsigned int)n>=coins.vout.size() || coins.vout[n].IsNull()) // 输出索引范围检测，或该索引对应输出为空
         return NullUniValue;
 
-    BlockMap::iterator it = mapBlockIndex.find(pcoinsTip->GetBestBlock());
-    CBlockIndex *pindex = it->second;
-    ret.push_back(Pair("bestblock", pindex->GetBlockHash().GetHex()));
-    if ((unsigned int)coins.nHeight == MEMPOOL_HEIGHT)
-        ret.push_back(Pair("confirmations", 0));
-    else
-        ret.push_back(Pair("confirmations", pindex->nHeight - coins.nHeight + 1));
-    ret.push_back(Pair("value", ValueFromAmount(coins.vout[n].nValue)));
+    BlockMap::iterator it = mapBlockIndex.find(pcoinsTip->GetBestBlock()); // 获取最佳区块索引映射迭代器
+    CBlockIndex *pindex = it->second; // 获取最佳区块索引
+    ret.push_back(Pair("bestblock", pindex->GetBlockHash().GetHex())); // 最佳区块哈希
+    if ((unsigned int)coins.nHeight == MEMPOOL_HEIGHT) // 若币的高度为 0x7FFFFFFF
+        ret.push_back(Pair("confirmations", 0)); // 未上链，0 确认数
+    else // 否则表示已上链
+        ret.push_back(Pair("confirmations", pindex->nHeight - coins.nHeight + 1)); // 获取确认数
+    ret.push_back(Pair("value", ValueFromAmount(coins.vout[n].nValue))); // 输出金额
     UniValue o(UniValue::VOBJ);
-    ScriptPubKeyToJSON(coins.vout[n].scriptPubKey, o, true);
-    ret.push_back(Pair("scriptPubKey", o));
-    ret.push_back(Pair("version", coins.nVersion));
-    ret.push_back(Pair("coinbase", coins.fCoinBase));
+    ScriptPubKeyToJSON(coins.vout[n].scriptPubKey, o, true); // 公钥脚本转换为 JSON 格式
+    ret.push_back(Pair("scriptPubKey", o)); // 公钥脚本
+    ret.push_back(Pair("version", coins.nVersion)); // 版本号
+    ret.push_back(Pair("coinbase", coins.fCoinBase)); // 是否为创币交易
 
     return ret;
 }

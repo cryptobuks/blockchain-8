@@ -15,8 +15,8 @@
 class COutPoint // 用于交易的输入 CTxIn 中，确认当前输出的来源
 {
 public:
-    uint256 hash; // （前）一笔交易的哈希
-    uint32_t n; // （前）一笔交易的索引/输出的序列号，即第 n 个输出
+    uint256 hash; // 一笔交易的哈希
+    uint32_t n; // 一笔交易的索引/输出的序列号，即第 n 个输出
 
     COutPoint() { SetNull(); }
     COutPoint(uint256 hashIn, uint32_t nIn) { hash = hashIn; n = nIn; }

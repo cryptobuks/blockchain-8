@@ -350,8 +350,8 @@ void CTxMemPool::pruneSpent(const uint256 &hashTx, CCoins &coins)
     std::map<COutPoint, CInPoint>::iterator it = mapNextTx.lower_bound(COutPoint(hashTx, 0));
 
     // iterate over all COutPoints in mapNextTx whose hash equals the provided hashTx
-    while (it != mapNextTx.end() && it->first.hash == hashTx) {
-        coins.Spend(it->first.n); // and remove those outputs from coins
+    while (it != mapNextTx.end() && it->first.hash == hashTx) { // 遍历 mapNextTx 列表中全部与提供交易哈希相等的交易输出点
+        coins.Spend(it->first.n); // and remove those outputs from coins // 从未花费列表移除
         it++;
     }
 }
@@ -840,15 +840,15 @@ bool CTxMemPool::HasNoInputsOf(const CTransaction &tx) const
 CCoinsViewMemPool::CCoinsViewMemPool(CCoinsView *baseIn, CTxMemPool &mempoolIn) : CCoinsViewBacked(baseIn), mempool(mempoolIn) { }
 
 bool CCoinsViewMemPool::GetCoins(const uint256 &txid, CCoins &coins) const {
-    // If an entry in the mempool exists, always return that one, as it's guaranteed to never
-    // conflict with the underlying cache, and it cannot have pruned entries (as it contains full)
-    // transactions. First checking the underlying cache risks returning a pruned entry instead.
+    // If an entry in the mempool exists, always return that one, as it's guaranteed to never // 如果一个条目在内存池中存在，则始终返回该条目，
+    // conflict with the underlying cache, and it cannot have pruned entries (as it contains full) // 因为它肯定不会与基础缓存发生冲突，并且不能修剪该条目（因为它包含完整的）交易。
+    // transactions. First checking the underlying cache risks returning a pruned entry instead. // 首先检查底层缓存风险，而不是返回一个修剪的条目。
     CTransaction tx;
     if (mempool.lookup(txid, tx)) { // 在内存池中通过交易哈希查询并获取对应交易
         coins = CCoins(tx, MEMPOOL_HEIGHT); // 创建交易的修剪版本对象
         return true; // 并返回 true
-    }
-    return (base->GetCoins(txid, coins) && !coins.IsPruned());
+    } // 若获取交易失败
+    return (base->GetCoins(txid, coins) && !coins.IsPruned()); // false && xx
 }
 
 bool CCoinsViewMemPool::HaveCoins(const uint256 &txid) const {

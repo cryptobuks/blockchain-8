@@ -239,7 +239,7 @@ public:
     }
 
     //! mark a vout spent
-    bool Spend(uint32_t nPos);
+    bool Spend(uint32_t nPos); // 标记一笔交易输出已花费
 
     //! check whether a particular output is still available
     bool IsAvailable(unsigned int nPos) const {
@@ -282,9 +282,9 @@ public:
     }
 };
 
-struct CCoinsCacheEntry
+struct CCoinsCacheEntry // 币缓存条目类
 {
-    CCoins coins; // The actual cached data.
+    CCoins coins; // The actual cached data. // 真正缓存的数据
     unsigned char flags;
 
     enum Flags {
@@ -295,7 +295,7 @@ struct CCoinsCacheEntry
     CCoinsCacheEntry() : coins(), flags(0) {}
 };
 
-typedef boost::unordered_map<uint256, CCoinsCacheEntry, CCoinsKeyHasher> CCoinsMap;
+typedef boost::unordered_map<uint256, CCoinsCacheEntry, CCoinsKeyHasher> CCoinsMap; // 币缓存条目映射
 
 struct CCoinsStats
 {
@@ -311,12 +311,12 @@ struct CCoinsStats
 };
 
 
-/** Abstract view on the open txout dataset. */
+/** Abstract view on the open txout dataset. */ // 打开交易输出数据集的抽象视图
 class CCoinsView
 {
 public:
-    //! Retrieve the CCoins (unspent transaction outputs) for a given txid
-    virtual bool GetCoins(const uint256 &txid, CCoins &coins) const;
+    //! Retrieve the CCoins (unspent transaction outputs) for a given txid // 挽回指定交易索引的 CCoins（未花费交易输出）
+    virtual bool GetCoins(const uint256 &txid, CCoins &coins) const; // return false;
 
     //! Just check whether we have data for a given txid.
     //! This may (but cannot always) return true for fully spent transactions
@@ -337,7 +337,7 @@ public:
 };
 
 
-/** CCoinsView backed by another CCoinsView */
+/** CCoinsView backed by another CCoinsView */ // 由另一个 CCoinsView 支持的 CCoinsView
 class CCoinsViewBacked : public CCoinsView
 {
 protected:
@@ -387,9 +387,9 @@ protected:
     /**
      * Make mutable so that we can "fill the cache" even from Get-methods
      * declared as "const".  
-     */
-    mutable uint256 hashBlock;
-    mutable CCoinsMap cacheCoins;
+     */ // 使可变，以便我们能够“填充缓存”，甚至从 Get-methods 声明为 “const”
+    mutable uint256 hashBlock; // 区块哈希
+    mutable CCoinsMap cacheCoins; // 币缓存条目映射 <???，币缓存条目>
 
     /* Cached dynamic memory usage for the inner CCoins objects. */
     mutable size_t cachedCoinsUsage;
@@ -399,7 +399,7 @@ public:
     ~CCoinsViewCache();
 
     // Standard CCoinsView methods
-    bool GetCoins(const uint256 &txid, CCoins &coins) const;
+    bool GetCoins(const uint256 &txid, CCoins &coins) const; // 获取真正缓存的币数据
     bool HaveCoins(const uint256 &txid) const;
     uint256 GetBestBlock() const;
     void SetBestBlock(const uint256 &hashBlock);

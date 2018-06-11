@@ -46,7 +46,7 @@
  *  - varint     number of bytes of flag bits (1-3 bytes)
  *  - byte[]     flag bits, packed per 8 in a byte, least significant bit first (<= 2*N-1 bits)
  * The size constraints follow from this.
- */
+ */ // 用于代表一部分默尔克树的数据结构
 class CPartialMerkleTree
 {
 protected:
@@ -120,13 +120,13 @@ public:
 /**
  * Used to relay blocks as header + vector<merkle branch>
  * to filtered nodes.
- */
+ */ // 用于中继区块作为 区块头 + vector<默尔克分支> 到过滤的节点。
 class CMerkleBlock
 {
 public:
     /** Public only for unit testing */
-    CBlockHeader header;
-    CPartialMerkleTree txn;
+    CBlockHeader header; // 区块头
+    CPartialMerkleTree txn; // 
 
 public:
     /** Public only for unit testing and relay testing (not relayed) */

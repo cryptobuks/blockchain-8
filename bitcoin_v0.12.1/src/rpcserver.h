@@ -246,8 +246,8 @@ extern UniValue decodescript(const UniValue& params, bool fHelp);
 extern UniValue fundrawtransaction(const UniValue& params, bool fHelp);
 extern UniValue signrawtransaction(const UniValue& params, bool fHelp);
 extern UniValue sendrawtransaction(const UniValue& params, bool fHelp);
-extern UniValue gettxoutproof(const UniValue& params, bool fHelp);
-extern UniValue verifytxoutproof(const UniValue& params, bool fHelp);
+extern UniValue gettxoutproof(const UniValue& params, bool fHelp); // »ñÈ¡½»Ò×Ö¤Ã÷
+extern UniValue verifytxoutproof(const UniValue& params, bool fHelp); // ÑéÖ¤½»Ò×Ö¤Ã÷
 
 extern UniValue getblockcount(const UniValue& params, bool fHelp); // »ñÈ¡µ±Ç°Çø¿é×ÜÊı
 extern UniValue getbestblockhash(const UniValue& params, bool fHelp); // »ñÈ¡µ±Ç°×î¼Ñ¿éµÄ¹şÏ£
@@ -259,7 +259,7 @@ extern UniValue getblockhash(const UniValue& params, bool fHelp); // »ñÈ¡Ö¸¶¨Çø¿
 extern UniValue getblockheader(const UniValue& params, bool fHelp); // »ñÈ¡Ö¸¶¨Çø¿é¹şÏ£µÄÇø¿éÍ·ĞÅÏ¢
 extern UniValue getblock(const UniValue& params, bool fHelp); // »ñÈ¡Çø¿éĞÅÏ¢
 extern UniValue gettxoutsetinfo(const UniValue& params, bool fHelp);
-extern UniValue gettxout(const UniValue& params, bool fHelp); // »ñÈ¡ÄÚ´æ³ØÖĞÒ»±Ê½»Ò×Êä³öµÄĞÅÏ¢
+extern UniValue gettxout(const UniValue& params, bool fHelp); // »ñÈ¡Ò»±Ê½»Ò×Êä³ö£¨Á´ÉÏ»òÄÚ´æ³ØÖĞ£©µÄÏ¸½Ú
 extern UniValue verifychain(const UniValue& params, bool fHelp);
 extern UniValue getchaintips(const UniValue& params, bool fHelp); // »ñÈ¡Á´¼âĞÅÏ¢
 extern UniValue invalidateblock(const UniValue& params, bool fHelp);

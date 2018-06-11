@@ -423,7 +423,7 @@ private:
     void UpdateChild(txiter entry, txiter child, bool add);
 
 public:
-    std::map<COutPoint, CInPoint> mapNextTx;
+    std::map<COutPoint, CInPoint> mapNextTx; // 下一笔交易映射列表 <本笔交易输出点，下笔交易输入点>
     std::map<uint256, std::pair<double, CAmount> > mapDeltas; // 交易三角映射（哈希、优先级、交易费）
 
     /** Create a new CTxMemPool.
@@ -458,7 +458,7 @@ public:
     void clear();
     void _clear(); //lock free
     void queryHashes(std::vector<uint256>& vtxid); // 填充交易池中的交易哈希到 vtxid
-    void pruneSpent(const uint256& hash, CCoins &coins);
+    void pruneSpent(const uint256& hash, CCoins &coins); // 修剪已花费
     unsigned int GetTransactionsUpdated() const;
     void AddTransactionsUpdated(unsigned int n);
     /**
@@ -617,7 +617,7 @@ protected:
 
 public:
     CCoinsViewMemPool(CCoinsView *baseIn, CTxMemPool &mempoolIn);
-    bool GetCoins(const uint256 &txid, CCoins &coins) const;
+    bool GetCoins(const uint256 &txid, CCoins &coins) const; // 通过交易索引获取修剪版交易
     bool HaveCoins(const uint256 &txid) const;
 };
 

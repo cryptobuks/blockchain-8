@@ -36,7 +36,7 @@ bool CCoins::Spend(uint32_t nPos)
 {
     if (nPos >= vout.size() || vout[nPos].IsNull())
         return false;
-    vout[nPos].SetNull();
+    vout[nPos].SetNull(); // 未花费列表指定位置元素置空
     Cleanup();
     return true;
 }
@@ -90,7 +90,7 @@ CCoinsMap::const_iterator CCoinsViewCache::FetchCoins(const uint256 &txid) const
 bool CCoinsViewCache::GetCoins(const uint256 &txid, CCoins &coins) const {
     CCoinsMap::const_iterator it = FetchCoins(txid);
     if (it != cacheCoins.end()) {
-        coins = it->second.coins;
+        coins = it->second.coins; // 获取真正缓存的币数据
         return true;
     }
     return false;

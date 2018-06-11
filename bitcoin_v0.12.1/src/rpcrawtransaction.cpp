@@ -41,22 +41,22 @@ void ScriptPubKeyToJSON(const CScript& scriptPubKey, UniValue& out, bool fInclud
     vector<CTxDestination> addresses;
     int nRequired;
 
-    out.push_back(Pair("asm", ScriptToAsmStr(scriptPubKey)));
+    out.push_back(Pair("asm", ScriptToAsmStr(scriptPubKey))); // 脚本操作码
     if (fIncludeHex)
-        out.push_back(Pair("hex", HexStr(scriptPubKey.begin(), scriptPubKey.end())));
+        out.push_back(Pair("hex", HexStr(scriptPubKey.begin(), scriptPubKey.end()))); // 16 进制形式
 
     if (!ExtractDestinations(scriptPubKey, type, addresses, nRequired)) {
-        out.push_back(Pair("type", GetTxnOutputType(type)));
+        out.push_back(Pair("type", GetTxnOutputType(type))); // 脚本类型
         return;
     }
 
-    out.push_back(Pair("reqSigs", nRequired));
-    out.push_back(Pair("type", GetTxnOutputType(type)));
+    out.push_back(Pair("reqSigs", nRequired)); // 是否需要签名
+    out.push_back(Pair("type", GetTxnOutputType(type))); // 类型
 
     UniValue a(UniValue::VARR);
     BOOST_FOREACH(const CTxDestination& addr, addresses)
         a.push_back(CBitcoinAddress(addr).ToString());
-    out.push_back(Pair("addresses", a));
+    out.push_back(Pair("addresses", a)); // 输出地址
 }
 
 void TxToJSON(const CTransaction& tx, const uint256 hashBlock, UniValue& entry)
@@ -204,8 +204,8 @@ UniValue getrawtransaction(const UniValue& params, bool fHelp)
 
 UniValue gettxoutproof(const UniValue& params, bool fHelp)
 {
-    if (fHelp || (params.size() != 1 && params.size() != 2))
-        throw runtime_error(
+    if (fHelp || (params.size() != 1 && params.size() != 2)) // 参数为 1 个或 2 个
+        throw runtime_error( // 命令帮助反馈
             "gettxoutproof [\"txid\",...] ( blockhash )\n"
             "\nReturns a hex-encoded proof that \"txid\" was included in a block.\n"
             "\nNOTE: By default this function only works sometimes. This is when there is an\n"
@@ -224,69 +224,69 @@ UniValue gettxoutproof(const UniValue& params, bool fHelp)
             "\"data\"           (string) A string that is a serialized, hex-encoded data for the proof.\n"
         );
 
-    set<uint256> setTxids;
+    set<uint256> setTxids; // 交易索引集合
     uint256 oneTxid;
-    UniValue txids = params[0].get_array();
-    for (unsigned int idx = 0; idx < txids.size(); idx++) {
-        const UniValue& txid = txids[idx];
-        if (txid.get_str().length() != 64 || !IsHex(txid.get_str()))
+    UniValue txids = params[0].get_array(); // 获取指定的交易索引集
+    for (unsigned int idx = 0; idx < txids.size(); idx++) { // 遍历该集合
+        const UniValue& txid = txids[idx]; // 获取交易索引
+        if (txid.get_str().length() != 64 || !IsHex(txid.get_str())) // 长度及 16 进制验证
             throw JSONRPCError(RPC_INVALID_PARAMETER, string("Invalid txid ")+txid.get_str());
         uint256 hash(uint256S(txid.get_str()));
-        if (setTxids.count(hash))
+        if (setTxids.count(hash)) // 保证只插入一次
             throw JSONRPCError(RPC_INVALID_PARAMETER, string("Invalid parameter, duplicated txid: ")+txid.get_str());
-       setTxids.insert(hash);
-       oneTxid = hash;
+       setTxids.insert(hash); // 加入交易索引集
+       oneTxid = hash; // 记录最后一笔交易哈希
     }
 
-    LOCK(cs_main);
+    LOCK(cs_main); // 上锁
 
     CBlockIndex* pblockindex = NULL;
 
     uint256 hashBlock;
-    if (params.size() > 1)
+    if (params.size() > 1) // 指定了区块哈希
     {
-        hashBlock = uint256S(params[1].get_str());
-        if (!mapBlockIndex.count(hashBlock))
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
-        pblockindex = mapBlockIndex[hashBlock];
-    } else {
+        hashBlock = uint256S(params[1].get_str()); // 获取指定区块哈希
+        if (!mapBlockIndex.count(hashBlock)) // 若区块索引映射中没有该区块
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found"); // 报错
+        pblockindex = mapBlockIndex[hashBlock]; // 获取区块索引
+    } else { // 未指定区块
         CCoins coins;
         if (pcoinsTip->GetCoins(oneTxid, coins) && coins.nHeight > 0 && coins.nHeight <= chainActive.Height())
-            pblockindex = chainActive[coins.nHeight];
+            pblockindex = chainActive[coins.nHeight]; // 获取该交易所在的区块索引
     }
 
-    if (pblockindex == NULL)
+    if (pblockindex == NULL) // 若区块索引不存在
     {
         CTransaction tx;
         if (!GetTransaction(oneTxid, tx, Params().GetConsensus(), hashBlock, false) || hashBlock.IsNull())
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Transaction not yet in block");
-        if (!mapBlockIndex.count(hashBlock))
+        if (!mapBlockIndex.count(hashBlock)) // 区块索引不在区块索引映射列表中
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Transaction index corrupt");
-        pblockindex = mapBlockIndex[hashBlock];
+        pblockindex = mapBlockIndex[hashBlock]; // 获取区块索引
     }
 
     CBlock block;
-    if(!ReadBlockFromDisk(block, pblockindex, Params().GetConsensus()))
+    if(!ReadBlockFromDisk(block, pblockindex, Params().GetConsensus())) // 通过区块索引从磁盘读区块数据到 block
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Can't read block from disk");
 
-    unsigned int ntxFound = 0;
-    BOOST_FOREACH(const CTransaction&tx, block.vtx)
-        if (setTxids.count(tx.GetHash()))
-            ntxFound++;
-    if (ntxFound != setTxids.size())
+    unsigned int ntxFound = 0; // 找到交易的个数
+    BOOST_FOREACH(const CTransaction&tx, block.vtx) // 遍历区块交易列表
+        if (setTxids.count(tx.GetHash())) // 若该交易在指定的交易集中
+            ntxFound++; // +1
+    if (ntxFound != setTxids.size()) // 找到交易个数必须等于交易集大小，及指定交易必须全部找到
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "(Not all) transactions not found in specified block");
 
-    CDataStream ssMB(SER_NETWORK, PROTOCOL_VERSION);
-    CMerkleBlock mb(block, setTxids);
-    ssMB << mb;
-    std::string strHex = HexStr(ssMB.begin(), ssMB.end());
-    return strHex;
+    CDataStream ssMB(SER_NETWORK, PROTOCOL_VERSION); // 创建数据流对象
+    CMerkleBlock mb(block, setTxids); // 把交易索引集以及对应区块的数据构建一个 CMerkleBlock 对象
+    ssMB << mb; // 导入数据流
+    std::string strHex = HexStr(ssMB.begin(), ssMB.end()); // 转换为 16 进制
+    return strHex; // 返回结果
 }
 
 UniValue verifytxoutproof(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() != 1)
-        throw runtime_error(
+    if (fHelp || params.size() != 1) // 参数必须为 1 个
+        throw runtime_error( // 命令帮助反馈
             "verifytxoutproof \"proof\"\n"
             "\nVerifies that a proof points to a transaction in a block, returning the transaction it commits to\n"
             "and throwing an RPC error if the block is not in our best chain\n"
@@ -296,11 +296,11 @@ UniValue verifytxoutproof(const UniValue& params, bool fHelp)
             "[\"txid\"]      (array, strings) The txid(s) which the proof commits to, or empty array if the proof is invalid\n"
         );
 
-    CDataStream ssMB(ParseHexV(params[0], "proof"), SER_NETWORK, PROTOCOL_VERSION);
+    CDataStream ssMB(ParseHexV(params[0], "proof"), SER_NETWORK, PROTOCOL_VERSION); // 获取指定交易证明初始化数据流对象
     CMerkleBlock merkleBlock;
-    ssMB >> merkleBlock;
+    ssMB >> merkleBlock; // 导出到 CMerkleBlock 对象中
 
-    UniValue res(UniValue::VARR);
+    UniValue res(UniValue::VARR); // 数组类型的返回对象
 
     vector<uint256> vMatch;
     if (merkleBlock.txn.ExtractMatches(vMatch) != merkleBlock.header.hashMerkleRoot)
