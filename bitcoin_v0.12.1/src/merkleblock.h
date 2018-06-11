@@ -51,16 +51,16 @@ class CPartialMerkleTree
 {
 protected:
     /** the total number of transactions in the block */
-    unsigned int nTransactions;
+    unsigned int nTransactions; // 块上的交易总数
 
     /** node-is-parent-of-matched-txid bits */
-    std::vector<bool> vBits;
+    std::vector<bool> vBits; // 匹配交易索引的父节点的难度
 
     /** txids and internal hashes */
-    std::vector<uint256> vHash;
+    std::vector<uint256> vHash; // 交易哈希列表
 
     /** flag set when encountering invalid data */
-    bool fBad;
+    bool fBad; // 当遇到无效数据时设置的标志
 
     /** helper function to efficiently calculate the number of nodes at given height in the merkle tree */
     unsigned int CalcTreeWidth(int height) {
@@ -112,7 +112,7 @@ public:
     /**
      * extract the matching txid's represented by this partial merkle tree.
      * returns the merkle root, or 0 in case of failure
-     */
+     */ // 提取由此部分默尔克树表示的匹配的交易索引。返回默尔克树根，或如果失败返回 0
     uint256 ExtractMatches(std::vector<uint256> &vMatch);
 };
 
@@ -126,7 +126,7 @@ class CMerkleBlock
 public:
     /** Public only for unit testing */
     CBlockHeader header; // 区块头
-    CPartialMerkleTree txn; // 
+    CPartialMerkleTree txn; // 部分默尔克树交易
 
 public:
     /** Public only for unit testing and relay testing (not relayed) */

@@ -258,9 +258,9 @@ extern UniValue getrawmempool(const UniValue& params, bool fHelp); // 获取交易内
 extern UniValue getblockhash(const UniValue& params, bool fHelp); // 获取指定区块索引的区块哈希
 extern UniValue getblockheader(const UniValue& params, bool fHelp); // 获取指定区块哈希的区块头信息
 extern UniValue getblock(const UniValue& params, bool fHelp); // 获取区块信息
-extern UniValue gettxoutsetinfo(const UniValue& params, bool fHelp);
+extern UniValue gettxoutsetinfo(const UniValue& params, bool fHelp); // 获取交易输出集合信息
 extern UniValue gettxout(const UniValue& params, bool fHelp); // 获取一笔交易输出（链上或内存池中）的细节
-extern UniValue verifychain(const UniValue& params, bool fHelp);
+extern UniValue verifychain(const UniValue& params, bool fHelp); // 验证区块链数据库
 extern UniValue getchaintips(const UniValue& params, bool fHelp); // 获取链尖信息
 extern UniValue invalidateblock(const UniValue& params, bool fHelp);
 extern UniValue reconsiderblock(const UniValue& params, bool fHelp);

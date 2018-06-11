@@ -302,18 +302,18 @@ UniValue verifytxoutproof(const UniValue& params, bool fHelp)
 
     UniValue res(UniValue::VARR); // 数组类型的返回对象
 
-    vector<uint256> vMatch;
-    if (merkleBlock.txn.ExtractMatches(vMatch) != merkleBlock.header.hashMerkleRoot)
+    vector<uint256> vMatch; // 用于保存交易索引
+    if (merkleBlock.txn.ExtractMatches(vMatch) != merkleBlock.header.hashMerkleRoot) // 提取交易索引列表
         return res;
 
-    LOCK(cs_main);
+    LOCK(cs_main); // 上锁
 
-    if (!mapBlockIndex.count(merkleBlock.header.GetHash()) || !chainActive.Contains(mapBlockIndex[merkleBlock.header.GetHash()]))
+    if (!mapBlockIndex.count(merkleBlock.header.GetHash()) || !chainActive.Contains(mapBlockIndex[merkleBlock.header.GetHash()])) // 区块索引映射列表中包含该区块（头）索引 且 激活的链包含该区块
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found in chain");
 
-    BOOST_FOREACH(const uint256& hash, vMatch)
-        res.push_back(hash.GetHex());
-    return res;
+    BOOST_FOREACH(const uint256& hash, vMatch) // 遍历交易索引列表
+        res.push_back(hash.GetHex()); // 加入结果集
+    return res; // 返回结果
 }
 
 UniValue createrawtransaction(const UniValue& params, bool fHelp)

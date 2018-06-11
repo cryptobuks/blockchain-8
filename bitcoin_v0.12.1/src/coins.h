@@ -297,15 +297,15 @@ struct CCoinsCacheEntry // 币缓存条目类
 
 typedef boost::unordered_map<uint256, CCoinsCacheEntry, CCoinsKeyHasher> CCoinsMap; // 币缓存条目映射
 
-struct CCoinsStats
+struct CCoinsStats // 币状态类
 {
-    int nHeight;
-    uint256 hashBlock;
-    uint64_t nTransactions;
-    uint64_t nTransactionOutputs;
-    uint64_t nSerializedSize;
-    uint256 hashSerialized;
-    CAmount nTotalAmount;
+    int nHeight; // 高度
+    uint256 hashBlock; // 最佳块哈希
+    uint64_t nTransactions; // 交易数
+    uint64_t nTransactionOutputs; // 交易输出数
+    uint64_t nSerializedSize; // 序列化的大小
+    uint256 hashSerialized; // 序列化的哈希
+    CAmount nTotalAmount; // 总金额
 
     CCoinsStats() : nHeight(0), nTransactions(0), nTransactionOutputs(0), nSerializedSize(0), nTotalAmount(0) {}
 };
@@ -330,7 +330,7 @@ public:
     virtual bool BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock);
 
     //! Calculate statistics about the unspent transaction output set
-    virtual bool GetStats(CCoinsStats &stats) const;
+    virtual bool GetStats(CCoinsStats &stats) const; // 计算关于未花费的交易输出集合的统计信息
 
     //! As we use CCoinsViews polymorphically, have a virtual destructor
     virtual ~CCoinsView() {}
@@ -350,7 +350,7 @@ public:
     uint256 GetBestBlock() const;
     void SetBackend(CCoinsView &viewIn);
     bool BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock);
-    bool GetStats(CCoinsStats &stats) const;
+    bool GetStats(CCoinsStats &stats) const; // 获取币状态信息
 };
 
 
@@ -377,7 +377,7 @@ public:
 };
 
 /** CCoinsView that adds a memory cache for transactions to another CCoinsView */
-class CCoinsViewCache : public CCoinsViewBacked
+class CCoinsViewCache : public CCoinsViewBacked // 添加了一个内存缓冲的 CCoinsView 为了交易到另一个 CCoinsView
 {
 protected:
     /* Whether this cache has an active modifier. */

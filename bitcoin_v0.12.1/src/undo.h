@@ -69,10 +69,10 @@ public:
 };
 
 /** Undo information for a CBlock */
-class CBlockUndo
+class CBlockUndo // 区块撤销的信息
 {
 public:
-    std::vector<CTxUndo> vtxundo; // for all but the coinbase
+    std::vector<CTxUndo> vtxundo; // for all but the coinbase // 除创币交易
 
     ADD_SERIALIZE_METHODS;
 

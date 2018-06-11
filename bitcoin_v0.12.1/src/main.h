@@ -159,14 +159,14 @@ static const uint64_t nMinDiskSpace = 52428800; // 50MB
 /** True if any block files have ever been pruned. */
 extern bool fHavePruned; // 如果全部区块文件被修剪过则为 true
 /** True if we're running in -prune mode. */
-extern bool fPruneMode;
+extern bool fPruneMode; // 修剪模式
 /** Number of MiB of block files that we're trying to stay below. */
 extern uint64_t nPruneTarget;
-/** Block files containing a block-height within MIN_BLOCKS_TO_KEEP of chainActive.Tip() will not be pruned. */
+/** Block files containing a block-height within MIN_BLOCKS_TO_KEEP of chainActive.Tip() will not be pruned. */ // 在 chainActive.Tip() 的 MIN_BLOCKS_TO_KEEP 中区块文件包含了一个区块高度将不会被修剪。
 static const unsigned int MIN_BLOCKS_TO_KEEP = 288;
 
-static const signed int DEFAULT_CHECKBLOCKS = MIN_BLOCKS_TO_KEEP;
-static const unsigned int DEFAULT_CHECKLEVEL = 3;
+static const signed int DEFAULT_CHECKBLOCKS = MIN_BLOCKS_TO_KEEP; // 默认检查区块数 288 
+static const unsigned int DEFAULT_CHECKLEVEL = 3; // 默认检查等级
 
 // Require that user allocate at least 550MB for block & undo files (blk???.dat and rev???.dat)
 // At 1MB per block, 288 blocks = 288MB.
@@ -269,7 +269,7 @@ bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats);
 /** Increase a node's misbehavior score. */
 void Misbehaving(NodeId nodeid, int howmuch);
 /** Flush all state, indexes and buffers to disk. */
-void FlushStateToDisk();
+void FlushStateToDisk(); // 刷新全部状态，索引和缓冲到磁盘。
 /** Prune block files and flush state to disk. */
 void PruneAndFlush();
 
@@ -504,11 +504,11 @@ public:
 };
 
 /** RAII wrapper for VerifyDB: Verify consistency of the block and coin databases */
-class CVerifyDB {
+class CVerifyDB { // VerifyDB 的 RAII 包装器：验证区块和币数据库完整性
 public:
     CVerifyDB();
     ~CVerifyDB();
-    bool VerifyDB(const CChainParams& chainparams, CCoinsView *coinsview, int nCheckLevel, int nCheckDepth);
+    bool VerifyDB(const CChainParams& chainparams, CCoinsView *coinsview, int nCheckLevel, int nCheckDepth); // 验证数据库
 };
 
 /** Find the last common block between the parameter chain and a locator. */

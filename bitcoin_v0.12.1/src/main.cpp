@@ -3841,80 +3841,80 @@ CVerifyDB::~CVerifyDB()
 
 bool CVerifyDB::VerifyDB(const CChainParams& chainparams, CCoinsView *coinsview, int nCheckLevel, int nCheckDepth)
 {
-    LOCK(cs_main);
-    if (chainActive.Tip() == NULL || chainActive.Tip()->pprev == NULL)
+    LOCK(cs_main); // 上锁
+    if (chainActive.Tip() == NULL || chainActive.Tip()->pprev == NULL) // 激活的链尖非空 且 链尖的前一个区块哈希非空（即区块链高度至少为 1）
         return true;
 
-    // Verify blocks in the best chain
-    if (nCheckDepth <= 0)
+    // Verify blocks in the best chain // 验证最佳链上的区块
+    if (nCheckDepth <= 0) // 检查深度若为负数
         nCheckDepth = 1000000000; // suffices until the year 19000
-    if (nCheckDepth > chainActive.Height())
-        nCheckDepth = chainActive.Height();
-    nCheckLevel = std::max(0, std::min(4, nCheckLevel));
-    LogPrintf("Verifying last %i blocks at level %i\n", nCheckDepth, nCheckLevel);
+    if (nCheckDepth > chainActive.Height()) // 检查深度若大于当前激活链高度
+        nCheckDepth = chainActive.Height(); // 检查深度等于链高度
+    nCheckLevel = std::max(0, std::min(4, nCheckLevel)); // 检查等级，最高 4 级
+    LogPrintf("Verifying last %i blocks at level %i\n", nCheckDepth, nCheckLevel); // 记录检查信息
     CCoinsViewCache coins(coinsview);
-    CBlockIndex* pindexState = chainActive.Tip();
+    CBlockIndex* pindexState = chainActive.Tip(); // 获取链尖区块索引
     CBlockIndex* pindexFailure = NULL;
-    int nGoodTransactions = 0;
-    CValidationState state;
+    int nGoodTransactions = 0; // 好的交易数
+    CValidationState state; // 用于保存区块的验证状态
     for (CBlockIndex* pindex = chainActive.Tip(); pindex && pindex->pprev; pindex = pindex->pprev)
-    {
+    { // 遍历区块链，从新到旧
         boost::this_thread::interruption_point();
         uiInterface.ShowProgress(_("Verifying blocks..."), std::max(1, std::min(99, (int)(((double)(chainActive.Height() - pindex->nHeight)) / (double)nCheckDepth * (nCheckLevel >= 4 ? 50 : 100)))));
-        if (pindex->nHeight < chainActive.Height()-nCheckDepth)
-            break;
+        if (pindex->nHeight < chainActive.Height()-nCheckDepth) // 若当前验证的区块数大于检查深度
+            break; // 跳出
         CBlock block;
-        // check level 0: read from disk
-        if (!ReadBlockFromDisk(block, pindex, chainparams.GetConsensus()))
+        // check level 0: read from disk // 检查等级 0：从磁盘读
+        if (!ReadBlockFromDisk(block, pindex, chainparams.GetConsensus())) // 根据区块索引从磁盘读区块数据到内存 block
             return error("VerifyDB(): *** ReadBlockFromDisk failed at %d, hash=%s", pindex->nHeight, pindex->GetBlockHash().ToString());
-        // check level 1: verify block validity
-        if (nCheckLevel >= 1 && !CheckBlock(block, state))
+        // check level 1: verify block validity // 检查等级 1：验证区块有效性
+        if (nCheckLevel >= 1 && !CheckBlock(block, state)) // 检查区块状态
             return error("VerifyDB(): *** found bad block at %d, hash=%s\n", pindex->nHeight, pindex->GetBlockHash().ToString());
-        // check level 2: verify undo validity
+        // check level 2: verify undo validity // 检查等级 2：验证撤销有效性
         if (nCheckLevel >= 2 && pindex) {
             CBlockUndo undo;
-            CDiskBlockPos pos = pindex->GetUndoPos();
+            CDiskBlockPos pos = pindex->GetUndoPos(); // 获取区块在磁盘上撤销的位置
             if (!pos.IsNull()) {
-                if (!UndoReadFromDisk(undo, pos, pindex->pprev->GetBlockHash()))
+                if (!UndoReadFromDisk(undo, pos, pindex->pprev->GetBlockHash())) // 撤销从磁盘读，从历史文件读
                     return error("VerifyDB(): *** found bad undo data at %d, hash=%s\n", pindex->nHeight, pindex->GetBlockHash().ToString());
             }
         }
-        // check level 3: check for inconsistencies during memory-only disconnect of tip blocks
-        if (nCheckLevel >= 3 && pindex == pindexState && (coins.DynamicMemoryUsage() + pcoinsTip->DynamicMemoryUsage()) <= nCoinCacheUsage) {
+        // check level 3: check for inconsistencies during memory-only disconnect of tip blocks // 检查等级 3：检查在内存中断开链尖区块连接的不一致性
+        if (nCheckLevel >= 3 && pindex == pindexState && (coins.DynamicMemoryUsage() + pcoinsTip->DynamicMemoryUsage()) <= nCoinCacheUsage) { // 币的动态内存用量不能大于 5000 * 300 （1M 多）
             bool fClean = true;
-            if (!DisconnectBlock(block, state, pindex, coins, &fClean))
+            if (!DisconnectBlock(block, state, pindex, coins, &fClean)) // 断开链尖区块
                 return error("VerifyDB(): *** irrecoverable inconsistency in block data at %d, hash=%s", pindex->nHeight, pindex->GetBlockHash().ToString());
-            pindexState = pindex->pprev;
+            pindexState = pindex->pprev; // 指向前一个区块（新的链尖区块）
             if (!fClean) {
                 nGoodTransactions = 0;
                 pindexFailure = pindex;
             } else
-                nGoodTransactions += block.vtx.size();
+                nGoodTransactions += block.vtx.size(); // 记录好的交易数
         }
-        if (ShutdownRequested())
-            return true;
+        if (ShutdownRequested()) // 这里如果比特币核心被请求断开连接
+            return true; // 直接返回 true
     }
-    if (pindexFailure)
+    if (pindexFailure) // 记录失败信息
         return error("VerifyDB(): *** coin database inconsistencies found (last %i blocks, %i good transactions before that)\n", chainActive.Height() - pindexFailure->nHeight + 1, nGoodTransactions);
 
-    // check level 4: try reconnecting blocks
-    if (nCheckLevel >= 4) {
-        CBlockIndex *pindex = pindexState;
+    // check level 4: try reconnecting blocks // 检查等级 4：尝试重连区块
+    if (nCheckLevel >= 4) { // 最高等级 4
+        CBlockIndex *pindex = pindexState; // 获取当前区块索引
         while (pindex != chainActive.Tip()) {
             boost::this_thread::interruption_point();
             uiInterface.ShowProgress(_("Verifying blocks..."), std::max(1, std::min(99, 100 - (int)(((double)(chainActive.Height() - pindex->nHeight)) / (double)nCheckDepth * 50))));
-            pindex = chainActive.Next(pindex);
+            pindex = chainActive.Next(pindex); // 指向下一个区块索引
             CBlock block;
-            if (!ReadBlockFromDisk(block, pindex, chainparams.GetConsensus()))
+            if (!ReadBlockFromDisk(block, pindex, chainparams.GetConsensus())) // 从磁盘中读区块数据
                 return error("VerifyDB(): *** ReadBlockFromDisk failed at %d, hash=%s", pindex->nHeight, pindex->GetBlockHash().ToString());
-            if (!ConnectBlock(block, state, pindex, coins))
+            if (!ConnectBlock(block, state, pindex, coins)) // 连接该区块
                 return error("VerifyDB(): *** found unconnectable block at %d, hash=%s", pindex->nHeight, pindex->GetBlockHash().ToString());
         }
     }
 
-    LogPrintf("No coin database inconsistencies in last %i blocks (%i transactions)\n", chainActive.Height() - pindexState->nHeight, nGoodTransactions);
+    LogPrintf("No coin database inconsistencies in last %i blocks (%i transactions)\n", chainActive.Height() - pindexState->nHeight, nGoodTransactions); // 检验完成，没有不一致
 
-    return true;
+    return true; // 返回 true
 }
 
 void UnloadBlockIndex()

@@ -430,8 +430,8 @@ UniValue getblock(const UniValue& params, bool fHelp)
 
 UniValue gettxoutsetinfo(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() != 0)
-        throw runtime_error(
+    if (fHelp || params.size() != 0) // 没有参数
+        throw runtime_error( // 命令帮助反馈
             "gettxoutsetinfo\n"
             "\nReturns statistics about the unspent transaction output set.\n"
             "Note this call may take some time.\n"
@@ -450,20 +450,20 @@ UniValue gettxoutsetinfo(const UniValue& params, bool fHelp)
             + HelpExampleRpc("gettxoutsetinfo", "")
         );
 
-    UniValue ret(UniValue::VOBJ);
+    UniValue ret(UniValue::VOBJ); // 对象类型返回结果
 
     CCoinsStats stats;
-    FlushStateToDisk();
-    if (pcoinsTip->GetStats(stats)) {
-        ret.push_back(Pair("height", (int64_t)stats.nHeight));
-        ret.push_back(Pair("bestblock", stats.hashBlock.GetHex()));
-        ret.push_back(Pair("transactions", (int64_t)stats.nTransactions));
-        ret.push_back(Pair("txouts", (int64_t)stats.nTransactionOutputs));
-        ret.push_back(Pair("bytes_serialized", (int64_t)stats.nSerializedSize));
-        ret.push_back(Pair("hash_serialized", stats.hashSerialized.GetHex()));
-        ret.push_back(Pair("total_amount", ValueFromAmount(stats.nTotalAmount)));
+    FlushStateToDisk(); // 刷新状态信息到磁盘
+    if (pcoinsTip->GetStats(stats)) { // 获取币状态信息
+        ret.push_back(Pair("height", (int64_t)stats.nHeight)); // 区块链高度
+        ret.push_back(Pair("bestblock", stats.hashBlock.GetHex())); // 最佳区块哈希
+        ret.push_back(Pair("transactions", (int64_t)stats.nTransactions)); // 交易数
+        ret.push_back(Pair("txouts", (int64_t)stats.nTransactionOutputs)); // 交易输出数
+        ret.push_back(Pair("bytes_serialized", (int64_t)stats.nSerializedSize)); // 序列化的字节大小
+        ret.push_back(Pair("hash_serialized", stats.hashSerialized.GetHex())); // 序列化的哈希
+        ret.push_back(Pair("total_amount", ValueFromAmount(stats.nTotalAmount))); // 总金额
     }
-    return ret;
+    return ret; // 返回结果
 }
 
 UniValue gettxout(const UniValue& params, bool fHelp)
@@ -548,10 +548,10 @@ UniValue gettxout(const UniValue& params, bool fHelp)
 
 UniValue verifychain(const UniValue& params, bool fHelp)
 {
-    int nCheckLevel = GetArg("-checklevel", DEFAULT_CHECKLEVEL);
-    int nCheckDepth = GetArg("-checkblocks", DEFAULT_CHECKBLOCKS);
-    if (fHelp || params.size() > 2)
-        throw runtime_error(
+    int nCheckLevel = GetArg("-checklevel", DEFAULT_CHECKLEVEL); // 检查等级，默认 3
+    int nCheckDepth = GetArg("-checkblocks", DEFAULT_CHECKBLOCKS); // 检查块数，默认 288
+    if (fHelp || params.size() > 2) // 参数最多 2 个
+        throw runtime_error( // 命令帮助反馈
             "verifychain ( checklevel numblocks )\n"
             "\nVerifies blockchain database.\n"
             "\nArguments:\n"
@@ -564,14 +564,14 @@ UniValue verifychain(const UniValue& params, bool fHelp)
             + HelpExampleRpc("verifychain", "")
         );
 
-    LOCK(cs_main);
+    LOCK(cs_main); // 上锁
 
     if (params.size() > 0)
-        nCheckLevel = params[0].get_int();
+        nCheckLevel = params[0].get_int(); // 获取指定的检查等级
     if (params.size() > 1)
-        nCheckDepth = params[1].get_int();
+        nCheckDepth = params[1].get_int(); // 获取指定得检查块数作为检查深度
 
-    return CVerifyDB().VerifyDB(Params(), pcoinsTip, nCheckLevel, nCheckDepth);
+    return CVerifyDB().VerifyDB(Params(), pcoinsTip, nCheckLevel, nCheckDepth); // 检查区块链数据库
 }
 
 /** Implementation of IsSuperMajority with better feedback */
