@@ -236,12 +236,12 @@ extern UniValue getnetworkinfo(const UniValue& params, bool fHelp); // »ñÈ¡ÍøÂç×
 extern UniValue setmocktime(const UniValue& params, bool fHelp);
 extern UniValue resendwallettransactions(const UniValue& params, bool fHelp);
 
-extern UniValue getrawtransaction(const UniValue& params, bool fHelp); // in rcprawtransaction.cpp
+extern UniValue getrawtransaction(const UniValue& params, bool fHelp); // »ñÈ¡Ô­Ê¼½»Ò×ÐÅÏ¢
 extern UniValue listunspent(const UniValue& params, bool fHelp); // ÁÐ³öÎ´»¨·ÑµÄ½»Ò×Êä³ö
 extern UniValue lockunspent(const UniValue& params, bool fHelp); // ¼Ó½âËøÎ´»¨·ÑµÄ½»Ò×Êä³ö
 extern UniValue listlockunspent(const UniValue& params, bool fHelp); // ÁÐ³öËø¶¨µÄÎ´»¨·Ñ½»Ò×Êä³ö
 extern UniValue createrawtransaction(const UniValue& params, bool fHelp);
-extern UniValue decoderawtransaction(const UniValue& params, bool fHelp);
+extern UniValue decoderawtransaction(const UniValue& params, bool fHelp); // ½âÂëÔ­Ê¼½»Ò×
 extern UniValue decodescript(const UniValue& params, bool fHelp);
 extern UniValue fundrawtransaction(const UniValue& params, bool fHelp);
 extern UniValue signrawtransaction(const UniValue& params, bool fHelp);

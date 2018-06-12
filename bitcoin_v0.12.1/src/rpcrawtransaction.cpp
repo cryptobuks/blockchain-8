@@ -113,8 +113,8 @@ void TxToJSON(const CTransaction& tx, const uint256 hashBlock, UniValue& entry)
 
 UniValue getrawtransaction(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() < 1 || params.size() > 2)
-        throw runtime_error(
+    if (fHelp || params.size() < 1 || params.size() > 2) // 参数为 1 或 2 个
+        throw runtime_error( // 命令帮助反馈
             "getrawtransaction \"txid\" ( verbose )\n"
             "\nNOTE: By default this function only works sometimes. This is when the tx is in the mempool\n"
             "or there is an unspent output in the utxo for this transaction. To make it always work,\n"
@@ -178,28 +178,28 @@ UniValue getrawtransaction(const UniValue& params, bool fHelp)
             + HelpExampleRpc("getrawtransaction", "\"mytxid\", 1")
         );
 
-    LOCK(cs_main);
+    LOCK(cs_main); // 上锁
 
-    uint256 hash = ParseHashV(params[0], "parameter 1");
+    uint256 hash = ParseHashV(params[0], "parameter 1"); // 解析指定的交易哈希
 
-    bool fVerbose = false;
+    bool fVerbose = false; // 详细信息标志，默认为 false
     if (params.size() > 1)
-        fVerbose = (params[1].get_int() != 0);
+        fVerbose = (params[1].get_int() != 0); // 获取详细信息设置
 
     CTransaction tx;
     uint256 hashBlock;
-    if (!GetTransaction(hash, tx, Params().GetConsensus(), hashBlock, true))
+    if (!GetTransaction(hash, tx, Params().GetConsensus(), hashBlock, true)) // 获取交易及所在区块哈希
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "No information available about transaction");
 
-    string strHex = EncodeHexTx(tx);
+    string strHex = EncodeHexTx(tx); // 编码交易
 
-    if (!fVerbose)
-        return strHex;
+    if (!fVerbose) // 若为 false
+        return strHex; // 直接返回编码后的数据
 
-    UniValue result(UniValue::VOBJ);
-    result.push_back(Pair("hex", strHex));
-    TxToJSON(tx, hashBlock, result);
-    return result;
+    UniValue result(UniValue::VOBJ); // 否则，构建对象类型返回结果
+    result.push_back(Pair("hex", strHex)); // 加入序列化的交易
+    TxToJSON(tx, hashBlock, result); // 交易信息转换为 JSON 格式加入结果
+    return result; // 返回结果
 }
 
 UniValue gettxoutproof(const UniValue& params, bool fHelp)
@@ -420,8 +420,8 @@ UniValue createrawtransaction(const UniValue& params, bool fHelp)
 
 UniValue decoderawtransaction(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() != 1)
-        throw runtime_error(
+    if (fHelp || params.size() != 1) // 参数必须为 1 个
+        throw runtime_error( // 命令帮助反馈
             "decoderawtransaction \"hexstring\"\n"
             "\nReturn a JSON object representing the serialized, hex-encoded transaction.\n"
 
@@ -470,18 +470,18 @@ UniValue decoderawtransaction(const UniValue& params, bool fHelp)
             + HelpExampleRpc("decoderawtransaction", "\"hexstring\"")
         );
 
-    LOCK(cs_main);
-    RPCTypeCheck(params, boost::assign::list_of(UniValue::VSTR));
+    LOCK(cs_main); // 上锁
+    RPCTypeCheck(params, boost::assign::list_of(UniValue::VSTR)); // 检测参数类型
 
     CTransaction tx;
 
-    if (!DecodeHexTx(tx, params[0].get_str()))
+    if (!DecodeHexTx(tx, params[0].get_str())) // 解码交易
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "TX decode failed");
 
     UniValue result(UniValue::VOBJ);
-    TxToJSON(tx, uint256(), result);
+    TxToJSON(tx, uint256(), result); // 把交易信息转换为 JSON 加入结果对象
 
-    return result;
+    return result; // 返回结果对象
 }
 
 UniValue decodescript(const UniValue& params, bool fHelp)
