@@ -608,7 +608,7 @@ public:
      */
     unsigned int GetSigOpCount(const CScript& scriptSig) const;
 
-    bool IsPayToScriptHash() const;
+    bool IsPayToScriptHash() const; // 判断一个脚本是否为 P2SH
 
     /** Called by IsStandardTx and P2SH/BIP62 VerifyScript (which makes it consensus-critical). */
     bool IsPushOnly(const_iterator pc) const;

@@ -2435,11 +2435,11 @@ UniValue listunspent(const UniValue& params, bool fHelp)
 
 UniValue fundrawtransaction(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保当前钱包可用
         return NullUniValue;
 
-    if (fHelp || params.size() < 1 || params.size() > 2)
-        throw runtime_error(
+    if (fHelp || params.size() < 1 || params.size() > 2) // 参数为 1 或 2 个
+        throw runtime_error( // 命令帮助反馈
                             "fundrawtransaction \"hexstring\" includeWatching\n"
                             "\nAdd inputs to a transaction until it has enough in value to meet its out value.\n"
                             "This will not modify existing inputs, and will add one change output to the outputs.\n"
@@ -2470,31 +2470,31 @@ UniValue fundrawtransaction(const UniValue& params, bool fHelp)
                             + HelpExampleCli("sendrawtransaction", "\"signedtransactionhex\"")
                             );
 
-    RPCTypeCheck(params, boost::assign::list_of(UniValue::VSTR)(UniValue::VBOOL));
+    RPCTypeCheck(params, boost::assign::list_of(UniValue::VSTR)(UniValue::VBOOL)); // 检查参数类型
 
     // parse hex string from parameter
-    CTransaction origTx;
-    if (!DecodeHexTx(origTx, params[0].get_str()))
+    CTransaction origTx; // 原始交易
+    if (!DecodeHexTx(origTx, params[0].get_str())) // 从参数解析 16 进制字符串
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "TX decode failed");
 
-    if (origTx.vout.size() == 0)
+    if (origTx.vout.size() == 0) // 交易的输出列表不能为空
         throw JSONRPCError(RPC_INVALID_PARAMETER, "TX must have at least one output");
 
-    bool includeWatching = false;
+    bool includeWatching = false; // 是否包含 watch-only 地址，默认不包含
     if (params.size() > 1)
-        includeWatching = params[1].get_bool();
+        includeWatching = params[1].get_bool(); // 获取用户设置
 
-    CMutableTransaction tx(origTx);
-    CAmount nFee;
+    CMutableTransaction tx(origTx); // 构建一笔可变版本的交易
+    CAmount nFee; // 交易费
     string strFailReason;
-    int nChangePos = -1;
-    if(!pwalletMain->FundTransaction(tx, nFee, nChangePos, strFailReason, includeWatching))
+    int nChangePos = -1; // 改变位置
+    if(!pwalletMain->FundTransaction(tx, nFee, nChangePos, strFailReason, includeWatching)) // 资助交易，增加输入和找零输出（如果有的话）
         throw JSONRPCError(RPC_INTERNAL_ERROR, strFailReason);
 
     UniValue result(UniValue::VOBJ);
-    result.push_back(Pair("hex", EncodeHexTx(tx)));
-    result.push_back(Pair("changepos", nChangePos));
-    result.push_back(Pair("fee", ValueFromAmount(nFee)));
+    result.push_back(Pair("hex", EncodeHexTx(tx))); // 16 进制编码交易
+    result.push_back(Pair("changepos", nChangePos)); // 改变位置
+    result.push_back(Pair("fee", ValueFromAmount(nFee))); // 交易费
 
-    return result;
+    return result; // 返回结果集
 }

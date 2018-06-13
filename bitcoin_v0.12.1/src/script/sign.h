@@ -58,7 +58,7 @@ bool ProduceSignature(const BaseSignatureCreator& creator, const CScript& script
 bool SignSignature(const CKeyStore& keystore, const CScript& fromPubKey, CMutableTransaction& txTo, unsigned int nIn, int nHashType=SIGHASH_ALL);
 bool SignSignature(const CKeyStore& keystore, const CTransaction& txFrom, CMutableTransaction& txTo, unsigned int nIn, int nHashType=SIGHASH_ALL);
 
-/** Combine two script signatures using a generic signature checker, intelligently, possibly with OP_0 placeholders. */
+/** Combine two script signatures using a generic signature checker, intelligently, possibly with OP_0 placeholders. */ // 智能地使用通用签名检查器合并 2 个脚本签名，可能使用 OP_0 占位符
 CScript CombineSignatures(const CScript& scriptPubKey, const BaseSignatureChecker& checker, const CScript& scriptSig1, const CScript& scriptSig2);
 
 /** Combine two script signatures on transactions. */

@@ -19,7 +19,7 @@ class CTransaction;
 class uint256;
 
 /** Signature hash types/flags */
-enum
+enum // 签名哈希类型/标志
 {
     SIGHASH_ALL = 1,
     SIGHASH_NONE = 2,
@@ -28,7 +28,7 @@ enum
 };
 
 /** Script verification flags */
-enum
+enum // 脚本验证标志
 {
     SCRIPT_VERIFY_NONE      = 0,
 

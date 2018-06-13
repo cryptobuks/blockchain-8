@@ -423,7 +423,7 @@ public:
      * Return a modifiable reference to a CCoins. If no entry with the given
      * txid exists, a new one is created. Simultaneous modifications are not
      * allowed.
-     */
+     */ // 返回一个可修改的 CCoins 引用。如果给定交易索引的条目不存在，则创建一个新的。不允许同时修改。
     CCoinsModifier ModifyCoins(const uint256 &txid);
 
     /**
