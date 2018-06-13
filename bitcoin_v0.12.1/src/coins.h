@@ -416,7 +416,7 @@ public:
      * Return a pointer to CCoins in the cache, or NULL if not found. This is
      * more efficient than GetCoins. Modifications to other cache entries are
      * allowed while accessing the returned pointer.
-     */
+     */ // 返回指向缓存中 CCoins 的指针，或若没找到返回空。这比 GetCoins 效率高。访问返回的指针时，允许修改其它缓存条目。
     const CCoins* AccessCoins(const uint256 &txid) const;
 
     /**

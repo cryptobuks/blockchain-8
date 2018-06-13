@@ -318,8 +318,8 @@ UniValue verifytxoutproof(const UniValue& params, bool fHelp)
 
 UniValue createrawtransaction(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() < 2 || params.size() > 3)
-        throw runtime_error(
+    if (fHelp || params.size() < 2 || params.size() > 3) // 参数为 2 或 3 个
+        throw runtime_error( // 命令帮助反馈
             "createrawtransaction [{\"txid\":\"id\",\"vout\":n},...] {\"address\":amount,\"data\":\"hex\",...} ( locktime )\n"
             "\nCreate a transaction spending the given inputs and creating new outputs.\n"
             "Outputs can be addresses or data.\n"
@@ -353,69 +353,69 @@ UniValue createrawtransaction(const UniValue& params, bool fHelp)
             + HelpExampleRpc("createrawtransaction", "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\", \"{\\\"data\\\":\\\"00010203\\\"}\"")
         );
 
-    LOCK(cs_main);
-    RPCTypeCheck(params, boost::assign::list_of(UniValue::VARR)(UniValue::VOBJ)(UniValue::VNUM), true);
-    if (params[0].isNull() || params[1].isNull())
+    LOCK(cs_main); // 上锁
+    RPCTypeCheck(params, boost::assign::list_of(UniValue::VARR)(UniValue::VOBJ)(UniValue::VNUM), true); // 检查参数类型
+    if (params[0].isNull() || params[1].isNull()) // 输入和输出均不能为空
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, arguments 1 and 2 must be non-null");
 
-    UniValue inputs = params[0].get_array();
-    UniValue sendTo = params[1].get_obj();
+    UniValue inputs = params[0].get_array(); // 获取输入
+    UniValue sendTo = params[1].get_obj(); // 获取输出
 
-    CMutableTransaction rawTx;
+    CMutableTransaction rawTx; // 创建一笔原始交易
 
-    if (params.size() > 2 && !params[2].isNull()) {
-        int64_t nLockTime = params[2].get_int64();
-        if (nLockTime < 0 || nLockTime > std::numeric_limits<uint32_t>::max())
+    if (params.size() > 2 && !params[2].isNull()) { // 若指定了锁定时间
+        int64_t nLockTime = params[2].get_int64(); // 获取锁定时间
+        if (nLockTime < 0 || nLockTime > std::numeric_limits<uint32_t>::max()) // 锁定时间范围检查
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, locktime out of range");
-        rawTx.nLockTime = nLockTime;
+        rawTx.nLockTime = nLockTime; // 交易锁定时间初始化
     }
 
-    for (unsigned int idx = 0; idx < inputs.size(); idx++) {
-        const UniValue& input = inputs[idx];
-        const UniValue& o = input.get_obj();
+    for (unsigned int idx = 0; idx < inputs.size(); idx++) { // 遍历输入，构建原始交易输入列表
+        const UniValue& input = inputs[idx]; // 获取一个输入
+        const UniValue& o = input.get_obj(); // 拿到该输入对象
 
-        uint256 txid = ParseHashO(o, "txid");
+        uint256 txid = ParseHashO(o, "txid"); // 获取交易索引
 
-        const UniValue& vout_v = find_value(o, "vout");
-        if (!vout_v.isNum())
+        const UniValue& vout_v = find_value(o, "vout"); // 获取输出序号
+        if (!vout_v.isNum()) // 输出序号必须为数字
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, missing vout key");
-        int nOutput = vout_v.get_int();
-        if (nOutput < 0)
+        int nOutput = vout_v.get_int(); // 获取该数字
+        if (nOutput < 0) // 输出索引最小为 0
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, vout must be positive");
 
-        uint32_t nSequence = (rawTx.nLockTime ? std::numeric_limits<uint32_t>::max() - 1 : std::numeric_limits<uint32_t>::max());
-        CTxIn in(COutPoint(txid, nOutput), CScript(), nSequence);
+        uint32_t nSequence = (rawTx.nLockTime ? std::numeric_limits<uint32_t>::max() - 1 : std::numeric_limits<uint32_t>::max()); // 锁定时间
+        CTxIn in(COutPoint(txid, nOutput), CScript(), nSequence); // 构建一个交易输入对象
 
-        rawTx.vin.push_back(in);
+        rawTx.vin.push_back(in); // 加入原始交易输入列表
     }
 
-    set<CBitcoinAddress> setAddress;
-    vector<string> addrList = sendTo.getKeys();
-    BOOST_FOREACH(const string& name_, addrList) {
+    set<CBitcoinAddress> setAddress; // 地址集
+    vector<string> addrList = sendTo.getKeys(); // 获取输出的所有关键字（地址）
+    BOOST_FOREACH(const string& name_, addrList) { // 遍历地址列表
 
-        if (name_ == "data") {
-            std::vector<unsigned char> data = ParseHexV(sendTo[name_].getValStr(),"Data");
+        if (name_ == "data") { // 若关键字中包含 "data"
+            std::vector<unsigned char> data = ParseHexV(sendTo[name_].getValStr(),"Data"); // 解析数据
 
-            CTxOut out(0, CScript() << OP_RETURN << data);
-            rawTx.vout.push_back(out);
-        } else {
-            CBitcoinAddress address(name_);
-            if (!address.IsValid())
+            CTxOut out(0, CScript() << OP_RETURN << data); // 构建交易输出对象
+            rawTx.vout.push_back(out); // 加入原始交易输出列表
+        } else { // 否则为目的地址
+            CBitcoinAddress address(name_); // 构建比特币地址
+            if (!address.IsValid()) // 检验地址是否有效
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, string("Invalid Bitcoin address: ")+name_);
 
-            if (setAddress.count(address))
+            if (setAddress.count(address)) // 保证地址集中不存在该地址，防止地址重复输入
                 throw JSONRPCError(RPC_INVALID_PARAMETER, string("Invalid parameter, duplicated address: ")+name_);
-            setAddress.insert(address);
+            setAddress.insert(address); // 插入地址集
 
-            CScript scriptPubKey = GetScriptForDestination(address.Get());
-            CAmount nAmount = AmountFromValue(sendTo[name_]);
+            CScript scriptPubKey = GetScriptForDestination(address.Get()); // 从目的地址获取脚本公钥
+            CAmount nAmount = AmountFromValue(sendTo[name_]); // 获取金额
 
-            CTxOut out(nAmount, scriptPubKey);
-            rawTx.vout.push_back(out);
+            CTxOut out(nAmount, scriptPubKey); // 构建交易输出对象
+            rawTx.vout.push_back(out); // 加入原始交易输出列表
         }
     }
 
-    return EncodeHexTx(rawTx);
+    return EncodeHexTx(rawTx); // 16 进制编码该原始交易并返回
 }
 
 UniValue decoderawtransaction(const UniValue& params, bool fHelp)
@@ -486,8 +486,8 @@ UniValue decoderawtransaction(const UniValue& params, bool fHelp)
 
 UniValue decodescript(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() != 1)
-        throw runtime_error(
+    if (fHelp || params.size() != 1) // 参数必须是 1 个
+        throw runtime_error( // 命令帮助反馈
             "decodescript \"hex\"\n"
             "\nDecode a hex-encoded script.\n"
             "\nArguments:\n"
@@ -509,20 +509,20 @@ UniValue decodescript(const UniValue& params, bool fHelp)
             + HelpExampleRpc("decodescript", "\"hexstring\"")
         );
 
-    RPCTypeCheck(params, boost::assign::list_of(UniValue::VSTR));
+    RPCTypeCheck(params, boost::assign::list_of(UniValue::VSTR)); // 参数类型检查
 
     UniValue r(UniValue::VOBJ);
     CScript script;
-    if (params[0].get_str().size() > 0){
-        vector<unsigned char> scriptData(ParseHexV(params[0], "argument"));
-        script = CScript(scriptData.begin(), scriptData.end());
-    } else {
+    if (params[0].get_str().size() > 0){ // 若脚本非空字符串
+        vector<unsigned char> scriptData(ParseHexV(params[0], "argument")); // 解析参数
+        script = CScript(scriptData.begin(), scriptData.end()); // 构建序列化的脚本
+    } else { // 空脚本是有效的
         // Empty scripts are valid
     }
-    ScriptPubKeyToJSON(script, r, false);
+    ScriptPubKeyToJSON(script, r, false); // 脚本公钥转换为 JSON 格式加入结果集
 
-    r.push_back(Pair("p2sh", CBitcoinAddress(CScriptID(script)).ToString()));
-    return r;
+    r.push_back(Pair("p2sh", CBitcoinAddress(CScriptID(script)).ToString())); // Base58 编码的脚本哈希
+    return r; // 返回结果集
 }
 
 /** Pushes a JSON object for script verification or signing errors to vErrorsRet. */
@@ -781,8 +781,8 @@ UniValue signrawtransaction(const UniValue& params, bool fHelp)
 
 UniValue sendrawtransaction(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() < 1 || params.size() > 2)
-        throw runtime_error(
+    if (fHelp || params.size() < 1 || params.size() > 2) // 参数为 1 或 2 个
+        throw runtime_error( // 命令帮助反馈
             "sendrawtransaction \"hexstring\" ( allowhighfees )\n"
             "\nSubmits raw transaction (serialized, hex-encoded) to local node and network.\n"
             "\nAlso see createrawtransaction and signrawtransaction calls.\n"
@@ -802,29 +802,29 @@ UniValue sendrawtransaction(const UniValue& params, bool fHelp)
             + HelpExampleRpc("sendrawtransaction", "\"signedhex\"")
         );
 
-    LOCK(cs_main);
-    RPCTypeCheck(params, boost::assign::list_of(UniValue::VSTR)(UniValue::VBOOL));
+    LOCK(cs_main); // 上锁
+    RPCTypeCheck(params, boost::assign::list_of(UniValue::VSTR)(UniValue::VBOOL)); // 参数类型检查
 
     // parse hex string from parameter
     CTransaction tx;
-    if (!DecodeHexTx(tx, params[0].get_str()))
+    if (!DecodeHexTx(tx, params[0].get_str())) // 从参数解析 16 进制字符串
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "TX decode failed");
-    uint256 hashTx = tx.GetHash();
+    uint256 hashTx = tx.GetHash(); // 获取交易哈希
 
-    bool fOverrideFees = false;
+    bool fOverrideFees = false; // 交易费超额标志，默认不允许
     if (params.size() > 1)
-        fOverrideFees = params[1].get_bool();
+        fOverrideFees = params[1].get_bool(); // 获取交易费超额设置
 
     CCoinsViewCache &view = *pcoinsTip;
-    const CCoins* existingCoins = view.AccessCoins(hashTx);
-    bool fHaveMempool = mempool.exists(hashTx);
-    bool fHaveChain = existingCoins && existingCoins->nHeight < 1000000000;
-    if (!fHaveMempool && !fHaveChain) {
-        // push to local node and sync with wallets
+    const CCoins* existingCoins = view.AccessCoins(hashTx); // 获取该交易的修剪版本
+    bool fHaveMempool = mempool.exists(hashTx); // 交易内存池中是否存在该交易
+    bool fHaveChain = existingCoins && existingCoins->nHeight < 1000000000; // 交易的高度限制
+    if (!fHaveMempool && !fHaveChain) { // 若该交易不在交易内存池中 且 超过了高度限制即没有上链
+        // push to local node and sync with wallets // 推送到本地节点并同步钱包
         CValidationState state;
         bool fMissingInputs;
-        if (!AcceptToMemoryPool(mempool, state, tx, false, &fMissingInputs, false, !fOverrideFees)) {
-            if (state.IsInvalid()) {
+        if (!AcceptToMemoryPool(mempool, state, tx, false, &fMissingInputs, false, !fOverrideFees)) { // 首先放入交易内存池
+            if (state.IsInvalid()) { // 放入状态检测
                 throw JSONRPCError(RPC_TRANSACTION_REJECTED, strprintf("%i: %s", state.GetRejectCode(), state.GetRejectReason()));
             } else {
                 if (fMissingInputs) {
@@ -836,7 +836,7 @@ UniValue sendrawtransaction(const UniValue& params, bool fHelp)
     } else if (fHaveChain) {
         throw JSONRPCError(RPC_TRANSACTION_ALREADY_IN_CHAIN, "transaction already in block chain");
     }
-    RelayTransaction(tx);
+    RelayTransaction(tx); // 然后中继（发送）该交易
 
-    return hashTx.GetHex();
+    return hashTx.GetHex(); // 交易哈希转换为 16 进制并返回
 }

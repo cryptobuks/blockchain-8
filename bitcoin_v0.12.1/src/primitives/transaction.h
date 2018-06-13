@@ -286,10 +286,10 @@ public:
 /** A mutable version of CTransaction. */
 struct CMutableTransaction // 易变版本交易，即生成后可更改
 {
-    int32_t nVersion;
-    std::vector<CTxIn> vin;
-    std::vector<CTxOut> vout;
-    uint32_t nLockTime;
+    int32_t nVersion; // 版本号
+    std::vector<CTxIn> vin; // 输入列表
+    std::vector<CTxOut> vout; // 输出列表
+    uint32_t nLockTime; // 锁定时间
 
     CMutableTransaction();
     CMutableTransaction(const CTransaction& tx);

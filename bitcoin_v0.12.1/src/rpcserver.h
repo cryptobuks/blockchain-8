@@ -240,12 +240,12 @@ extern UniValue getrawtransaction(const UniValue& params, bool fHelp); // 获取原
 extern UniValue listunspent(const UniValue& params, bool fHelp); // 列出未花费的交易输出
 extern UniValue lockunspent(const UniValue& params, bool fHelp); // 加解锁未花费的交易输出
 extern UniValue listlockunspent(const UniValue& params, bool fHelp); // 列出锁定的未花费交易输出
-extern UniValue createrawtransaction(const UniValue& params, bool fHelp);
+extern UniValue createrawtransaction(const UniValue& params, bool fHelp); // 创建原始交易
 extern UniValue decoderawtransaction(const UniValue& params, bool fHelp); // 解码原始交易
-extern UniValue decodescript(const UniValue& params, bool fHelp);
+extern UniValue decodescript(const UniValue& params, bool fHelp); // 解码脚本
 extern UniValue fundrawtransaction(const UniValue& params, bool fHelp);
-extern UniValue signrawtransaction(const UniValue& params, bool fHelp);
-extern UniValue sendrawtransaction(const UniValue& params, bool fHelp);
+extern UniValue signrawtransaction(const UniValue& params, bool fHelp); // 签名原始交易
+extern UniValue sendrawtransaction(const UniValue& params, bool fHelp); // 发送原始交易
 extern UniValue gettxoutproof(const UniValue& params, bool fHelp); // 获取交易证明
 extern UniValue verifytxoutproof(const UniValue& params, bool fHelp); // 验证交易证明
 
