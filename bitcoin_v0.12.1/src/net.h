@@ -160,7 +160,7 @@ extern CAddrMan addrman;
 extern int nMaxConnections;
 
 extern std::vector<CNode*> vNodes; // 已建立连接的节点列表
-extern CCriticalSection cs_vNodes;
+extern CCriticalSection cs_vNodes; // 节点列表锁
 extern std::map<CInv, CDataStream> mapRelay;
 extern std::deque<std::pair<int64_t, CInv> > vRelayExpiration;
 extern CCriticalSection cs_mapRelay;
@@ -189,8 +189,8 @@ public:
     NodeId nodeid;
     uint64_t nServices;
     bool fRelayTxes; // 中继交易标志
-    int64_t nLastSend;
-    int64_t nLastRecv;
+    int64_t nLastSend; // 最后一次发送时间
+    int64_t nLastRecv; // 最后一次接收时间
     int64_t nTimeConnected;
     int64_t nTimeOffset;
     std::string addrName;
@@ -395,8 +395,8 @@ public:
     std::set<uint256> setAskFor;
     std::multimap<int64_t, CInv> mapAskFor;
     int64_t nNextInvSend;
-    // Used for headers announcements - unfiltered blocks to relay
-    // Also protected by cs_inventory
+    // Used for headers announcements - unfiltered blocks to relay // 用于区块头通告 - 用于中继的未过滤区块
+    // Also protected by cs_inventory // 通过库存锁保护
     std::vector<uint256> vBlockHashesToAnnounce;
 
     // Ping time measurement:
@@ -515,8 +515,8 @@ public:
 
     void PushBlockHash(const uint256 &hash)
     {
-        LOCK(cs_inventory);
-        vBlockHashesToAnnounce.push_back(hash);
+        LOCK(cs_inventory); // 库存上锁
+        vBlockHashesToAnnounce.push_back(hash); // 加入区块哈希公布列表
     }
 
     void AskFor(const CInv& inv);

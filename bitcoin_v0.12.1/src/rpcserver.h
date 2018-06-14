@@ -233,8 +233,8 @@ extern UniValue getinfo(const UniValue& params, bool fHelp); // 获取比特币核心信
 extern UniValue getwalletinfo(const UniValue& params, bool fHelp); // 获取钱包信息
 extern UniValue getblockchaininfo(const UniValue& params, bool fHelp); // 获取区块链信息
 extern UniValue getnetworkinfo(const UniValue& params, bool fHelp); // 获取网络状态信息
-extern UniValue setmocktime(const UniValue& params, bool fHelp);
-extern UniValue resendwallettransactions(const UniValue& params, bool fHelp);
+extern UniValue setmocktime(const UniValue& params, bool fHelp); // 设置 mocktime
+extern UniValue resendwallettransactions(const UniValue& params, bool fHelp); // 重新发送钱包交易
 
 extern UniValue getrawtransaction(const UniValue& params, bool fHelp); // 获取原始交易信息
 extern UniValue listunspent(const UniValue& params, bool fHelp); // 列出未花费的交易输出
@@ -262,8 +262,8 @@ extern UniValue gettxoutsetinfo(const UniValue& params, bool fHelp); // 获取交易
 extern UniValue gettxout(const UniValue& params, bool fHelp); // 获取一笔交易输出（链上或内存池中）的细节
 extern UniValue verifychain(const UniValue& params, bool fHelp); // 验证区块链数据库
 extern UniValue getchaintips(const UniValue& params, bool fHelp); // 获取链尖信息
-extern UniValue invalidateblock(const UniValue& params, bool fHelp);
-extern UniValue reconsiderblock(const UniValue& params, bool fHelp);
+extern UniValue invalidateblock(const UniValue& params, bool fHelp); // 无效化区块
+extern UniValue reconsiderblock(const UniValue& params, bool fHelp); // 再考虑区块
 
 bool StartRPC();
 void InterruptRPC();

@@ -838,8 +838,8 @@ UniValue getmempoolinfo(const UniValue& params, bool fHelp)
 
 UniValue invalidateblock(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() != 1)
-        throw runtime_error(
+    if (fHelp || params.size() != 1) // 参数必须为 1 个
+        throw runtime_error( // 命令帮助反馈
             "invalidateblock \"hash\"\n"
             "\nPermanently marks a block as invalid, as if it violated a consensus rule.\n"
             "\nArguments:\n"
@@ -850,34 +850,34 @@ UniValue invalidateblock(const UniValue& params, bool fHelp)
             + HelpExampleRpc("invalidateblock", "\"blockhash\"")
         );
 
-    std::string strHash = params[0].get_str();
-    uint256 hash(uint256S(strHash));
+    std::string strHash = params[0].get_str(); // 获取指定的区块哈希
+    uint256 hash(uint256S(strHash)); // 转换为 uint256 对象
     CValidationState state;
 
     {
-        LOCK(cs_main);
-        if (mapBlockIndex.count(hash) == 0)
+        LOCK(cs_main); // 上锁
+        if (mapBlockIndex.count(hash) == 0) // 若指定哈希再区块索引映射列表中不存在
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
 
-        CBlockIndex* pblockindex = mapBlockIndex[hash];
-        InvalidateBlock(state, Params().GetConsensus(), pblockindex);
+        CBlockIndex* pblockindex = mapBlockIndex[hash]; // 获取指定哈希对应的区块索引
+        InvalidateBlock(state, Params().GetConsensus(), pblockindex); // 使该区块无效化
     }
 
-    if (state.IsValid()) {
-        ActivateBestChain(state, Params());
+    if (state.IsValid()) { // 若验证状态有效
+        ActivateBestChain(state, Params()); // 激活最佳链
     }
 
-    if (!state.IsValid()) {
+    if (!state.IsValid()) { // 再次验证激活状态
         throw JSONRPCError(RPC_DATABASE_ERROR, state.GetRejectReason());
     }
 
-    return NullUniValue;
+    return NullUniValue; // 返回空值
 }
 
 UniValue reconsiderblock(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() != 1)
-        throw runtime_error(
+    if (fHelp || params.size() != 1) // 参数必须为 1 个
+        throw runtime_error( // 命令帮助反馈
             "reconsiderblock \"hash\"\n"
             "\nRemoves invalidity status of a block and its descendants, reconsider them for activation.\n"
             "This can be used to undo the effects of invalidateblock.\n"
@@ -889,26 +889,26 @@ UniValue reconsiderblock(const UniValue& params, bool fHelp)
             + HelpExampleRpc("reconsiderblock", "\"blockhash\"")
         );
 
-    std::string strHash = params[0].get_str();
-    uint256 hash(uint256S(strHash));
+    std::string strHash = params[0].get_str(); // 获取指定区块哈希
+    uint256 hash(uint256S(strHash)); // 创建 uint256 对象
     CValidationState state;
 
     {
-        LOCK(cs_main);
-        if (mapBlockIndex.count(hash) == 0)
+        LOCK(cs_main); // 上锁
+        if (mapBlockIndex.count(hash) == 0) // 若区块索引映射列表中没有指定区块
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
 
-        CBlockIndex* pblockindex = mapBlockIndex[hash];
-        ReconsiderBlock(state, pblockindex);
+        CBlockIndex* pblockindex = mapBlockIndex[hash]; // 获取指定区块索引
+        ReconsiderBlock(state, pblockindex); // 再考虑区块
     }
 
-    if (state.IsValid()) {
-        ActivateBestChain(state, Params());
+    if (state.IsValid()) { // 若验证状态有效
+        ActivateBestChain(state, Params()); // 激活最佳链
     }
 
-    if (!state.IsValid()) {
+    if (!state.IsValid()) { // 检查激活验证状态
         throw JSONRPCError(RPC_DATABASE_ERROR, state.GetRejectReason());
     }
 
-    return NullUniValue;
+    return NullUniValue; // 返回空值
 }

@@ -1496,26 +1496,26 @@ bool CWalletTx::IsEquivalentTo(const CWalletTx& tx) const
 
 std::vector<uint256> CWallet::ResendWalletTransactionsBefore(int64_t nTime)
 {
-    std::vector<uint256> result;
+    std::vector<uint256> result; // 交易索引列表
 
-    LOCK(cs_wallet);
-    // Sort them in chronological order
-    multimap<unsigned int, CWalletTx*> mapSorted;
-    BOOST_FOREACH(PAIRTYPE(const uint256, CWalletTx)& item, mapWallet)
+    LOCK(cs_wallet); // 钱包上锁
+    // Sort them in chronological order // 按时间顺序排序
+    multimap<unsigned int, CWalletTx*> mapSorted; // 排过序的交易列表
+    BOOST_FOREACH(PAIRTYPE(const uint256, CWalletTx)& item, mapWallet) // 遍历钱包交易映射列表
     {
-        CWalletTx& wtx = item.second;
-        // Don't rebroadcast if newer than nTime:
+        CWalletTx& wtx = item.second; // 获取钱包交易
+        // Don't rebroadcast if newer than nTime: // 指定时间点后的交易不再广播
         if (wtx.nTimeReceived > nTime)
             continue;
-        mapSorted.insert(make_pair(wtx.nTimeReceived, &wtx));
+        mapSorted.insert(make_pair(wtx.nTimeReceived, &wtx)); // 加入排过序的交易列表
     }
-    BOOST_FOREACH(PAIRTYPE(const unsigned int, CWalletTx*)& item, mapSorted)
+    BOOST_FOREACH(PAIRTYPE(const unsigned int, CWalletTx*)& item, mapSorted) // 遍历该交易列表
     {
-        CWalletTx& wtx = *item.second;
-        if (wtx.RelayWalletTransaction())
-            result.push_back(wtx.GetHash());
+        CWalletTx& wtx = *item.second; // 获取交易
+        if (wtx.RelayWalletTransaction()) // 中继该钱包交易
+            result.push_back(wtx.GetHash()); // 获取交易哈希加入交易索引列表
     }
-    return result;
+    return result; // 返回发送的交易索引列表
 }
 
 void CWallet::ResendWalletTransactions(int64_t nBestBlockTime)

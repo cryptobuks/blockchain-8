@@ -368,8 +368,8 @@ UniValue verifymessage(const UniValue& params, bool fHelp)
 
 UniValue setmocktime(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() != 1)
-        throw runtime_error(
+    if (fHelp || params.size() != 1) // 参数必须为 1 个
+        throw runtime_error( // 命令帮助反馈
             "setmocktime timestamp\n"
             "\nSet the local time to given timestamp (-regtest only)\n"
             "\nArguments:\n"
@@ -377,22 +377,22 @@ UniValue setmocktime(const UniValue& params, bool fHelp)
             "   Pass 0 to go back to using the system time."
         );
 
-    if (!Params().MineBlocksOnDemand())
+    if (!Params().MineBlocksOnDemand()) // 网络必须为 regtest 回归测试模式
         throw runtime_error("setmocktime for regression testing (-regtest mode) only");
 
     // cs_vNodes is locked and node send/receive times are updated
     // atomically with the time change to prevent peers from being
     // disconnected because we think we haven't communicated with them
     // in a long time.
-    LOCK2(cs_main, cs_vNodes);
+    LOCK2(cs_main, cs_vNodes); // 节点列表上锁
 
-    RPCTypeCheck(params, boost::assign::list_of(UniValue::VNUM));
-    SetMockTime(params[0].get_int64());
+    RPCTypeCheck(params, boost::assign::list_of(UniValue::VNUM)); // 参数类型检查，整型
+    SetMockTime(params[0].get_int64()); // 获取指定时间戳并设置本地 mock 时间
 
-    uint64_t t = GetTime();
-    BOOST_FOREACH(CNode* pnode, vNodes) {
-        pnode->nLastSend = pnode->nLastRecv = t;
+    uint64_t t = GetTime(); // 获取当前时间
+    BOOST_FOREACH(CNode* pnode, vNodes) { // 遍历已建立链接的节点列表
+        pnode->nLastSend = pnode->nLastRecv = t; // 设置节点最后一次发送和接收的时间
     }
 
-    return NullUniValue;
+    return NullUniValue; // 返回空值
 }

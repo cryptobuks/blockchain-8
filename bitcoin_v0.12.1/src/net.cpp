@@ -2072,7 +2072,7 @@ void RelayTransaction(const CTransaction& tx, const CDataStream& ss)
         mapRelay.insert(std::make_pair(inv, ss)); // 插入中继数据映射列表
         vRelayExpiration.push_back(std::make_pair(GetTime() + 15 * 60, inv)); // 加上 15min 的过期时间，加入过期队列
     }
-    LOCK(cs_vNodes);
+    LOCK(cs_vNodes); // 以建立连接的节点列表上锁
     BOOST_FOREACH(CNode* pnode, vNodes) // 遍历当前已建立链接的节点列表
     {
         if(!pnode->fRelayTxes) // 若中继交易状态为 false

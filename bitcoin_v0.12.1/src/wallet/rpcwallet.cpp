@@ -2297,11 +2297,11 @@ UniValue getwalletinfo(const UniValue& params, bool fHelp)
 
 UniValue resendwallettransactions(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保当前钱包可用
         return NullUniValue;
     
-    if (fHelp || params.size() != 0)
-        throw runtime_error(
+    if (fHelp || params.size() != 0) // 没有参数
+        throw runtime_error( // 命令帮助反馈
             "resendwallettransactions\n"
             "Immediately re-broadcast unconfirmed wallet transactions to all peers.\n"
             "Intended only for testing; the wallet code periodically re-broadcasts\n"
@@ -2309,15 +2309,15 @@ UniValue resendwallettransactions(const UniValue& params, bool fHelp)
             "Returns array of transaction ids that were re-broadcast.\n"
             );
 
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
 
-    std::vector<uint256> txids = pwalletMain->ResendWalletTransactionsBefore(GetTime());
-    UniValue result(UniValue::VARR);
-    BOOST_FOREACH(const uint256& txid, txids)
+    std::vector<uint256> txids = pwalletMain->ResendWalletTransactionsBefore(GetTime()); // 重新发送钱包交易并获取这些交易的索引
+    UniValue result(UniValue::VARR); // 数组类型的结果对象
+    BOOST_FOREACH(const uint256& txid, txids) // 遍历索引列表
     {
-        result.push_back(txid.ToString());
+        result.push_back(txid.ToString()); // 加入结果集
     }
-    return result;
+    return result; // 返回结果
 }
 
 UniValue listunspent(const UniValue& params, bool fHelp)

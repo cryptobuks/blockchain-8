@@ -13,7 +13,7 @@ int64_t GetTime(); // 获取当前时间 秒
 int64_t GetTimeMillis(); // 获取当前时间 毫秒
 int64_t GetTimeMicros(); // 获取当前时间 微秒
 int64_t GetLogTimeMicros(); // 调用 GetTimeMicros
-void SetMockTime(int64_t nMockTimeIn);
+void SetMockTime(int64_t nMockTimeIn); // 设置 Mock 时间
 void MilliSleep(int64_t n); // 睡 n 毫秒
 
 std::string DateTimeStrFormat(const char* pszFormat, int64_t nTime); // 格式化日期时间

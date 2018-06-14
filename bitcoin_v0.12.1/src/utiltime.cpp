@@ -14,7 +14,7 @@
 
 using namespace std;
 
-static int64_t nMockTime = 0;  //! For unit testing
+static int64_t nMockTime = 0;  //! For unit testing // 用于单元测试
 
 int64_t GetTime()
 {
@@ -27,7 +27,7 @@ int64_t GetTime()
 
 void SetMockTime(int64_t nMockTimeIn)
 {
-    nMockTime = nMockTimeIn;
+    nMockTime = nMockTimeIn; // 设置指定的 mocktime
 }
 
 int64_t GetTimeMillis()

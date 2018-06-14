@@ -72,7 +72,7 @@ bool fIsBareMultisigStd = DEFAULT_PERMIT_BAREMULTISIG;
 bool fRequireStandard = true;
 unsigned int nBytesPerSigOp = DEFAULT_BYTES_PER_SIGOP;
 bool fCheckBlockIndex = false;
-bool fCheckpointsEnabled = DEFAULT_CHECKPOINTS_ENABLED;
+bool fCheckpointsEnabled = DEFAULT_CHECKPOINTS_ENABLED; // true 表示检查点功能默认开启
 size_t nCoinCacheUsage = 5000 * 300;
 uint64_t nPruneTarget = 0;
 bool fAlerts = DEFAULT_ALERTS;
@@ -133,10 +133,10 @@ namespace {
      * The set of all CBlockIndex entries with BLOCK_VALID_TRANSACTIONS (for itself and all ancestors) and
      * as good as our current tip or better. Entries may be failed, though, and pruning nodes may be
      * missing the data for the block.
-     */
-    set<CBlockIndex*, CBlockIndexWorkComparator> setBlockIndexCandidates;
+     */ // 全部带有 BLOCK_VALID_TRANSACTIONS 区块索引条目的集合（它自己和所有祖先）且和我们当前链尖一样或更好。条目可能失败，修剪节点可能会丢失该块的数据。
+    set<CBlockIndex*, CBlockIndexWorkComparator> setBlockIndexCandidates; // 区块索引候选集合
     /** Number of nodes with fSyncStarted. */
-    int nSyncStarted = 0;
+    int nSyncStarted = 0; // 节点的数量
     /** All pairs A->B, where A (or one of its ancestors) misses transactions, but B has transactions.
      * Pruned nodes may have entries where B is missing data.
      */
@@ -201,7 +201,7 @@ namespace {
     int nPreferredDownload = 0;
 
     /** Dirty block index entries. */
-    set<CBlockIndex*> setDirtyBlockIndex;
+    set<CBlockIndex*> setDirtyBlockIndex; // 无效区块索引条目集合
 
     /** Dirty block file entries. */
     set<int> setDirtyFileInfo;
@@ -2618,37 +2618,37 @@ void static UpdateTip(CBlockIndex *pindexNew) {
     }
 }
 
-/** Disconnect chainActive's tip. You probably want to call mempool.removeForReorg and manually re-limit mempool size after this, with cs_main held. */
+/** Disconnect chainActive's tip. You probably want to call mempool.removeForReorg and manually re-limit mempool size after this, with cs_main held. */ // 断开激活的链尖。你可能想要调用 mempool.removeForReorg 并在该操作后手动再次限制内存池大小，同时持有主锁。
 bool static DisconnectTip(CValidationState& state, const Consensus::Params& consensusParams)
 {
-    CBlockIndex *pindexDelete = chainActive.Tip();
+    CBlockIndex *pindexDelete = chainActive.Tip(); // 获取链尖区块索引
     assert(pindexDelete);
-    // Read block from disk.
+    // Read block from disk. // 从磁盘读区块
     CBlock block;
-    if (!ReadBlockFromDisk(block, pindexDelete, consensusParams))
+    if (!ReadBlockFromDisk(block, pindexDelete, consensusParams)) // 根据区块索引从磁盘读取区块到内存 block
         return AbortNode(state, "Failed to read block");
-    // Apply the block atomically to the chain state.
-    int64_t nStart = GetTimeMicros();
+    // Apply the block atomically to the chain state. // 原子方式应用区块到链状态
+    int64_t nStart = GetTimeMicros(); // 获取当前时间
     {
         CCoinsViewCache view(pcoinsTip);
-        if (!DisconnectBlock(block, state, pindexDelete, view))
+        if (!DisconnectBlock(block, state, pindexDelete, view)) // 断开区块
             return error("DisconnectTip(): DisconnectBlock %s failed", pindexDelete->GetBlockHash().ToString());
         assert(view.Flush());
     }
     LogPrint("bench", "- Disconnect block: %.2fms\n", (GetTimeMicros() - nStart) * 0.001);
-    // Write the chain state to disk, if necessary.
-    if (!FlushStateToDisk(state, FLUSH_STATE_IF_NEEDED))
+    // Write the chain state to disk, if necessary. // 如果需要，把链状态写到磁盘
+    if (!FlushStateToDisk(state, FLUSH_STATE_IF_NEEDED)) // 刷新链状态到磁盘
         return false;
-    // Resurrect mempool transactions from the disconnected block.
-    std::vector<uint256> vHashUpdate;
-    BOOST_FOREACH(const CTransaction &tx, block.vtx) {
-        // ignore validation errors in resurrected transactions
+    // Resurrect mempool transactions from the disconnected block. // 从断开链接的区块恢复交易到内存池
+    std::vector<uint256> vHashUpdate; // 待升级的交易哈希列表
+    BOOST_FOREACH(const CTransaction &tx, block.vtx) { // 遍历断开区块的交易列表
+        // ignore validation errors in resurrected transactions // 在恢复的交易中沪铝验证错误
         list<CTransaction> removed;
         CValidationState stateDummy;
-        if (tx.IsCoinBase() || !AcceptToMemoryPool(mempool, stateDummy, tx, false, NULL, true)) {
-            mempool.remove(tx, removed, true);
-        } else if (mempool.exists(tx.GetHash())) {
-            vHashUpdate.push_back(tx.GetHash());
+        if (tx.IsCoinBase() || !AcceptToMemoryPool(mempool, stateDummy, tx, false, NULL, true)) { // 若该交易为创币交易，则接受到内存池后
+            mempool.remove(tx, removed, true); // 从内存池中移除该交易
+        } else if (mempool.exists(tx.GetHash())) { // 否则若内存池中存在该交易
+            vHashUpdate.push_back(tx.GetHash()); // 加入到待升级的交易列表
         }
     }
     // AcceptToMemoryPool/addUnchecked all assume that new mempool entries have
@@ -2656,15 +2656,15 @@ bool static DisconnectTip(CValidationState& state, const Consensus::Params& cons
     // previously-confirmed transactions back to the mempool.
     // UpdateTransactionsFromBlock finds descendants of any transactions in this
     // block that were added back and cleans up the mempool state.
-    mempool.UpdateTransactionsFromBlock(vHashUpdate);
-    // Update chainActive and related variables.
-    UpdateTip(pindexDelete->pprev);
+    mempool.UpdateTransactionsFromBlock(vHashUpdate); // 内存池更新来自区块的交易
+    // Update chainActive and related variables. // 更新激活链和相关变量
+    UpdateTip(pindexDelete->pprev); // 更新链尖为已删除链尖的前一个区块
     // Let wallets know transactions went from 1-confirmed to
     // 0-confirmed or conflicted:
-    BOOST_FOREACH(const CTransaction &tx, block.vtx) {
-        SyncWithWallets(tx, NULL);
+    BOOST_FOREACH(const CTransaction &tx, block.vtx) { // 遍历已删除区块的交易列表
+        SyncWithWallets(tx, NULL); // 同步到钱包
     }
-    return true;
+    return true; // 返回 true
 }
 
 static int64_t nTimeReadFromDisk = 0;
@@ -2885,119 +2885,119 @@ static bool ActivateBestChainStep(CValidationState& state, const CChainParams& c
  * Make the best chain active, in multiple steps. The result is either failure
  * or an activated best chain. pblock is either NULL or a pointer to a block
  * that is already loaded (to avoid loading it again from disk).
- */
+ */ // 多步激活最佳链。结果使不是失败就是激活的最佳链。pblock 不是空就是是指向一个已经加载的区块的指针（避免再次从磁盘加载它）。
 bool ActivateBestChain(CValidationState &state, const CChainParams& chainparams, const CBlock *pblock) {
     CBlockIndex *pindexMostWork = NULL;
     do {
         boost::this_thread::interruption_point();
-        if (ShutdownRequested())
-            break;
+        if (ShutdownRequested()) // 若请求关闭
+            break; // 这里跳出
 
         CBlockIndex *pindexNewTip = NULL;
         const CBlockIndex *pindexFork;
         bool fInitialDownload;
         {
-            LOCK(cs_main);
-            CBlockIndex *pindexOldTip = chainActive.Tip();
-            pindexMostWork = FindMostWorkChain();
+            LOCK(cs_main); // 上锁
+            CBlockIndex *pindexOldTip = chainActive.Tip(); // 获取激活链尖
+            pindexMostWork = FindMostWorkChain(); // 
 
-            // Whether we have anything to do at all.
+            // Whether we have anything to do at all. // 检查我们是否有事情要做
             if (pindexMostWork == NULL || pindexMostWork == chainActive.Tip())
                 return true;
 
-            if (!ActivateBestChainStep(state, chainparams, pindexMostWork, pblock && pblock->GetHash() == pindexMostWork->GetBlockHash() ? pblock : NULL))
+            if (!ActivateBestChainStep(state, chainparams, pindexMostWork, pblock && pblock->GetHash() == pindexMostWork->GetBlockHash() ? pblock : NULL)) // 激活最佳链步骤
                 return false;
 
-            pindexNewTip = chainActive.Tip();
-            pindexFork = chainActive.FindFork(pindexOldTip);
-            fInitialDownload = IsInitialBlockDownload();
-        }
+            pindexNewTip = chainActive.Tip(); // 获取新链尖
+            pindexFork = chainActive.FindFork(pindexOldTip); // 查找分叉区块索引
+            fInitialDownload = IsInitialBlockDownload(); // 检查初始化块下载是否完成
+        } // 当我们到达这点时，我们切换到一个新的链尖（存储在 pindexNewTip）
         // When we reach this point, we switched to a new tip (stored in pindexNewTip).
 
-        // Notifications/callbacks that can run without cs_main
-        // Always notify the UI if a new block tip was connected
-        if (pindexFork != pindexNewTip) {
+        // Notifications/callbacks that can run without cs_main // 不带 cs_main 可以运行的通知/回调
+        // Always notify the UI if a new block tip was connected // 如果链接了一个新区块尖总是通知 UI
+        if (pindexFork != pindexNewTip) { // 新链尖区块索引不是分叉块
             uiInterface.NotifyBlockTip(fInitialDownload, pindexNewTip);
 
-            if (!fInitialDownload) {
-                // Find the hashes of all blocks that weren't previously in the best chain.
-                std::vector<uint256> vHashes;
+            if (!fInitialDownload) { // 如果初始化块下载未完成
+                // Find the hashes of all blocks that weren't previously in the best chain. // 查找在最佳链上没有前辈的所有区块的哈希
+                std::vector<uint256> vHashes; // 区块哈希列表
                 CBlockIndex *pindexToAnnounce = pindexNewTip;
-                while (pindexToAnnounce != pindexFork) {
-                    vHashes.push_back(pindexToAnnounce->GetBlockHash());
-                    pindexToAnnounce = pindexToAnnounce->pprev;
-                    if (vHashes.size() == MAX_BLOCKS_TO_ANNOUNCE) {
-                        // Limit announcements in case of a huge reorganization.
-                        // Rely on the peer's synchronization mechanism in that case.
-                        break;
+                while (pindexToAnnounce != pindexFork) { // 不是分叉块
+                    vHashes.push_back(pindexToAnnounce->GetBlockHash()); // 加入哈希列表
+                    pindexToAnnounce = pindexToAnnounce->pprev; // 指向前一个区块
+                    if (vHashes.size() == MAX_BLOCKS_TO_ANNOUNCE) { // 列表大小有 8 条时
+                        // Limit announcements in case of a huge reorganization. // 如果大规模重组则限制通告。
+                        // Rely on the peer's synchronization mechanism in that case. // 在此情况下依赖对端的同步机制。
+                        break; // 跳出
                     }
                 }
-                // Relay inventory, but don't relay old inventory during initial block download.
+                // Relay inventory, but don't relay old inventory during initial block download. //  在初始化块下载过程中，中继库存但不中继旧的库存
                 int nBlockEstimate = 0;
-                if (fCheckpointsEnabled)
-                    nBlockEstimate = Checkpoints::GetTotalBlocksEstimate(chainparams.Checkpoints());
+                if (fCheckpointsEnabled) // 检查点可用
+                    nBlockEstimate = Checkpoints::GetTotalBlocksEstimate(chainparams.Checkpoints()); // 获取区块总估计
                 {
-                    LOCK(cs_vNodes);
-                    BOOST_FOREACH(CNode* pnode, vNodes) {
-                        if (chainActive.Height() > (pnode->nStartingHeight != -1 ? pnode->nStartingHeight - 2000 : nBlockEstimate)) {
-                            BOOST_REVERSE_FOREACH(const uint256& hash, vHashes) {
-                                pnode->PushBlockHash(hash);
+                    LOCK(cs_vNodes); // 已连接的节点列表上锁
+                    BOOST_FOREACH(CNode* pnode, vNodes) { // 遍历该节点列表
+                        if (chainActive.Height() > (pnode->nStartingHeight != -1 ? pnode->nStartingHeight - 2000 : nBlockEstimate)) { // 若激活的链高度大于当前节点
+                            BOOST_REVERSE_FOREACH(const uint256& hash, vHashes) { // 遍历区块哈希列表
+                                pnode->PushBlockHash(hash); // 加入待通告的区块哈希列表
                             }
                         }
                     }
                 }
-                // Notify external listeners about the new tip.
-                if (!vHashes.empty()) {
-                    GetMainSignals().UpdatedBlockTip(pindexNewTip);
+                // Notify external listeners about the new tip. // 通知外部监听者关于新链尖的信息
+                if (!vHashes.empty()) { // 若区块哈希列表非空
+                    GetMainSignals().UpdatedBlockTip(pindexNewTip); // 发送信号更新区块链尖
                 }
             }
         }
     } while(pindexMostWork != chainActive.Tip());
-    CheckBlockIndex(chainparams.GetConsensus());
+    CheckBlockIndex(chainparams.GetConsensus()); // 检查区块索引
 
-    // Write changes periodically to disk, after relay.
-    if (!FlushStateToDisk(state, FLUSH_STATE_PERIODIC)) {
+    // Write changes periodically to disk, after relay. // 在中继后，周期性的写入状态到磁盘
+    if (!FlushStateToDisk(state, FLUSH_STATE_PERIODIC)) { // 刷新状态到磁盘
         return false;
     }
 
-    return true;
+    return true; // 成功返回 true
 }
 
 bool InvalidateBlock(CValidationState& state, const Consensus::Params& consensusParams, CBlockIndex *pindex)
 {
-    AssertLockHeld(cs_main);
+    AssertLockHeld(cs_main); // 保持上锁状态
 
-    // Mark the block itself as invalid.
-    pindex->nStatus |= BLOCK_FAILED_VALID;
-    setDirtyBlockIndex.insert(pindex);
-    setBlockIndexCandidates.erase(pindex);
+    // Mark the block itself as invalid. // 标记区块自身状态为无效
+    pindex->nStatus |= BLOCK_FAILED_VALID; // 设置无效状态
+    setDirtyBlockIndex.insert(pindex); // 加入无效区块索引集合
+    setBlockIndexCandidates.erase(pindex); // 从区块索引候选集中擦除该索引
 
-    while (chainActive.Contains(pindex)) {
-        CBlockIndex *pindexWalk = chainActive.Tip();
-        pindexWalk->nStatus |= BLOCK_FAILED_CHILD;
-        setDirtyBlockIndex.insert(pindexWalk);
-        setBlockIndexCandidates.erase(pindexWalk);
-        // ActivateBestChain considers blocks already in chainActive
-        // unconditionally valid already, so force disconnect away from it.
-        if (!DisconnectTip(state, consensusParams)) {
+    while (chainActive.Contains(pindex)) { // 当激活的链中包含该区块索引
+        CBlockIndex *pindexWalk = chainActive.Tip(); // 获取激活的链尖区块索引
+        pindexWalk->nStatus |= BLOCK_FAILED_CHILD; // 设置该区块状态为无效区块后代
+        setDirtyBlockIndex.insert(pindexWalk); // 加入无效区块索引集合
+        setBlockIndexCandidates.erase(pindexWalk); // 从区块索引候选集中擦除该索引
+        // ActivateBestChain considers blocks already in chainActive // ActivateBestChain 认为已经在激活链上的区块
+        // unconditionally valid already, so force disconnect away from it. // 已经无条件有效，强制断开它于链的链接
+        if (!DisconnectTip(state, consensusParams)) { // 断开链尖链接
             mempool.removeForReorg(pcoinsTip, chainActive.Tip()->nHeight + 1, STANDARD_LOCKTIME_VERIFY_FLAGS);
             return false;
         }
     }
 
-    LimitMempoolSize(mempool, GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000, GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY) * 60 * 60);
+    LimitMempoolSize(mempool, GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000, GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY) * 60 * 60); // 限制内存池大小
 
     // The resulting new best tip may not be in setBlockIndexCandidates anymore, so
-    // add it again.
-    BlockMap::iterator it = mapBlockIndex.begin();
-    while (it != mapBlockIndex.end()) {
-        if (it->second->IsValid(BLOCK_VALID_TRANSACTIONS) && it->second->nChainTx && !setBlockIndexCandidates.value_comp()(it->second, chainActive.Tip())) {
-            setBlockIndexCandidates.insert(it->second);
+    // add it again. // 结果新的最佳链尖可能不在区块索引候选集中，所以再次添加它。
+    BlockMap::iterator it = mapBlockIndex.begin(); // 获取区块索引映射列表首迭代器
+    while (it != mapBlockIndex.end()) { // 遍历区块索引映射列表
+        if (it->second->IsValid(BLOCK_VALID_TRANSACTIONS) && it->second->nChainTx && !setBlockIndexCandidates.value_comp()(it->second, chainActive.Tip())) { // 若区块索引有效 且 该区块所有交易依赖的交易可用 且 该区块索引是最佳链尖
+            setBlockIndexCandidates.insert(it->second); // 插入区块索引候选集
         }
         it++;
     }
 
-    InvalidChainFound(pindex);
+    InvalidChainFound(pindex); // 查找无效的链
     mempool.removeForReorg(pcoinsTip, chainActive.Tip()->nHeight + 1, STANDARD_LOCKTIME_VERIFY_FLAGS);
     return true;
 }

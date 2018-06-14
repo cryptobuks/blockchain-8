@@ -649,7 +649,7 @@ public:
     int ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate = false); // 从指定区块开始扫描钱包交易
     void ReacceptWalletTransactions(); // 再次接受钱包交易，把交易放入内存池
     void ResendWalletTransactions(int64_t nBestBlockTime);
-    std::vector<uint256> ResendWalletTransactionsBefore(int64_t nTime);
+    std::vector<uint256> ResendWalletTransactionsBefore(int64_t nTime); // 重新发送某时间点前的钱包交易
     CAmount GetBalance() const; // 获取钱包余额
     CAmount GetUnconfirmedBalance() const; // 获取钱包内未确认的余额
     CAmount GetImmatureBalance() const;

@@ -118,7 +118,7 @@ static const bool DEFAULT_TESTSAFEMODE = false;
 static const bool DEFAULT_ENABLE_REPLACEMENT = true;
 
 /** Maximum number of headers to announce when relaying blocks with headers message.*/
-static const unsigned int MAX_BLOCKS_TO_ANNOUNCE = 8;
+static const unsigned int MAX_BLOCKS_TO_ANNOUNCE = 8; // 当使用头信息中继区块时，用于广播的区块头的最大数目
 
 struct BlockHasher // 区块哈希的函数对象
 {
@@ -236,7 +236,7 @@ bool IsInitialBlockDownload();
 std::string GetWarnings(const std::string& strFor);
 /** Retrieve a transaction (from memory pool, or from disk, if possible) */
 bool GetTransaction(const uint256 &hash, CTransaction &tx, const Consensus::Params& params, uint256 &hashBlock, bool fAllowSlow = false);
-/** Find the best known block, and make it the tip of the block chain */
+/** Find the best known block, and make it the tip of the block chain */ // 找到最佳的已知区块，并且使其成为区块链尖
 bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams, const CBlock* pblock = NULL);
 CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams);
 
@@ -514,7 +514,7 @@ public:
 /** Find the last common block between the parameter chain and a locator. */
 CBlockIndex* FindForkInGlobalIndex(const CChain& chain, const CBlockLocator& locator);
 
-/** Mark a block as invalid. */
+/** Mark a block as invalid. */ // 标记一个区块无效
 bool InvalidateBlock(CValidationState& state, const Consensus::Params& consensusParams, CBlockIndex *pindex);
 
 /** Remove invalidity status from a block and its descendants. */
