@@ -517,7 +517,7 @@ CBlockIndex* FindForkInGlobalIndex(const CChain& chain, const CBlockLocator& loc
 /** Mark a block as invalid. */ // 标记一个区块无效
 bool InvalidateBlock(CValidationState& state, const Consensus::Params& consensusParams, CBlockIndex *pindex);
 
-/** Remove invalidity status from a block and its descendants. */
+/** Remove invalidity status from a block and its descendants. */ // 移除一个区块及其后辈的无效状态
 bool ReconsiderBlock(CValidationState& state, CBlockIndex *pindex);
 
 /** The currently-connected chain of blocks (protected by cs_main). */

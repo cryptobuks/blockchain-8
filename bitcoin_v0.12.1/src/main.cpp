@@ -3003,36 +3003,36 @@ bool InvalidateBlock(CValidationState& state, const Consensus::Params& consensus
 }
 
 bool ReconsiderBlock(CValidationState& state, CBlockIndex *pindex) {
-    AssertLockHeld(cs_main);
+    AssertLockHeld(cs_main); // 上锁
 
-    int nHeight = pindex->nHeight;
+    int nHeight = pindex->nHeight; // 获取指定区块高度
 
-    // Remove the invalidity flag from this block and all its descendants.
+    // Remove the invalidity flag from this block and all its descendants. // 移除该区块及其后辈的无效化标志
     BlockMap::iterator it = mapBlockIndex.begin();
-    while (it != mapBlockIndex.end()) {
-        if (!it->second->IsValid() && it->second->GetAncestor(nHeight) == pindex) {
-            it->second->nStatus &= ~BLOCK_FAILED_MASK;
-            setDirtyBlockIndex.insert(it->second);
-            if (it->second->IsValid(BLOCK_VALID_TRANSACTIONS) && it->second->nChainTx && setBlockIndexCandidates.value_comp()(chainActive.Tip(), it->second)) {
-                setBlockIndexCandidates.insert(it->second);
+    while (it != mapBlockIndex.end()) { // 遍历区块索引映射列表
+        if (!it->second->IsValid() && it->second->GetAncestor(nHeight) == pindex) { // 若该索引无效
+            it->second->nStatus &= ~BLOCK_FAILED_MASK; // 改变区块状态
+            setDirtyBlockIndex.insert(it->second); // 插入无效区块索引集合
+            if (it->second->IsValid(BLOCK_VALID_TRANSACTIONS) && it->second->nChainTx && setBlockIndexCandidates.value_comp()(chainActive.Tip(), it->second)) { // 若该区块交易有效
+                setBlockIndexCandidates.insert(it->second); // 插入区块索引候选集
             }
             if (it->second == pindexBestInvalid) {
-                // Reset invalid block marker if it was pointing to one of those.
+                // Reset invalid block marker if it was pointing to one of those. // 如果它指向其中一个，重置无效区块标记
                 pindexBestInvalid = NULL;
             }
         }
         it++;
     }
 
-    // Remove the invalidity flag from all ancestors too.
-    while (pindex != NULL) {
+    // Remove the invalidity flag from all ancestors too. // 也移除全部祖先的无效化标志
+    while (pindex != NULL) { // 区块索引指针非空
         if (pindex->nStatus & BLOCK_FAILED_MASK) {
-            pindex->nStatus &= ~BLOCK_FAILED_MASK;
-            setDirtyBlockIndex.insert(pindex);
+            pindex->nStatus &= ~BLOCK_FAILED_MASK; // 0
+            setDirtyBlockIndex.insert(pindex); // 插入无效区块索引集合
         }
-        pindex = pindex->pprev;
+        pindex = pindex->pprev; // 指向前一个区块
     }
-    return true;
+    return true; // 成功返回 true
 }
 
 CBlockIndex* AddToBlockIndex(const CBlockHeader& block)
