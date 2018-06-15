@@ -203,8 +203,8 @@ extern UniValue setaccount(const UniValue& params, bool fHelp); // ÉèÖÃµØÖ·¹ØÁªÕ
 extern UniValue getaccount(const UniValue& params, bool fHelp); // »ñÈ¡µØÖ·ËùÊôÕË»§
 extern UniValue getaddressesbyaccount(const UniValue& params, bool fHelp); // »ñÈ¡ÕË»§ÏÂµÄËùÓĞµØÖ·
 extern UniValue sendtoaddress(const UniValue& params, bool fHelp); // ·¢ËÍ±ÈÌØ±Òµ½Ö¸¶¨µØÖ·
-extern UniValue signmessage(const UniValue& params, bool fHelp);
-extern UniValue verifymessage(const UniValue& params, bool fHelp);
+extern UniValue signmessage(const UniValue& params, bool fHelp); // Ç©ÃûÏûÏ¢
+extern UniValue verifymessage(const UniValue& params, bool fHelp); // ÑéÖ¤Ç©ÃûÏûÏ¢
 extern UniValue getreceivedbyaddress(const UniValue& params, bool fHelp); // »ñÈ¡Ä³µØÖ·½ÓÊÕµ½µÄ½ğ¶î
 extern UniValue getreceivedbyaccount(const UniValue& params, bool fHelp); // »ñÈ¡Ä³ÕË»§½ÓÊÕµ½µÄ½ğ¶î
 extern UniValue getbalance(const UniValue& params, bool fHelp); // »ñÈ¡Óà¶î
@@ -212,8 +212,8 @@ extern UniValue getunconfirmedbalance(const UniValue& params, bool fHelp); // »ñ
 extern UniValue movecmd(const UniValue& params, bool fHelp); // ÕË»§¼ä×ªÒÆ×Ê½ğ
 extern UniValue sendfrom(const UniValue& params, bool fHelp); // ´ÓÖ¸¶¨ÕË»§·¢ËÍ½ğ¶î
 extern UniValue sendmany(const UniValue& params, bool fHelp); // ·¢ËÍ½ğ¶îµ½¶à¸öµØÖ·
-extern UniValue addmultisigaddress(const UniValue& params, bool fHelp);
-extern UniValue createmultisig(const UniValue& params, bool fHelp);
+extern UniValue addmultisigaddress(const UniValue& params, bool fHelp); // Ìí¼Ó¶àÖØÇ©ÃûµØÖ·
+extern UniValue createmultisig(const UniValue& params, bool fHelp); // ´´½¨¶àÖØÇ©Ãû
 extern UniValue listreceivedbyaddress(const UniValue& params, bool fHelp); // ÁĞ³öµØÖ·Óà¶î
 extern UniValue listreceivedbyaccount(const UniValue& params, bool fHelp); // ÁĞ³öÕË»§Óà¶î
 extern UniValue listtransactions(const UniValue& params, bool fHelp); // ÁĞ³ö×î½üµÄ½»Ò×ĞÅÏ¢
@@ -228,7 +228,7 @@ extern UniValue walletpassphrase(const UniValue& params, bool fHelp); // Ç®°ü½âË
 extern UniValue walletpassphrasechange(const UniValue& params, bool fHelp); // ĞŞ¸ÄÇ®°üÃÜÂë
 extern UniValue walletlock(const UniValue& params, bool fHelp); // Ëø¶¨Ç®°ü
 extern UniValue encryptwallet(const UniValue& params, bool fHelp); // ¼ÓÃÜÇ®°ü
-extern UniValue validateaddress(const UniValue& params, bool fHelp);
+extern UniValue validateaddress(const UniValue& params, bool fHelp); // ÑéÖ¤µØÖ·
 extern UniValue getinfo(const UniValue& params, bool fHelp); // »ñÈ¡±ÈÌØ±ÒºËĞÄĞÅÏ¢
 extern UniValue getwalletinfo(const UniValue& params, bool fHelp); // »ñÈ¡Ç®°üĞÅÏ¢
 extern UniValue getblockchaininfo(const UniValue& params, bool fHelp); // »ñÈ¡Çø¿éÁ´ĞÅÏ¢

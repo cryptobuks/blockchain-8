@@ -132,7 +132,7 @@ typedef boost::unordered_map<uint256, CBlockIndex*, BlockHasher> BlockMap;
 extern BlockMap mapBlockIndex; // 区块索引映射 <区块哈希，区块索引指针，函数对象>
 extern uint64_t nLastBlockTx;
 extern uint64_t nLastBlockSize;
-extern const std::string strMessageMagic;
+extern const std::string strMessageMagic; // 消息魔数头（字符串）
 extern CWaitableCriticalSection csBestBlock;
 extern CConditionVariable cvBlockChange;
 extern bool fImporting;

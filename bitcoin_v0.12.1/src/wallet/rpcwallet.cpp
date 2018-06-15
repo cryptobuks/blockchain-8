@@ -509,11 +509,11 @@ UniValue listaddressgroupings(const UniValue& params, bool fHelp)
 
 UniValue signmessage(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保当前钱包可用
         return NullUniValue;
     
-    if (fHelp || params.size() != 2)
-        throw runtime_error(
+    if (fHelp || params.size() != 2) // 参数必须为 2 个
+        throw runtime_error( // 命令帮助反馈
             "signmessage \"bitcoinaddress\" \"message\"\n"
             "\nSign a message with the private key of an address"
             + HelpRequiringPassphrase() + "\n"
@@ -533,34 +533,34 @@ UniValue signmessage(const UniValue& params, bool fHelp)
             + HelpExampleRpc("signmessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\", \"my message\"")
         );
 
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
 
-    EnsureWalletIsUnlocked();
+    EnsureWalletIsUnlocked(); // 确保当前钱包处于解密状态
 
-    string strAddress = params[0].get_str();
-    string strMessage = params[1].get_str();
+    string strAddress = params[0].get_str(); // 获取指定地址
+    string strMessage = params[1].get_str(); // 获取消息
 
     CBitcoinAddress addr(strAddress);
-    if (!addr.IsValid())
+    if (!addr.IsValid()) // 验证地址是否有效
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid address");
 
     CKeyID keyID;
-    if (!addr.GetKeyID(keyID))
+    if (!addr.GetKeyID(keyID)) // 获取地址对应的密钥索引
         throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to key");
 
     CKey key;
-    if (!pwalletMain->GetKey(keyID, key))
+    if (!pwalletMain->GetKey(keyID, key)) // 通过索引获取对应私钥
         throw JSONRPCError(RPC_WALLET_ERROR, "Private key not available");
 
-    CHashWriter ss(SER_GETHASH, 0);
-    ss << strMessageMagic;
-    ss << strMessage;
+    CHashWriter ss(SER_GETHASH, 0); // 哈希写入器流对象
+    ss << strMessageMagic; // 导入消息魔术头
+    ss << strMessage; // 导入消息
 
     vector<unsigned char> vchSig;
-    if (!key.SignCompact(ss.GetHash(), vchSig))
+    if (!key.SignCompact(ss.GetHash(), vchSig)) // 使用私钥对消息进行签名，并获取签名数据
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sign failed");
 
-    return EncodeBase64(&vchSig[0], vchSig.size());
+    return EncodeBase64(&vchSig[0], vchSig.size()); // base64 编码签名并返回
 }
 
 UniValue getreceivedbyaddress(const UniValue& params, bool fHelp)
@@ -1054,11 +1054,11 @@ extern CScript _createmultisig_redeemScript(const UniValue& params);
 
 UniValue addmultisigaddress(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp))
+    if (!EnsureWalletIsAvailable(fHelp)) // 确保当前钱包可用
         return NullUniValue;
     
-    if (fHelp || params.size() < 2 || params.size() > 3)
-    {
+    if (fHelp || params.size() < 2 || params.size() > 3) // 参数为 2 或 3 个
+    { // 命令帮助反馈
         string msg = "addmultisigaddress nrequired [\"key\",...] ( \"account\" )\n"
             "\nAdd a nrequired-to-sign multisignature address to the wallet.\n"
             "Each key is a Bitcoin address or hex-encoded public key.\n"
@@ -1085,19 +1085,19 @@ UniValue addmultisigaddress(const UniValue& params, bool fHelp)
         throw runtime_error(msg);
     }
 
-    LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
 
     string strAccount;
     if (params.size() > 2)
-        strAccount = AccountFromValue(params[2]);
+        strAccount = AccountFromValue(params[2]); // 获取指定账户名
 
-    // Construct using pay-to-script-hash:
-    CScript inner = _createmultisig_redeemScript(params);
-    CScriptID innerID(inner);
-    pwalletMain->AddCScript(inner);
+    // Construct using pay-to-script-hash: // 使用 P2SH 构建
+    CScript inner = _createmultisig_redeemScript(params); // 创建多签赎回脚本
+    CScriptID innerID(inner); // 获取脚本索引
+    pwalletMain->AddCScript(inner); // 添加该脚本索引到钱包
 
-    pwalletMain->SetAddressBook(innerID, strAccount, "send");
-    return CBitcoinAddress(innerID).ToString();
+    pwalletMain->SetAddressBook(innerID, strAccount, "send"); // 设置地址簿
+    return CBitcoinAddress(innerID).ToString(); // 对脚本索引进行 base58 编码后返回
 }
 
 

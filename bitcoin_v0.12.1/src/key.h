@@ -132,7 +132,7 @@ public:
      * The header byte: 0x1B = first key with even y, 0x1C = first key with odd y,
      *                  0x1D = second key with even y, 0x1E = second key with odd y,
      *                  add 0x04 for compressed keys.
-     */
+     */ // 创建一个紧凑型的签名消息（65 字节），它允许重建使用的公钥。
     bool SignCompact(const uint256& hash, std::vector<unsigned char>& vchSig) const;
 
     //! Derive BIP32 child key.

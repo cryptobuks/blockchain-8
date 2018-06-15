@@ -127,7 +127,7 @@ inline uint160 Hash160(const prevector<N, unsigned char>& vch)
 }
 
 /** A writer stream (for serialization) that computes a 256-bit hash. */
-class CHashWriter
+class CHashWriter // 计算 256 散列的写入器流（用于序列化）。
 {
 private:
     CHash256 ctx;

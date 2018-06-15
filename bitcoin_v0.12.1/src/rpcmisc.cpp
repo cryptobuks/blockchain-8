@@ -149,8 +149,8 @@ public:
 
 UniValue validateaddress(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() != 1)
-        throw runtime_error(
+    if (fHelp || params.size() != 1) // 参数必须为 1 个
+        throw runtime_error( // 命令帮助反馈
             "validateaddress \"bitcoinaddress\"\n"
             "\nReturn information about the given bitcoin address.\n"
             "\nArguments:\n"
@@ -173,41 +173,41 @@ UniValue validateaddress(const UniValue& params, bool fHelp)
         );
 
 #ifdef ENABLE_WALLET
-    LOCK2(cs_main, pwalletMain ? &pwalletMain->cs_wallet : NULL);
+    LOCK2(cs_main, pwalletMain ? &pwalletMain->cs_wallet : NULL); // 钱包上锁
 #else
     LOCK(cs_main);
 #endif
 
-    CBitcoinAddress address(params[0].get_str());
-    bool isValid = address.IsValid();
+    CBitcoinAddress address(params[0].get_str()); // 获取指定的比特币地址
+    bool isValid = address.IsValid(); // 判断地址是否有效
 
-    UniValue ret(UniValue::VOBJ);
-    ret.push_back(Pair("isvalid", isValid));
-    if (isValid)
+    UniValue ret(UniValue::VOBJ); // 对象类型的返回结果
+    ret.push_back(Pair("isvalid", isValid)); // 有效性
+    if (isValid) // 若有效
     {
-        CTxDestination dest = address.Get();
+        CTxDestination dest = address.Get(); // 从比特币地址获取交易目的地址
         string currentAddress = address.ToString();
-        ret.push_back(Pair("address", currentAddress));
+        ret.push_back(Pair("address", currentAddress)); // 当前比特币地址
 
-        CScript scriptPubKey = GetScriptForDestination(dest);
-        ret.push_back(Pair("scriptPubKey", HexStr(scriptPubKey.begin(), scriptPubKey.end())));
+        CScript scriptPubKey = GetScriptForDestination(dest); // 从交易目的地址获取脚本公钥
+        ret.push_back(Pair("scriptPubKey", HexStr(scriptPubKey.begin(), scriptPubKey.end()))); // 脚本公钥
 
 #ifdef ENABLE_WALLET
         isminetype mine = pwalletMain ? IsMine(*pwalletMain, dest) : ISMINE_NO;
-        ret.push_back(Pair("ismine", (mine & ISMINE_SPENDABLE) ? true : false));
-        ret.push_back(Pair("iswatchonly", (mine & ISMINE_WATCH_ONLY) ? true: false));
-        UniValue detail = boost::apply_visitor(DescribeAddressVisitor(), dest);
-        ret.pushKVs(detail);
-        if (pwalletMain && pwalletMain->mapAddressBook.count(dest))
-            ret.push_back(Pair("account", pwalletMain->mapAddressBook[dest].name));
+        ret.push_back(Pair("ismine", (mine & ISMINE_SPENDABLE) ? true : false)); // 是否属于我的
+        ret.push_back(Pair("iswatchonly", (mine & ISMINE_WATCH_ONLY) ? true: false)); // 是否为 watch-only 地址
+        UniValue detail = boost::apply_visitor(DescribeAddressVisitor(), dest); // 排序
+        ret.pushKVs(detail); // 地址细节
+        if (pwalletMain && pwalletMain->mapAddressBook.count(dest)) // 若钱包可用 且 该目的地址在地址簿中
+            ret.push_back(Pair("account", pwalletMain->mapAddressBook[dest].name)); // 获取该地址关联的账户名
 #endif
     }
-    return ret;
+    return ret; // 返回结果
 }
 
 /**
  * Used by addmultisigaddress / createmultisig:
- */
+ */ // 用于 addmultisigaddress / createmultisig 这两个 rpc 命令
 CScript _createmultisig_redeemScript(const UniValue& params)
 {
     int nRequired = params[0].get_int();
@@ -271,8 +271,8 @@ CScript _createmultisig_redeemScript(const UniValue& params)
 
 UniValue createmultisig(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() < 2 || params.size() > 2)
-    {
+    if (fHelp || params.size() < 2 || params.size() > 2) // 参数必须为 2 个
+    { // 命令帮助反馈
         string msg = "createmultisig nrequired [\"key\",...]\n"
             "\nCreates a multi-signature address with n signature of m keys required.\n"
             "It returns a json object with the address and redeemScript.\n"
@@ -300,22 +300,22 @@ UniValue createmultisig(const UniValue& params, bool fHelp)
         throw runtime_error(msg);
     }
 
-    // Construct using pay-to-script-hash:
-    CScript inner = _createmultisig_redeemScript(params);
-    CScriptID innerID(inner);
-    CBitcoinAddress address(innerID);
+    // Construct using pay-to-script-hash: // 使用 P2SH 进行构建
+    CScript inner = _createmultisig_redeemScript(params); // 创建多签赎回脚本
+    CScriptID innerID(inner); // 获取脚本索引
+    CBitcoinAddress address(innerID); // 通过脚本索引获取比特币地址
 
-    UniValue result(UniValue::VOBJ);
-    result.push_back(Pair("address", address.ToString()));
-    result.push_back(Pair("redeemScript", HexStr(inner.begin(), inner.end())));
+    UniValue result(UniValue::VOBJ); // 目标对象
+    result.push_back(Pair("address", address.ToString())); // 地址
+    result.push_back(Pair("redeemScript", HexStr(inner.begin(), inner.end()))); // 赎回脚本
 
-    return result;
+    return result; // 返回结果
 }
 
 UniValue verifymessage(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() != 3)
-        throw runtime_error(
+    if (fHelp || params.size() != 3) // 参数必须为 3 个
+        throw runtime_error( // 命令帮助反馈
             "verifymessage \"bitcoinaddress\" \"signature\" \"message\"\n"
             "\nVerify a signed message\n"
             "\nArguments:\n"
@@ -335,35 +335,35 @@ UniValue verifymessage(const UniValue& params, bool fHelp)
             + HelpExampleRpc("verifymessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\", \"signature\", \"my message\"")
         );
 
-    LOCK(cs_main);
+    LOCK(cs_main); // 上锁
 
-    string strAddress  = params[0].get_str();
-    string strSign     = params[1].get_str();
-    string strMessage  = params[2].get_str();
+    string strAddress  = params[0].get_str(); // 获取指定地址
+    string strSign     = params[1].get_str(); // 获取指定签名
+    string strMessage  = params[2].get_str(); // 获取相应签名消息
 
     CBitcoinAddress addr(strAddress);
-    if (!addr.IsValid())
+    if (!addr.IsValid()) // 验证地址是否有效
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid address");
 
     CKeyID keyID;
-    if (!addr.GetKeyID(keyID))
+    if (!addr.GetKeyID(keyID)) // 获取密钥索引
         throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to key");
 
     bool fInvalid = false;
-    vector<unsigned char> vchSig = DecodeBase64(strSign.c_str(), &fInvalid);
+    vector<unsigned char> vchSig = DecodeBase64(strSign.c_str(), &fInvalid); // 对签名进行 base64 解码
 
-    if (fInvalid)
+    if (fInvalid) // 验证解码是否成功
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Malformed base64 encoding");
 
-    CHashWriter ss(SER_GETHASH, 0);
-    ss << strMessageMagic;
-    ss << strMessage;
+    CHashWriter ss(SER_GETHASH, 0); // 创建哈希写入器对象
+    ss << strMessageMagic; // 导入消息魔术头
+    ss << strMessage; // 导入消息
 
     CPubKey pubkey;
-    if (!pubkey.RecoverCompact(ss.GetHash(), vchSig))
+    if (!pubkey.RecoverCompact(ss.GetHash(), vchSig)) // 从签名和消息的哈希获取公钥
         return false;
 
-    return (pubkey.GetID() == keyID);
+    return (pubkey.GetID() == keyID); // 若获取公钥的索引等于指定地址索引，验证成功，返回 true
 }
 
 UniValue setmocktime(const UniValue& params, bool fHelp)
