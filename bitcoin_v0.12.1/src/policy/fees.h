@@ -240,7 +240,7 @@ public:
     /** Is this transaction likely included in a block because of its priority?*/
     bool isPriDataPoint(const CFeeRate &fee, double pri);
 
-    /** Return a fee estimate */
+    /** Return a fee estimate */ // 返回一个交易费预估值
     CFeeRate estimateFee(int confTarget);
 
     /** Estimate fee rate needed to get be included in a block within
@@ -249,7 +249,7 @@ public:
      */
     CFeeRate estimateSmartFee(int confTarget, int *answerFoundAtTarget, const CTxMemPool& pool);
 
-    /** Return a priority estimate */
+    /** Return a priority estimate */ // 返回一个交易优先级预估值
     double estimatePriority(int confTarget);
 
     /** Estimate priority needed to get be included in a block within

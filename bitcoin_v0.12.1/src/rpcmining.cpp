@@ -671,8 +671,8 @@ UniValue submitblock(const UniValue& params, bool fHelp)
 
 UniValue estimatefee(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() != 1)
-        throw runtime_error(
+    if (fHelp || params.size() != 1) // 参数必须为 1 个
+        throw runtime_error( // 命令帮助反馈
             "estimatefee nblocks\n"
             "\nEstimates the approximate fee per kilobyte needed for a transaction to begin\n"
             "confirmation within nblocks blocks.\n"
@@ -687,23 +687,23 @@ UniValue estimatefee(const UniValue& params, bool fHelp)
             + HelpExampleCli("estimatefee", "6")
             );
 
-    RPCTypeCheck(params, boost::assign::list_of(UniValue::VNUM));
+    RPCTypeCheck(params, boost::assign::list_of(UniValue::VNUM)); // 参数类型检查
 
-    int nBlocks = params[0].get_int();
-    if (nBlocks < 1)
+    int nBlocks = params[0].get_int(); // 获取指定的块数
+    if (nBlocks < 1) // 块数最低为 1
         nBlocks = 1;
 
-    CFeeRate feeRate = mempool.estimateFee(nBlocks);
-    if (feeRate == CFeeRate(0))
-        return -1.0;
+    CFeeRate feeRate = mempool.estimateFee(nBlocks); // 交易内存池预估交易费（根据区块数）
+    if (feeRate == CFeeRate(0)) // 若交易费为 0
+        return -1.0; // 返回 -1.0
 
-    return ValueFromAmount(feeRate.GetFeePerK());
+    return ValueFromAmount(feeRate.GetFeePerK()); // 否则，格式化后返回预估交易费
 }
 
 UniValue estimatepriority(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() != 1)
-        throw runtime_error(
+    if (fHelp || params.size() != 1) // 参数必须为 1 个
+        throw runtime_error( // 命令帮助反馈
             "estimatepriority nblocks\n"
             "\nEstimates the approximate priority a zero-fee transaction needs to begin\n"
             "confirmation within nblocks blocks.\n"
@@ -718,19 +718,19 @@ UniValue estimatepriority(const UniValue& params, bool fHelp)
             + HelpExampleCli("estimatepriority", "6")
             );
 
-    RPCTypeCheck(params, boost::assign::list_of(UniValue::VNUM));
+    RPCTypeCheck(params, boost::assign::list_of(UniValue::VNUM)); // 检查参数类型
 
-    int nBlocks = params[0].get_int();
-    if (nBlocks < 1)
+    int nBlocks = params[0].get_int(); // 获取指定区块数
+    if (nBlocks < 1) // 区块至少为 1 块
         nBlocks = 1;
 
-    return mempool.estimatePriority(nBlocks);
+    return mempool.estimatePriority(nBlocks); // 在交易内存池中根据块数估算交易优先级，并返回
 }
 
 UniValue estimatesmartfee(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() != 1)
-        throw runtime_error(
+    if (fHelp || params.size() != 1) // 参数必须为 1 个
+        throw runtime_error( // 命令帮助反馈
             "estimatesmartfee nblocks\n"
             "\nWARNING: This interface is unstable and may disappear or change!\n"
             "\nEstimates the approximate fee per kilobyte needed for a transaction to begin\n"
@@ -751,22 +751,22 @@ UniValue estimatesmartfee(const UniValue& params, bool fHelp)
             + HelpExampleCli("estimatesmartfee", "6")
             );
 
-    RPCTypeCheck(params, boost::assign::list_of(UniValue::VNUM));
+    RPCTypeCheck(params, boost::assign::list_of(UniValue::VNUM)); // 参数类型检查
 
-    int nBlocks = params[0].get_int();
+    int nBlocks = params[0].get_int(); // 获取指定的区块数
 
     UniValue result(UniValue::VOBJ);
-    int answerFound;
-    CFeeRate feeRate = mempool.estimateSmartFee(nBlocks, &answerFound);
-    result.push_back(Pair("feerate", feeRate == CFeeRate(0) ? -1.0 : ValueFromAmount(feeRate.GetFeePerK())));
-    result.push_back(Pair("blocks", answerFound));
-    return result;
+    int answerFound; // 保存估计有效的块数
+    CFeeRate feeRate = mempool.estimateSmartFee(nBlocks, &answerFound); // 智能估算交易费
+    result.push_back(Pair("feerate", feeRate == CFeeRate(0) ? -1.0 : ValueFromAmount(feeRate.GetFeePerK()))); // 交易费
+    result.push_back(Pair("blocks", answerFound)); // 有效的区块数
+    return result; // 返回结果
 }
 
 UniValue estimatesmartpriority(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() != 1)
-        throw runtime_error(
+    if (fHelp || params.size() != 1) // 参数必须为 1 个
+        throw runtime_error( // 命令帮助反馈
             "estimatesmartpriority nblocks\n"
             "\nWARNING: This interface is unstable and may disappear or change!\n"
             "\nEstimates the approximate priority a zero-fee transaction needs to begin\n"
@@ -787,14 +787,14 @@ UniValue estimatesmartpriority(const UniValue& params, bool fHelp)
             + HelpExampleCli("estimatesmartpriority", "6")
             );
 
-    RPCTypeCheck(params, boost::assign::list_of(UniValue::VNUM));
+    RPCTypeCheck(params, boost::assign::list_of(UniValue::VNUM)); // 检查参数类型
 
-    int nBlocks = params[0].get_int();
+    int nBlocks = params[0].get_int(); // 获取指定的区块数
 
     UniValue result(UniValue::VOBJ);
-    int answerFound;
-    double priority = mempool.estimateSmartPriority(nBlocks, &answerFound);
-    result.push_back(Pair("priority", priority));
-    result.push_back(Pair("blocks", answerFound));
-    return result;
+    int answerFound; // 估计有效的区块数
+    double priority = mempool.estimateSmartPriority(nBlocks, &answerFound); // 智能估算估算优先级并获取估算有效的区块数
+    result.push_back(Pair("priority", priority)); // 交易优先级
+    result.push_back(Pair("blocks", answerFound)); // 有效区块数
+    return result; // 返回结果集
 }

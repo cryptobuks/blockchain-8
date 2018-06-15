@@ -191,10 +191,10 @@ extern UniValue getmininginfo(const UniValue& params, bool fHelp); // 获取挖矿信
 extern UniValue prioritisetransaction(const UniValue& params, bool fHelp); // 设置交易的优先级
 extern UniValue getblocktemplate(const UniValue& params, bool fHelp);
 extern UniValue submitblock(const UniValue& params, bool fHelp); // 提交区块
-extern UniValue estimatefee(const UniValue& params, bool fHelp);
-extern UniValue estimatepriority(const UniValue& params, bool fHelp);
-extern UniValue estimatesmartfee(const UniValue& params, bool fHelp);
-extern UniValue estimatesmartpriority(const UniValue& params, bool fHelp);
+extern UniValue estimatefee(const UniValue& params, bool fHelp); // 预估交易费
+extern UniValue estimatepriority(const UniValue& params, bool fHelp); // 预估交易优先级
+extern UniValue estimatesmartfee(const UniValue& params, bool fHelp); // 智能估计交易费
+extern UniValue estimatesmartpriority(const UniValue& params, bool fHelp); // 智能估计交易优先级
 
 extern UniValue getnewaddress(const UniValue& params, bool fHelp); // 获取新地址
 extern UniValue getaccountaddress(const UniValue& params, bool fHelp); // 获取账户找零地址

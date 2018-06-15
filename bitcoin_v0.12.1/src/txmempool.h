@@ -546,11 +546,11 @@ public:
     /** Estimate fee rate needed to get into the next nBlocks
      *  If no answer can be given at nBlocks, return an estimate
      *  at the lowest number of blocks where one can be given
-     */
+     */ // 估计进入下一个区块所需的费率
     CFeeRate estimateSmartFee(int nBlocks, int *answerFoundAtBlocks = NULL) const;
 
     /** Estimate fee rate needed to get into the next nBlocks */
-    CFeeRate estimateFee(int nBlocks) const;
+    CFeeRate estimateFee(int nBlocks) const; // 估算进入下一个区块需要的交易费
 
     /** Estimate priority needed to get into the next nBlocks
      *  If no answer can be given at nBlocks, return an estimate
@@ -559,7 +559,7 @@ public:
     double estimateSmartPriority(int nBlocks, int *answerFoundAtBlocks = NULL) const;
 
     /** Estimate priority needed to get into the next nBlocks */
-    double estimatePriority(int nBlocks) const;
+    double estimatePriority(int nBlocks) const; // 估算进入下一个区块需要的交易优先级
     
     /** Write/Read estimates to disk */
     bool WriteFeeEstimates(CAutoFile& fileout) const;
