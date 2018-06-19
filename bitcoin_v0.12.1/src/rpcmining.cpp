@@ -302,28 +302,28 @@ UniValue prioritisetransaction(const UniValue& params, bool fHelp) // 注：与钱包
 
 
 // NOTE: Assumes a conclusive result; if result is inconclusive, it must be handled by caller
-static UniValue BIP22ValidationResult(const CValidationState& state)
+static UniValue BIP22ValidationResult(const CValidationState& state) // 注：假设一个确定的结果；如果结果是不确定的，必须由调用方处理
 {
-    if (state.IsValid())
-        return NullUniValue;
+    if (state.IsValid()) // 无效状态
+        return NullUniValue; // 返回空
 
-    std::string strRejectReason = state.GetRejectReason();
+    std::string strRejectReason = state.GetRejectReason(); // 获取拒绝原因
     if (state.IsError())
         throw JSONRPCError(RPC_VERIFY_ERROR, strRejectReason);
-    if (state.IsInvalid())
+    if (state.IsInvalid()) // 状态无效
     {
-        if (strRejectReason.empty())
+        if (strRejectReason.empty()) // 拒绝原因为空
             return "rejected";
         return strRejectReason;
     }
     // Should be impossible
-    return "valid?";
+    return "valid?"; // 应该是不可能的
 }
 
 UniValue getblocktemplate(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() > 1)
-        throw runtime_error(
+    if (fHelp || params.size() > 1) // 参数最多为 1 个
+        throw runtime_error( // 命令帮助反馈
             "getblocktemplate ( \"jsonrequestobject\" )\n"
             "\nIf the request parameters include a 'mode' key, that is used to explicitly select between the default 'template' request or a 'proposal'.\n"
             "It returns data needed to construct a block to work on.\n"
@@ -382,68 +382,68 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
             + HelpExampleRpc("getblocktemplate", "")
          );
 
-    LOCK(cs_main);
+    LOCK(cs_main); // 上锁
 
-    std::string strMode = "template";
+    std::string strMode = "template"; // 模式，默认为 "template"
     UniValue lpval = NullUniValue;
-    if (params.size() > 0)
+    if (params.size() > 0) // 指定了参数
     {
-        const UniValue& oparam = params[0].get_obj();
-        const UniValue& modeval = find_value(oparam, "mode");
-        if (modeval.isStr())
-            strMode = modeval.get_str();
-        else if (modeval.isNull())
+        const UniValue& oparam = params[0].get_obj(); // 获取参数对象
+        const UniValue& modeval = find_value(oparam, "mode"); // 获取 "mode" 关键字对应的值
+        if (modeval.isStr()) // 字符串类型
+            strMode = modeval.get_str(); // 获取指定模式
+        else if (modeval.isNull()) // 空
         {
             /* Do nothing */
         }
-        else
+        else // 其它类型
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid mode");
         lpval = find_value(oparam, "longpollid");
 
-        if (strMode == "proposal")
+        if (strMode == "proposal") // "proposal" 模式
         {
-            const UniValue& dataval = find_value(oparam, "data");
+            const UniValue& dataval = find_value(oparam, "data"); // 获取数据
             if (!dataval.isStr())
                 throw JSONRPCError(RPC_TYPE_ERROR, "Missing data String key for proposal");
 
             CBlock block;
-            if (!DecodeHexBlk(block, dataval.get_str()))
+            if (!DecodeHexBlk(block, dataval.get_str())) // 解码 16 进制的区块
                 throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block decode failed");
 
-            uint256 hash = block.GetHash();
-            BlockMap::iterator mi = mapBlockIndex.find(hash);
-            if (mi != mapBlockIndex.end()) {
-                CBlockIndex *pindex = mi->second;
-                if (pindex->IsValid(BLOCK_VALID_SCRIPTS))
+            uint256 hash = block.GetHash(); // 获取区块哈希
+            BlockMap::iterator mi = mapBlockIndex.find(hash); // 在区块索引列表中查找指定区块
+            if (mi != mapBlockIndex.end()) { // 若找到
+                CBlockIndex *pindex = mi->second; // 获取指定区块索引指针
+                if (pindex->IsValid(BLOCK_VALID_SCRIPTS)) // 验证区块
                     return "duplicate";
-                if (pindex->nStatus & BLOCK_FAILED_MASK)
+                if (pindex->nStatus & BLOCK_FAILED_MASK) // 区块状态
                     return "duplicate-invalid";
                 return "duplicate-inconclusive";
-            }
+            } // 若未找到
 
-            CBlockIndex* const pindexPrev = chainActive.Tip();
+            CBlockIndex* const pindexPrev = chainActive.Tip(); // 获取激活链尖
             // TestBlockValidity only supports blocks built on the current Tip
-            if (block.hashPrevBlock != pindexPrev->GetBlockHash())
+            if (block.hashPrevBlock != pindexPrev->GetBlockHash()) // 指定区块的前一个区块哈希是否为当前链尖区块
                 return "inconclusive-not-best-prevblk";
             CValidationState state;
-            TestBlockValidity(state, Params(), block, pindexPrev, false, true);
-            return BIP22ValidationResult(state);
+            TestBlockValidity(state, Params(), block, pindexPrev, false, true); // 测试区块有效性
+            return BIP22ValidationResult(state); // 返回验证结果
         }
     }
 
-    if (strMode != "template")
+    if (strMode != "template") // "template" 模式
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid mode");
 
-    if (vNodes.empty())
+    if (vNodes.empty()) // 已建立连接的节点列表非空
         throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Bitcoin is not connected!");
 
-    if (IsInitialBlockDownload())
+    if (IsInitialBlockDownload()) // 检查是否初始化块下载完成
         throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Bitcoin is downloading blocks...");
 
     static unsigned int nTransactionsUpdatedLast;
 
     if (!lpval.isNull())
-    {
+    { // 等待响应，直到最佳块改变，或 1 分钟过去有更多的交易
         // Wait to respond until either the best block changes, OR a minute has passed and there are more transactions
         uint256 hashWatchedChain;
         boost::system_time checktxtime;
@@ -458,100 +458,100 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
             nTransactionsUpdatedLastLP = atoi64(lpstr.substr(64));
         }
         else
-        {
+        { // 注：规范没有对非字符串的 longpollip 指定行为，但这使测试更加容易
             // NOTE: Spec does not specify behaviour for non-string longpollid, but this makes testing easier
-            hashWatchedChain = chainActive.Tip()->GetBlockHash();
-            nTransactionsUpdatedLastLP = nTransactionsUpdatedLast;
+            hashWatchedChain = chainActive.Tip()->GetBlockHash(); // 获取链尖区块哈希
+            nTransactionsUpdatedLastLP = nTransactionsUpdatedLast; // 最新的交易更新数量
         }
 
         // Release the wallet and main lock while waiting
-        LEAVE_CRITICAL_SECTION(cs_main);
+        LEAVE_CRITICAL_SECTION(cs_main); // 在等待时释放钱包和主锁
         {
-            checktxtime = boost::get_system_time() + boost::posix_time::minutes(1);
+            checktxtime = boost::get_system_time() + boost::posix_time::minutes(1); // 检查交易时间为 1 分钟后
 
-            boost::unique_lock<boost::mutex> lock(csBestBlock);
+            boost::unique_lock<boost::mutex> lock(csBestBlock); // 最佳区块上锁
             while (chainActive.Tip()->GetBlockHash() == hashWatchedChain && IsRPCRunning())
-            {
-                if (!cvBlockChange.timed_wait(lock, checktxtime))
+            { // 最佳区块未改变 且 RPC 服务开启
+                if (!cvBlockChange.timed_wait(lock, checktxtime)) // 超时：检查交易用于更新
                 {
                     // Timeout: Check transactions for update
                     if (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLastLP)
                         break;
-                    checktxtime += boost::posix_time::seconds(10);
+                    checktxtime += boost::posix_time::seconds(10); // 检查时间加 10 秒
                 }
             }
         }
         ENTER_CRITICAL_SECTION(cs_main);
 
-        if (!IsRPCRunning())
+        if (!IsRPCRunning()) // 检查 RPC 服务是否开启
             throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Shutting down");
         // TODO: Maybe recheck connections/IBD and (if something wrong) send an expires-immediately template to stop miners?
     }
 
-    // Update block
+    // Update block // 更新区块
     static CBlockIndex* pindexPrev;
     static int64_t nStart;
     static CBlockTemplate* pblocktemplate;
-    if (pindexPrev != chainActive.Tip() ||
-        (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast && GetTime() - nStart > 5))
-    {
+    if (pindexPrev != chainActive.Tip() || // 最佳区块非空 或
+        (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast && GetTime() - nStart > 5)) // 交易内存池交易更新数量不等于最近交易更新数 且 当前时间过去 5 秒
+    { // 清空 pindexPrev 以便将来调用创建一个新块，尽管这里可能会失败
         // Clear pindexPrev so future calls make a new block, despite any failures from here on
-        pindexPrev = NULL;
+        pindexPrev = NULL; // 置空
 
         // Store the pindexBest used before CreateNewBlock, to avoid races
-        nTransactionsUpdatedLast = mempool.GetTransactionsUpdated();
-        CBlockIndex* pindexPrevNew = chainActive.Tip();
+        nTransactionsUpdatedLast = mempool.GetTransactionsUpdated(); // 获取当前交易更新数
+        CBlockIndex* pindexPrevNew = chainActive.Tip(); // 获取链尖索引
         nStart = GetTime();
 
         // Create new block
-        if(pblocktemplate)
+        if(pblocktemplate) // 若区块模板已存在
         {
-            delete pblocktemplate;
-            pblocktemplate = NULL;
+            delete pblocktemplate; // 先删除
+            pblocktemplate = NULL; // 在置空
         }
-        CScript scriptDummy = CScript() << OP_TRUE;
-        pblocktemplate = CreateNewBlock(Params(), scriptDummy);
+        CScript scriptDummy = CScript() << OP_TRUE; // 脚本
+        pblocktemplate = CreateNewBlock(Params(), scriptDummy); // 创建一个新块
         if (!pblocktemplate)
             throw JSONRPCError(RPC_OUT_OF_MEMORY, "Out of memory");
 
         // Need to update only after we know CreateNewBlock succeeded
-        pindexPrev = pindexPrevNew;
+        pindexPrev = pindexPrevNew; // 在我们直到创建新块成功后需要更新前一个区块的哈希
     }
     CBlock* pblock = &pblocktemplate->block; // pointer for convenience
 
     // Update nTime
-    UpdateTime(pblock, Params().GetConsensus(), pindexPrev);
-    pblock->nNonce = 0;
+    UpdateTime(pblock, Params().GetConsensus(), pindexPrev); // 更新时间
+    pblock->nNonce = 0; // 初始化随机数
 
     UniValue aCaps(UniValue::VARR); aCaps.push_back("proposal");
 
     UniValue transactions(UniValue::VARR);
-    map<uint256, int64_t> setTxIndex;
+    map<uint256, int64_t> setTxIndex; // 交易索引映射列表
     int i = 0;
-    BOOST_FOREACH (const CTransaction& tx, pblock->vtx) {
-        uint256 txHash = tx.GetHash();
-        setTxIndex[txHash] = i++;
+    BOOST_FOREACH (const CTransaction& tx, pblock->vtx) { // 遍历区块交易索引列表
+        uint256 txHash = tx.GetHash(); // 获取交易哈希
+        setTxIndex[txHash] = i++; // 加入交易索引映射列表
 
-        if (tx.IsCoinBase())
-            continue;
+        if (tx.IsCoinBase()) // 若为创币交易
+            continue; // 跳过
 
         UniValue entry(UniValue::VOBJ);
 
-        entry.push_back(Pair("data", EncodeHexTx(tx)));
+        entry.push_back(Pair("data", EncodeHexTx(tx))); // 编码 16 进制的交易
 
-        entry.push_back(Pair("hash", txHash.GetHex()));
+        entry.push_back(Pair("hash", txHash.GetHex())); // 获取 16 进制的交易索引
 
         UniValue deps(UniValue::VARR);
-        BOOST_FOREACH (const CTxIn &in, tx.vin)
+        BOOST_FOREACH (const CTxIn &in, tx.vin) // 遍历交易输入列表
         {
-            if (setTxIndex.count(in.prevout.hash))
-                deps.push_back(setTxIndex[in.prevout.hash]);
+            if (setTxIndex.count(in.prevout.hash)) // 若前一笔交易输出在交易索引映射列表中
+                deps.push_back(setTxIndex[in.prevout.hash]); // 加入依赖 json 数组
         }
-        entry.push_back(Pair("depends", deps));
+        entry.push_back(Pair("depends", deps)); // 依赖交易
 
-        int index_in_template = i - 1;
-        entry.push_back(Pair("fee", pblocktemplate->vTxFees[index_in_template]));
-        entry.push_back(Pair("sigops", pblocktemplate->vTxSigOps[index_in_template]));
+        int index_in_template = i - 1; // 当前交易的索引序号
+        entry.push_back(Pair("fee", pblocktemplate->vTxFees[index_in_template])); // 交易费
+        entry.push_back(Pair("sigops", pblocktemplate->vTxSigOps[index_in_template])); // 交易签名操作
 
         transactions.push_back(entry);
     }
@@ -559,35 +559,35 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
     UniValue aux(UniValue::VOBJ);
     aux.push_back(Pair("flags", HexStr(COINBASE_FLAGS.begin(), COINBASE_FLAGS.end())));
 
-    arith_uint256 hashTarget = arith_uint256().SetCompact(pblock->nBits);
+    arith_uint256 hashTarget = arith_uint256().SetCompact(pblock->nBits); // 计算难度目标值
 
     static UniValue aMutable(UniValue::VARR);
     if (aMutable.empty())
     {
-        aMutable.push_back("time");
-        aMutable.push_back("transactions");
-        aMutable.push_back("prevblock");
+        aMutable.push_back("time"); // 时间
+        aMutable.push_back("transactions"); // 交易
+        aMutable.push_back("prevblock"); // 前一个区块
     }
 
     UniValue result(UniValue::VOBJ);
-    result.push_back(Pair("capabilities", aCaps));
-    result.push_back(Pair("version", pblock->nVersion));
-    result.push_back(Pair("previousblockhash", pblock->hashPrevBlock.GetHex()));
-    result.push_back(Pair("transactions", transactions));
-    result.push_back(Pair("coinbaseaux", aux));
-    result.push_back(Pair("coinbasevalue", (int64_t)pblock->vtx[0].vout[0].nValue));
+    result.push_back(Pair("capabilities", aCaps)); // 功能
+    result.push_back(Pair("version", pblock->nVersion)); // 区块版本
+    result.push_back(Pair("previousblockhash", pblock->hashPrevBlock.GetHex())); // 前一个区块哈希
+    result.push_back(Pair("transactions", transactions)); // 交易
+    result.push_back(Pair("coinbaseaux", aux)); // coinbase aux
+    result.push_back(Pair("coinbasevalue", (int64_t)pblock->vtx[0].vout[0].nValue)); // 创币交易输出金额
     result.push_back(Pair("longpollid", chainActive.Tip()->GetBlockHash().GetHex() + i64tostr(nTransactionsUpdatedLast)));
-    result.push_back(Pair("target", hashTarget.GetHex()));
+    result.push_back(Pair("target", hashTarget.GetHex())); // 难度目标
     result.push_back(Pair("mintime", (int64_t)pindexPrev->GetMedianTimePast()+1));
     result.push_back(Pair("mutable", aMutable));
-    result.push_back(Pair("noncerange", "00000000ffffffff"));
-    result.push_back(Pair("sigoplimit", (int64_t)MAX_BLOCK_SIGOPS));
-    result.push_back(Pair("sizelimit", (int64_t)MAX_BLOCK_SIZE));
-    result.push_back(Pair("curtime", pblock->GetBlockTime()));
-    result.push_back(Pair("bits", strprintf("%08x", pblock->nBits)));
-    result.push_back(Pair("height", (int64_t)(pindexPrev->nHeight+1)));
+    result.push_back(Pair("noncerange", "00000000ffffffff")); // 随机数范围
+    result.push_back(Pair("sigoplimit", (int64_t)MAX_BLOCK_SIGOPS)); // 区块签名操作数量上限
+    result.push_back(Pair("sizelimit", (int64_t)MAX_BLOCK_SIZE)); // 区块大小上限
+    result.push_back(Pair("curtime", pblock->GetBlockTime())); // 区块创建时间
+    result.push_back(Pair("bits", strprintf("%08x", pblock->nBits))); // 难度
+    result.push_back(Pair("height", (int64_t)(pindexPrev->nHeight+1))); // 高度
 
-    return result;
+    return result; // 返回结果
 }
 
 class submitblock_StateCatcher : public CValidationInterface

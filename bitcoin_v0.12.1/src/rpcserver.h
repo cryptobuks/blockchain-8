@@ -44,7 +44,7 @@ public:
 };
 
 /** Query whether RPC is running */
-bool IsRPCRunning();
+bool IsRPCRunning(); // ²éÑ¯ RPC ·şÎñÊÇ·ñÔËĞĞ
 
 /**
  * Set the RPC warmup status.  When this is done, all RPC calls will error out
@@ -189,7 +189,7 @@ extern UniValue generate(const UniValue& params, bool fHelp); // Éú³ÉÖ¸¶¨ÊıÄ¿¸öÇ
 extern UniValue getnetworkhashps(const UniValue& params, bool fHelp); // »ñÈ¡È«ÍøËãÁ¦
 extern UniValue getmininginfo(const UniValue& params, bool fHelp); // »ñÈ¡ÍÚ¿óĞÅÏ¢
 extern UniValue prioritisetransaction(const UniValue& params, bool fHelp); // ÉèÖÃ½»Ò×µÄÓÅÏÈ¼¶
-extern UniValue getblocktemplate(const UniValue& params, bool fHelp);
+extern UniValue getblocktemplate(const UniValue& params, bool fHelp); // »ñÈ¡Çø¿éÄ£°å
 extern UniValue submitblock(const UniValue& params, bool fHelp); // Ìá½»Çø¿é
 extern UniValue estimatefee(const UniValue& params, bool fHelp); // Ô¤¹À½»Ò×·Ñ
 extern UniValue estimatepriority(const UniValue& params, bool fHelp); // Ô¤¹À½»Ò×ÓÅÏÈ¼¶

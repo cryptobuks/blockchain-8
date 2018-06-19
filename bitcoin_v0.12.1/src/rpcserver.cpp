@@ -28,7 +28,7 @@
 using namespace RPCServer;
 using namespace std;
 
-static bool fRPCRunning = false;
+static bool fRPCRunning = false; // RPC 运行状态，默认关闭
 static bool fRPCInWarmup = true;
 static std::string rpcWarmupStatus("RPC server started"); // 静态 string 类型全局变量
 static CCriticalSection cs_rpcWarmup;
@@ -420,7 +420,7 @@ void StopRPC()
 
 bool IsRPCRunning()
 {
-    return fRPCRunning;
+    return fRPCRunning; // 返回 RPC 运行状态
 }
 
 void SetRPCWarmupStatus(const std::string& newStatus)
