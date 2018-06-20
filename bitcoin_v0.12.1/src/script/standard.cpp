@@ -37,7 +37,7 @@ const char* GetTxnOutputType(txnouttype t)
 
 /**
  * Return public keys or hashes from scriptPubKey, for 'standard' transaction types.
- */
+ */ // 返回公钥或来自脚本公钥的哈希，对于 'standard' 交易类型。
 bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector<unsigned char> >& vSolutionsRet)
 {
     // Templates

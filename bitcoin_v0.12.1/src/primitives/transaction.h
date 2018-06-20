@@ -250,7 +250,7 @@ public:
         return vin.empty() && vout.empty();
     }
 
-    const uint256& GetHash() const {
+    const uint256& GetHash() const { // 获取本交易哈希
         return hash;
     }
 

@@ -921,16 +921,16 @@ void CWallet::SyncTransaction(const CTransaction& tx, const CBlock* pblock)
 isminetype CWallet::IsMine(const CTxIn &txin) const
 {
     {
-        LOCK(cs_wallet);
-        map<uint256, CWalletTx>::const_iterator mi = mapWallet.find(txin.prevout.hash);
-        if (mi != mapWallet.end())
+        LOCK(cs_wallet); // 钱包上锁
+        map<uint256, CWalletTx>::const_iterator mi = mapWallet.find(txin.prevout.hash); // 在本地钱包中查询前一笔交易输出
+        if (mi != mapWallet.end()) // 若找到
         {
-            const CWalletTx& prev = (*mi).second;
-            if (txin.prevout.n < prev.vout.size())
-                return IsMine(prev.vout[txin.prevout.n]);
+            const CWalletTx& prev = (*mi).second; // 获取钱包交易
+            if (txin.prevout.n < prev.vout.size()) // 前一笔交易输出序号在范围之内
+                return IsMine(prev.vout[txin.prevout.n]); // 验证前一笔交易输出是否属于本地钱包
         }
     }
-    return ISMINE_NO;
+    return ISMINE_NO; // 0 表示前一笔交易不属于本地钱包
 }
 
 CAmount CWallet::GetDebit(const CTxIn &txin, const isminefilter& filter) const
@@ -951,14 +951,14 @@ CAmount CWallet::GetDebit(const CTxIn &txin, const isminefilter& filter) const
 
 isminetype CWallet::IsMine(const CTxOut& txout) const
 {
-    return ::IsMine(*this, txout.scriptPubKey);
+    return ::IsMine(*this, txout.scriptPubKey); // 检查该交易是否属于我
 }
 
-CAmount CWallet::GetCredit(const CTxOut& txout, const isminefilter& filter) const
+CAmount CWallet::GetCredit(const CTxOut& txout, const isminefilter& filter) const // 4
 {
-    if (!MoneyRange(txout.nValue))
+    if (!MoneyRange(txout.nValue)) // 交易输出范围检查
         throw std::runtime_error("CWallet::GetCredit(): value out of range");
-    return ((IsMine(txout) & filter) ? txout.nValue : 0);
+    return ((IsMine(txout) & filter) ? txout.nValue : 0); // 若 IsMine 返回 4，则返回交易输出的值
 }
 
 bool CWallet::IsChange(const CTxOut& txout) const
@@ -1365,32 +1365,32 @@ CAmount CWalletTx::GetImmatureCredit(bool fUseCache) const
 
 CAmount CWalletTx::GetAvailableCredit(bool fUseCache) const
 {
-    if (pwallet == 0)
+    if (pwallet == 0) // 钱包不可用
         return 0;
 
     // Must wait until coinbase is safely deep enough in the chain before valuing it
-    if (IsCoinBase() && GetBlocksToMaturity() > 0)
+    if (IsCoinBase() && GetBlocksToMaturity() > 0) // 若为创币交易，必须要成熟
         return 0;
 
-    if (fUseCache && fAvailableCreditCached)
-        return nAvailableCreditCached;
+    if (fUseCache && fAvailableCreditCached) // 若使用缓存 且 已缓存
+        return nAvailableCreditCached; // 直接返回缓存金额
 
     CAmount nCredit = 0;
-    uint256 hashTx = GetHash();
-    for (unsigned int i = 0; i < vout.size(); i++)
+    uint256 hashTx = GetHash(); // 获取本交易哈希
+    for (unsigned int i = 0; i < vout.size(); i++) // 遍历交易输出列表
     {
-        if (!pwallet->IsSpent(hashTx, i))
+        if (!pwallet->IsSpent(hashTx, i)) // 若该交易输出未花费
         {
-            const CTxOut &txout = vout[i];
-            nCredit += pwallet->GetCredit(txout, ISMINE_SPENDABLE);
-            if (!MoneyRange(nCredit))
+            const CTxOut &txout = vout[i]; // 获取该交易输出
+            nCredit += pwallet->GetCredit(txout, ISMINE_SPENDABLE); // 累加交易输出金额
+            if (!MoneyRange(nCredit)) // 总余额范围检查
                 throw std::runtime_error("CWalletTx::GetAvailableCredit() : value out of range");
         }
     }
 
-    nAvailableCreditCached = nCredit;
-    fAvailableCreditCached = true;
-    return nCredit;
+    nAvailableCreditCached = nCredit; // 进行缓存
+    fAvailableCreditCached = true; // 缓存标志
+    return nCredit; // 返回余额
 }
 
 CAmount CWalletTx::GetImmatureWatchOnlyCredit(const bool& fUseCache) const
@@ -1556,7 +1556,7 @@ CAmount CWallet::GetBalance() const
 {
     CAmount nTotal = 0;
     {
-        LOCK2(cs_main, cs_wallet);
+        LOCK2(cs_main, cs_wallet); // 钱包上锁
         for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
         { // 遍历钱包映射
             const CWalletTx* pcoin = &(*it).second; // 获取钱包交易
@@ -1951,31 +1951,31 @@ bool CWallet::FundTransaction(CMutableTransaction& tx, CAmount &nFeeRet, int& nC
 bool CWallet::CreateTransaction(const vector<CRecipient>& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, CAmount& nFeeRet,
                                 int& nChangePosRet, std::string& strFailReason, const CCoinControl* coinControl, bool sign)
 {
-    CAmount nValue = 0;
-    unsigned int nSubtractFeeFromAmount = 0;
-    BOOST_FOREACH (const CRecipient& recipient, vecSend)
+    CAmount nValue = 0; // 发送的总金额
+    unsigned int nSubtractFeeFromAmount = 0; // 减去的交易费总数
+    BOOST_FOREACH (const CRecipient& recipient, vecSend) // 遍历发送列表
     {
-        if (nValue < 0 || recipient.nAmount < 0)
+        if (nValue < 0 || recipient.nAmount < 0) // 发送金额为负数
         {
-            strFailReason = _("Transaction amounts must be positive");
+            strFailReason = _("Transaction amounts must be positive"); // 创建交易失败
             return false;
         }
-        nValue += recipient.nAmount;
+        nValue += recipient.nAmount; // 累加发送金额
 
-        if (recipient.fSubtractFeeFromAmount)
-            nSubtractFeeFromAmount++;
+        if (recipient.fSubtractFeeFromAmount) // 若从金额中减去交易费
+            nSubtractFeeFromAmount++; // 减去交易费累加
     }
-    if (vecSend.empty() || nValue < 0)
+    if (vecSend.empty() || nValue < 0) // 发送列表为空 或 发送的总金额为负数
     {
-        strFailReason = _("Transaction amounts must be positive");
+        strFailReason = _("Transaction amounts must be positive"); // 创建交易失败
         return false;
     }
 
-    wtxNew.fTimeReceivedIsTxTime = true;
-    wtxNew.BindWallet(this);
-    CMutableTransaction txNew;
+    wtxNew.fTimeReceivedIsTxTime = true; // 接收时间是交易时间标志置为 true
+    wtxNew.BindWallet(this); // 交易绑定当前钱包
+    CMutableTransaction txNew; // 易变的交易费
 
-    // Discourage fee sniping.
+    // Discourage fee sniping. // 阻止交易费用。
     //
     // For a large miner the value of the transactions in the best block and
     // the mempool can exceed the cost of deliberately attempting to mine two
@@ -1995,7 +1995,7 @@ bool CWallet::CreateTransaction(const vector<CRecipient>& vecSend, CWalletTx& wt
     // enough, that fee sniping isn't a problem yet, but by implementing a fix
     // now we ensure code won't be written that makes assumptions about
     // nLockTime that preclude a fix later.
-    txNew.nLockTime = chainActive.Height();
+    txNew.nLockTime = chainActive.Height(); // 获取激活的链高度作为该交易的锁定时间
 
     // Secondly occasionally randomly pick a nLockTime even further back, so
     // that transactions that are delayed after signing for whatever reason,

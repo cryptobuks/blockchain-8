@@ -42,7 +42,7 @@ public:
     //! Support for Watch-only addresses
     virtual bool AddWatchOnly(const CScript &dest) =0;
     virtual bool RemoveWatchOnly(const CScript &dest) =0;
-    virtual bool HaveWatchOnly(const CScript &dest) const =0;
+    virtual bool HaveWatchOnly(const CScript &dest) const =0; //  «∑Ò”– watch-only 
     virtual bool HaveWatchOnly() const =0;
 };
 

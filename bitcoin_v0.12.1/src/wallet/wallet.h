@@ -240,7 +240,7 @@ public:
     mutable bool fDebitCached;
     mutable bool fCreditCached;
     mutable bool fImmatureCreditCached;
-    mutable bool fAvailableCreditCached;
+    mutable bool fAvailableCreditCached; // 可用余额缓存标识
     mutable bool fWatchDebitCached;
     mutable bool fWatchCreditCached;
     mutable bool fImmatureWatchCreditCached;
@@ -249,7 +249,7 @@ public:
     mutable CAmount nDebitCached;
     mutable CAmount nCreditCached;
     mutable CAmount nImmatureCreditCached;
-    mutable CAmount nAvailableCreditCached;
+    mutable CAmount nAvailableCreditCached; // 缓存的可用的（可信的）金额
     mutable CAmount nWatchDebitCached;
     mutable CAmount nWatchCreditCached;
     mutable CAmount nImmatureWatchCreditCached;
@@ -374,7 +374,7 @@ public:
     CAmount GetDebit(const isminefilter& filter) const;
     CAmount GetCredit(const isminefilter& filter) const;
     CAmount GetImmatureCredit(bool fUseCache=true) const;
-    CAmount GetAvailableCredit(bool fUseCache=true) const;
+    CAmount GetAvailableCredit(bool fUseCache=true) const; // 获取可用的金额（默认使用缓存）
     CAmount GetImmatureWatchOnlyCredit(const bool& fUseCache=true) const;
     CAmount GetAvailableWatchOnlyCredit(const bool& fUseCache=true) const;
     CAmount GetChange() const;
@@ -700,9 +700,9 @@ public:
 
     std::set<CTxDestination> GetAccountAddresses(const std::string& strAccount) const; // 根据指定的账户获取相关联的地址集
 
-    isminetype IsMine(const CTxIn& txin) const;
+    isminetype IsMine(const CTxIn& txin) const; // 交易输入是否属于本地钱包
     CAmount GetDebit(const CTxIn& txin, const isminefilter& filter) const;
-    isminetype IsMine(const CTxOut& txout) const;
+    isminetype IsMine(const CTxOut& txout) const; // 交易输出是否属于本地钱包
     CAmount GetCredit(const CTxOut& txout, const isminefilter& filter) const;
     bool IsChange(const CTxOut& txout) const;
     CAmount GetChange(const CTxOut& txout) const;

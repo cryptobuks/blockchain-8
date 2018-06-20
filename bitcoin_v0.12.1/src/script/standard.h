@@ -42,7 +42,7 @@ extern unsigned nMaxDatacarrierBytes;
  */
 static const unsigned int MANDATORY_SCRIPT_VERIFY_FLAGS = SCRIPT_VERIFY_P2SH;
 
-enum txnouttype
+enum txnouttype // 交易输出类型枚举
 {
     TX_NONSTANDARD,
     // 'standard' transaction types:
