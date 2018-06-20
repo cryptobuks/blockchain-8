@@ -8,16 +8,16 @@
 #include "primitives/transaction.h"
 
 /** Coin Control Features. */
-class CCoinControl
+class CCoinControl // 币控制功能
 {
 public:
-    CTxDestination destChange;
+    CTxDestination destChange; // 找零地址
     //! If false, allows unselected inputs, but requires all selected inputs be used
-    bool fAllowOtherInputs;
+    bool fAllowOtherInputs; // 若为 false，允许未选择的输入，但要求使用全部选择的输入
     //! Includes watch only addresses which match the ISMINE_WATCH_SOLVABLE criteria
-    bool fAllowWatchOnly;
+    bool fAllowWatchOnly; // 包含匹配 ISMINE_WATCH_SOLVABLE 的 watch-only 地址
     //! Minimum absolute fee (not per kilobyte)
-    CAmount nMinimumTotalFee;
+    CAmount nMinimumTotalFee; // 最小绝对的交易费（非每千字节）
 
     CCoinControl()
     {

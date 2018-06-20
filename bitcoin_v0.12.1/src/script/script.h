@@ -28,7 +28,7 @@ static const int MAX_OPS_PER_SCRIPT = 201;
 static const int MAX_PUBKEYS_PER_MULTISIG = 20;
 
 // Threshold for nLockTime: below this value it is interpreted as block number,
-// otherwise as UNIX timestamp.
+// otherwise as UNIX timestamp. // 锁定时间阈值：低于此值，它被作为块号，否则作为 UNIX 时间戳。
 static const unsigned int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
 
 template <typename T>

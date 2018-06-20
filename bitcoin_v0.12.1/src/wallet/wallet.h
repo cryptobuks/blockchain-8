@@ -232,7 +232,7 @@ public:
     unsigned int fTimeReceivedIsTxTime;
     unsigned int nTimeReceived; //! time received by this node
     unsigned int nTimeSmart;
-    char fFromMe;
+    char fFromMe; // 交易从自己发出的标志
     std::string strFromAccount; // 该交易是从哪个账户发送
     int64_t nOrderPos; //! position in ordered transaction list // 在有序的交易列表中的位置
 

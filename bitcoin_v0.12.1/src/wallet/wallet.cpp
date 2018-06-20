@@ -1644,41 +1644,41 @@ CAmount CWallet::GetImmatureWatchOnlyBalance() const
 
 void CWallet::AvailableCoins(vector<COutput>& vCoins, bool fOnlyConfirmed, const CCoinControl *coinControl, bool fIncludeZeroValue) const
 {
-    vCoins.clear();
+    vCoins.clear(); // 先清空币输出列表
 
     {
-        LOCK2(cs_main, cs_wallet);
+        LOCK2(cs_main, cs_wallet); // 钱包上锁
         for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
-        {
-            const uint256& wtxid = it->first;
-            const CWalletTx* pcoin = &(*it).second;
+        { // 遍历钱包交易映射列表
+            const uint256& wtxid = it->first; // 获取钱包交易索引
+            const CWalletTx* pcoin = &(*it).second; // 获取钱包交易
 
-            if (!CheckFinalTx(*pcoin))
-                continue;
+            if (!CheckFinalTx(*pcoin)) // 非最终交易
+                continue; // 跳过
 
-            if (fOnlyConfirmed && !pcoin->IsTrusted())
-                continue;
+            if (fOnlyConfirmed && !pcoin->IsTrusted()) // 若交易需要确认 且 不可信
+                continue; // 跳过
 
-            if (pcoin->IsCoinBase() && pcoin->GetBlocksToMaturity() > 0)
-                continue;
+            if (pcoin->IsCoinBase() && pcoin->GetBlocksToMaturity() > 0) // 若交易为创币交易 且 未成熟
+                continue; // 跳过
 
-            int nDepth = pcoin->GetDepthInMainChain();
-            if (nDepth < 0)
-                continue;
+            int nDepth = pcoin->GetDepthInMainChain(); // 获取交易深度
+            if (nDepth < 0) // 深度小于 0 表示未上链
+                continue; // 跳过
 
-            // We should not consider coins which aren't at least in our mempool
-            // It's possible for these to be conflicted via ancestors which we may never be able to detect
-            if (nDepth == 0 && !pcoin->InMempool())
-                continue;
+            // We should not consider coins which aren't at least in our mempool // 我们不应该考虑不在内存池的交易
+            // It's possible for these to be conflicted via ancestors which we may never be able to detect // 这些可能会通过我们无法侦测到的祖先发生冲突
+            if (nDepth == 0 && !pcoin->InMempool()) // 交易未上链 且 不在内存池中
+                continue; // 跳过
 
-            for (unsigned int i = 0; i < pcoin->vout.size(); i++) {
-                isminetype mine = IsMine(pcoin->vout[i]);
-                if (!(IsSpent(wtxid, i)) && mine != ISMINE_NO &&
-                    !IsLockedCoin((*it).first, i) && (pcoin->vout[i].nValue > 0 || fIncludeZeroValue) &&
+            for (unsigned int i = 0; i < pcoin->vout.size(); i++) { // 遍历交易输出列表
+                isminetype mine = IsMine(pcoin->vout[i]); // 判断该输出是否属于自己
+                if (!(IsSpent(wtxid, i)) && mine != ISMINE_NO && // 输出未花费 且 属于自己 且
+                    !IsLockedCoin((*it).first, i) && (pcoin->vout[i].nValue > 0 || fIncludeZeroValue) && // 不是锁定的币 且 （输出金额大于 0 或 包含 0 值标志为 true） 且
                     (!coinControl || !coinControl->HasSelected() || coinControl->fAllowOtherInputs || coinControl->IsSelected((*it).first, i)))
                         vCoins.push_back(COutput(pcoin, i, nDepth,
                                                  ((mine & ISMINE_SPENDABLE) != ISMINE_NO) ||
-                                                  (coinControl && coinControl->fAllowWatchOnly && (mine & ISMINE_WATCH_SOLVABLE) != ISMINE_NO)));
+                                                  (coinControl && coinControl->fAllowWatchOnly && (mine & ISMINE_WATCH_SOLVABLE) != ISMINE_NO))); // 加入币输出列表
             }
         }
     }
@@ -1843,27 +1843,27 @@ bool CWallet::SelectCoinsMinConf(const CAmount& nTargetValue, int nConfMine, int
 
 bool CWallet::SelectCoins(const CAmount& nTargetValue, set<pair<const CWalletTx*,unsigned int> >& setCoinsRet, CAmount& nValueRet, const CCoinControl* coinControl) const
 {
-    vector<COutput> vCoins;
-    AvailableCoins(vCoins, true, coinControl);
+    vector<COutput> vCoins; // 币输出列表
+    AvailableCoins(vCoins, true, coinControl); // 获取可用的币的输出列表
 
-    // coin control -> return all selected outputs (we want all selected to go into the transaction for sure)
+    // coin control -> return all selected outputs (we want all selected to go into the transaction for sure) // 返回全部选定的输出（我们希望所有选中的都进入交易）
     if (coinControl && coinControl->HasSelected() && !coinControl->fAllowOtherInputs)
     {
-        BOOST_FOREACH(const COutput& out, vCoins)
+        BOOST_FOREACH(const COutput& out, vCoins) // 遍历输出列表
         {
-            if (!out.fSpendable)
-                 continue;
-            nValueRet += out.tx->vout[out.i].nValue;
-            setCoinsRet.insert(make_pair(out.tx, out.i));
+            if (!out.fSpendable) // 若该输出不可花费
+                 continue; // 跳过
+            nValueRet += out.tx->vout[out.i].nValue; // 累加输出交易输出的值
+            setCoinsRet.insert(make_pair(out.tx, out.i)); // 把交易和输出索引插入币集合
         }
-        return (nValueRet >= nTargetValue);
+        return (nValueRet >= nTargetValue); // 若总和比目标值大，返回 true
     }
 
-    // calculate value from preset inputs and store them
-    set<pair<const CWalletTx*, uint32_t> > setPresetCoins;
-    CAmount nValueFromPresetInputs = 0;
+    // calculate value from preset inputs and store them // 计算预设输入的值并存储它们
+    set<pair<const CWalletTx*, uint32_t> > setPresetCoins; // 预设币集合
+    CAmount nValueFromPresetInputs = 0; // 来自预设输入的值
 
-    std::vector<COutPoint> vPresetInputs;
+    std::vector<COutPoint> vPresetInputs; // 预设输入列表
     if (coinControl)
         coinControl->ListSelected(vPresetInputs);
     BOOST_FOREACH(const COutPoint& outpoint, vPresetInputs)
@@ -1949,7 +1949,7 @@ bool CWallet::FundTransaction(CMutableTransaction& tx, CAmount &nFeeRet, int& nC
 }
 
 bool CWallet::CreateTransaction(const vector<CRecipient>& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, CAmount& nFeeRet,
-                                int& nChangePosRet, std::string& strFailReason, const CCoinControl* coinControl, bool sign)
+                                int& nChangePosRet, std::string& strFailReason, const CCoinControl* coinControl, bool sign) // NULL true
 {
     CAmount nValue = 0; // 发送的总金额
     unsigned int nSubtractFeeFromAmount = 0; // 减去的交易费总数
@@ -2000,98 +2000,98 @@ bool CWallet::CreateTransaction(const vector<CRecipient>& vecSend, CWalletTx& wt
     // Secondly occasionally randomly pick a nLockTime even further back, so
     // that transactions that are delayed after signing for whatever reason,
     // e.g. high-latency mix networks and some CoinJoin implementations, have
-    // better privacy.
-    if (GetRandInt(10) == 0)
-        txNew.nLockTime = std::max(0, (int)txNew.nLockTime - GetRandInt(100));
+    // better privacy. // 其次偶尔会随机选择一个锁定时间，处于任何原因在签名后延迟的交易。
+    if (GetRandInt(10) == 0) // 若随机数为 0
+        txNew.nLockTime = std::max(0, (int)txNew.nLockTime - GetRandInt(100)); // 使用一个相对随机时间作为锁定时间
 
-    assert(txNew.nLockTime <= (unsigned int)chainActive.Height());
-    assert(txNew.nLockTime < LOCKTIME_THRESHOLD);
+    assert(txNew.nLockTime <= (unsigned int)chainActive.Height()); // 锁定时间必须小于等于当前激活的链高度
+    assert(txNew.nLockTime < LOCKTIME_THRESHOLD); // 锁定时间必须小于其阈值
 
     {
-        LOCK2(cs_main, cs_wallet);
+        LOCK2(cs_main, cs_wallet); // 钱包上锁
         {
             nFeeRet = 0;
-            // Start with no fee and loop until there is enough fee
+            // Start with no fee and loop until there is enough fee // 开始时没有交易费，循环直到有足够的交易费
             while (true)
             {
-                txNew.vin.clear();
-                txNew.vout.clear();
-                wtxNew.fFromMe = true;
+                txNew.vin.clear(); // 清空交易输入列表
+                txNew.vout.clear(); // 清空交易输出列表
+                wtxNew.fFromMe = true; // 标记为自己发出的交易
                 nChangePosRet = -1;
-                bool fFirst = true;
+                bool fFirst = true; // 第一次循环标志
 
-                CAmount nValueToSelect = nValue;
-                if (nSubtractFeeFromAmount == 0)
-                    nValueToSelect += nFeeRet;
-                double dPriority = 0;
-                // vouts to the payees
-                BOOST_FOREACH (const CRecipient& recipient, vecSend)
+                CAmount nValueToSelect = nValue; // 要发送的总金额
+                if (nSubtractFeeFromAmount == 0) // 若不需要从金额中减去交易费
+                    nValueToSelect += nFeeRet; // 发送的金额加上交易费
+                double dPriority = 0; // 优先级
+                // vouts to the payees // 输出到收款人
+                BOOST_FOREACH (const CRecipient& recipient, vecSend) // 遍历发送列表
                 {
-                    CTxOut txout(recipient.nAmount, recipient.scriptPubKey);
+                    CTxOut txout(recipient.nAmount, recipient.scriptPubKey); // 构造交易输出对象
 
-                    if (recipient.fSubtractFeeFromAmount)
+                    if (recipient.fSubtractFeeFromAmount) // 若从金额中减去交易费
                     {
-                        txout.nValue -= nFeeRet / nSubtractFeeFromAmount; // Subtract fee equally from each selected recipient
+                        txout.nValue -= nFeeRet / nSubtractFeeFromAmount; // Subtract fee equally from each selected recipient // 减去平均要减去的交易费（本笔交易 / 总共要减去的交易费）
 
                         if (fFirst) // first receiver pays the remainder not divisible by output count
-                        {
-                            fFirst = false;
-                            txout.nValue -= nFeeRet % nSubtractFeeFromAmount;
+                        { // 若是第一次循环
+                            fFirst = false; // 首次循环标志置为 false
+                            txout.nValue -= nFeeRet % nSubtractFeeFromAmount; // 输出金额再减去多出来的部分
                         }
                     }
 
-                    if (txout.IsDust(::minRelayTxFee))
+                    if (txout.IsDust(::minRelayTxFee)) // 根据最小中继交易费判断该交易是否为粉尘交易
                     {
-                        if (recipient.fSubtractFeeFromAmount && nFeeRet > 0)
+                        if (recipient.fSubtractFeeFromAmount && nFeeRet > 0) // 若需减去交易费 且 交易费大于 0
                         {
-                            if (txout.nValue < 0)
+                            if (txout.nValue < 0) // 若交易输出的金额为负数
                                 strFailReason = _("The transaction amount is too small to pay the fee");
                             else
                                 strFailReason = _("The transaction amount is too small to send after the fee has been deducted");
                         }
                         else
                             strFailReason = _("Transaction amount too small");
-                        return false;
-                    }
-                    txNew.vout.push_back(txout);
+                        return false; // 创建交易失败
+                    } // 非粉尘交易
+                    txNew.vout.push_back(txout); // 加入交易输出列表
                 }
 
-                // Choose coins to use
-                set<pair<const CWalletTx*,unsigned int> > setCoins;
+                // Choose coins to use // 选择要使用的币
+                set<pair<const CWalletTx*,unsigned int> > setCoins; // 硬币集合
                 CAmount nValueIn = 0;
-                if (!SelectCoins(nValueToSelect, setCoins, nValueIn, coinControl))
+                if (!SelectCoins(nValueToSelect, setCoins, nValueIn, coinControl)) // 选择硬币
                 {
                     strFailReason = _("Insufficient funds");
-                    return false;
+                    return false; // 创建交易失败
                 }
-                BOOST_FOREACH(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, setCoins)
+                BOOST_FOREACH(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, setCoins) // 遍历硬币集合
                 {
-                    CAmount nCredit = pcoin.first->vout[pcoin.second].nValue;
-                    //The coin age after the next block (depth+1) is used instead of the current,
+                    CAmount nCredit = pcoin.first->vout[pcoin.second].nValue; // 获取钱包交易输出金额
+                    //The coin age after the next block (depth+1) is used instead of the current, // 使用下一个块（深度+1）之后的币龄代替当前，
                     //reflecting an assumption the user would accept a bit more delay for
-                    //a chance at a free transaction.
-                    //But mempool inputs might still be in the mempool, so their age stays 0
-                    int age = pcoin.first->GetDepthInMainChain();
-                    assert(age >= 0);
+                    //a chance at a free transaction. // 反应了用户会在免费交易中更多延迟以获得机会的假设。
+                    //But mempool inputs might still be in the mempool, so their age stays 0 // 但内存池输入可能仍然在内存池中，所以它们的币龄为 0
+                    int age = pcoin.first->GetDepthInMainChain(); // 获取交易深度作为币龄
+                    assert(age >= 0); // 检测币龄
                     if (age != 0)
                         age += 1;
-                    dPriority += (double)nCredit * age;
+                    dPriority += (double)nCredit * age; // 币龄和币数量用于计算优先级
                 }
 
-                const CAmount nChange = nValueIn - nValueToSelect;
-                if (nChange > 0)
+                const CAmount nChange = nValueIn - nValueToSelect; // 找零
+                if (nChange > 0) // 大于 0 表示存在找零
                 {
-                    // Fill a vout to ourself
-                    // TODO: pass in scriptChange instead of reservekey so
-                    // change transaction isn't always pay-to-bitcoin-address
-                    CScript scriptChange;
+                    // Fill a vout to ourself // 填充一个输出列表到我们自己
+                    // TODO: pass in scriptChange instead of reservekey so // TODO：传递找零脚本而非 reservekey
+                    // change transaction isn't always pay-to-bitcoin-address // 所以找零交易不总是 P2PKH
+                    CScript scriptChange; // 创建一个找零脚本
 
-                    // coin control: send change to custom address
+                    // coin control: send change to custom address // 币控制：发送找零到指定地址
                     if (coinControl && !boost::get<CNoDestination>(&coinControl->destChange))
-                        scriptChange = GetScriptForDestination(coinControl->destChange);
+                        scriptChange = GetScriptForDestination(coinControl->destChange); // 从找零地址获取找零脚本
 
                     // no coin control: send change to newly generated address
-                    else
+                    else // 非币控制：发送找零到新生成的地址
                     {
                         // Note: We use a new key here to keep it from being obvious which side is the change.
                         //  The drawback is that by not reusing a previous key, the change may be lost if a
@@ -2100,95 +2100,95 @@ bool CWallet::CreateTransaction(const vector<CRecipient>& vecSend, CWalletTx& wt
                         //  rediscover unknown transactions that were written with keys of ours to recover
                         //  post-backup change.
 
-                        // Reserve a new key pair from key pool
+                        // Reserve a new key pair from key pool // 从密钥池拿一个密钥对
                         CPubKey vchPubKey;
                         bool ret;
-                        ret = reservekey.GetReservedKey(vchPubKey);
-                        assert(ret); // should never fail, as we just unlocked
+                        ret = reservekey.GetReservedKey(vchPubKey); // 从密钥池获取一个公钥
+                        assert(ret); // should never fail, as we just unlocked // 应该不会失败，因为我们刚解锁
 
-                        scriptChange = GetScriptForDestination(vchPubKey.GetID());
+                        scriptChange = GetScriptForDestination(vchPubKey.GetID()); // 根据公钥索引获取找零脚本
                     }
 
-                    CTxOut newTxOut(nChange, scriptChange);
+                    CTxOut newTxOut(nChange, scriptChange); // 通过找零金额和脚本创建一笔新的交易输出
 
-                    // We do not move dust-change to fees, because the sender would end up paying more than requested.
-                    // This would be against the purpose of the all-inclusive feature.
-                    // So instead we raise the change and deduct from the recipient.
-                    if (nSubtractFeeFromAmount > 0 && newTxOut.IsDust(::minRelayTxFee))
+                    // We do not move dust-change to fees, because the sender would end up paying more than requested. // 我们不会把粉尘找零转到交易费，因为发送者最终会支付超过请求的费用。
+                    // This would be against the purpose of the all-inclusive feature. // 这将违背包含全部功能的目的。
+                    // So instead we raise the change and deduct from the recipient. // 所以我们提高找零并减少接收者金额。
+                    if (nSubtractFeeFromAmount > 0 && newTxOut.IsDust(::minRelayTxFee)) // 从金额中减去的交易费大于 0 且 新交易输出是粉尘交易（通过最小中继交易费判断）
                     {
-                        CAmount nDust = newTxOut.GetDustThreshold(::minRelayTxFee) - newTxOut.nValue;
-                        newTxOut.nValue += nDust; // raise change until no more dust
-                        for (unsigned int i = 0; i < vecSend.size(); i++) // subtract from first recipient
-                        {
+                        CAmount nDust = newTxOut.GetDustThreshold(::minRelayTxFee) - newTxOut.nValue; // 计算粉尘金额
+                        newTxOut.nValue += nDust; // raise change until no more dust // 增加找零直到没有粉尘
+                        for (unsigned int i = 0; i < vecSend.size(); i++) // subtract from first recipient // 从第一个接收者中减去
+                        { // 遍历发送列表
                             if (vecSend[i].fSubtractFeeFromAmount)
                             {
-                                txNew.vout[i].nValue -= nDust;
-                                if (txNew.vout[i].IsDust(::minRelayTxFee))
+                                txNew.vout[i].nValue -= nDust; // 减去粉尘
+                                if (txNew.vout[i].IsDust(::minRelayTxFee)) // 若交易输出是粉尘
                                 {
                                     strFailReason = _("The transaction amount is too small to send after the fee has been deducted");
-                                    return false;
+                                    return false; // 创建交易失败
                                 }
-                                break;
+                                break; // 只改变第一个，所以跳出
                             }
                         }
                     }
 
                     // Never create dust outputs; if we would, just
-                    // add the dust to the fee.
-                    if (newTxOut.IsDust(::minRelayTxFee))
+                    // add the dust to the fee. // 从不创建粉尘输出；如果我们想，只添加粉尘到交易费
+                    if (newTxOut.IsDust(::minRelayTxFee)) // 新的交易输出是粉尘
                     {
-                        nFeeRet += nChange;
-                        reservekey.ReturnKey();
+                        nFeeRet += nChange; // 增加找零到交易费
+                        reservekey.ReturnKey(); // 把找零地址对应密钥放回密钥池
                     }
                     else
-                    {
+                    { // 输出不是粉尘
                         // Insert change txn at random position:
-                        nChangePosRet = GetRandInt(txNew.vout.size()+1);
+                        nChangePosRet = GetRandInt(txNew.vout.size()+1); // 获取一个随机位置
                         vector<CTxOut>::iterator position = txNew.vout.begin()+nChangePosRet;
-                        txNew.vout.insert(position, newTxOut);
+                        txNew.vout.insert(position, newTxOut); // 插入找零交易到交易输出列表的随机位置
                     }
-                }
+                } // 否则不存在找零
                 else
-                    reservekey.ReturnKey();
+                    reservekey.ReturnKey(); // 把密钥放回密钥池
 
-                // Fill vin
+                // Fill vin // 填充输入列表
                 //
                 // Note how the sequence number is set to max()-1 so that the
-                // nLockTime set above actually works.
-                BOOST_FOREACH(const PAIRTYPE(const CWalletTx*,unsigned int)& coin, setCoins)
-                    txNew.vin.push_back(CTxIn(coin.first->GetHash(),coin.second,CScript(),
+                // nLockTime set above actually works. // 注：序号如何设置到 max()-1 以至上面设置的锁定时间实际工作。
+                BOOST_FOREACH(const PAIRTYPE(const CWalletTx*,unsigned int)& coin, setCoins) // 遍历币集合
+                    txNew.vin.push_back(CTxIn(coin.first->GetHash(),coin.second,CScript(), // 加入交易输入列表
                                               std::numeric_limits<unsigned int>::max()-1));
 
-                // Sign
-                int nIn = 0;
-                CTransaction txNewConst(txNew);
-                BOOST_FOREACH(const PAIRTYPE(const CWalletTx*,unsigned int)& coin, setCoins)
+                // Sign // 签名
+                int nIn = 0; // 输入索引
+                CTransaction txNewConst(txNew); // 通过易变的交易构建一笔不变的交易
+                BOOST_FOREACH(const PAIRTYPE(const CWalletTx*,unsigned int)& coin, setCoins) // 遍历币集合
                 {
-                    bool signSuccess;
-                    const CScript& scriptPubKey = coin.first->vout[coin.second].scriptPubKey;
-                    CScript& scriptSigRes = txNew.vin[nIn].scriptSig;
-                    if (sign)
-                        signSuccess = ProduceSignature(TransactionSignatureCreator(this, &txNewConst, nIn, SIGHASH_ALL), scriptPubKey, scriptSigRes);
+                    bool signSuccess; // 签名状态
+                    const CScript& scriptPubKey = coin.first->vout[coin.second].scriptPubKey; // 获取脚本公钥
+                    CScript& scriptSigRes = txNew.vin[nIn].scriptSig; // 获取脚本签名的引用
+                    if (sign) // true 进行签名
+                        signSuccess = ProduceSignature(TransactionSignatureCreator(this, &txNewConst, nIn, SIGHASH_ALL), scriptPubKey, scriptSigRes); // 进行签名
                     else
                         signSuccess = ProduceSignature(DummySignatureCreator(this), scriptPubKey, scriptSigRes);
 
-                    if (!signSuccess)
+                    if (!signSuccess) // 签名失败
                     {
                         strFailReason = _("Signing transaction failed");
                         return false;
                     }
-                    nIn++;
+                    nIn++; // 交易输入序号加 1
                 }
 
-                unsigned int nBytes = ::GetSerializeSize(txNew, SER_NETWORK, PROTOCOL_VERSION);
+                unsigned int nBytes = ::GetSerializeSize(txNew, SER_NETWORK, PROTOCOL_VERSION); // 获取序列化后交易的字节数
 
                 // Remove scriptSigs if we used dummy signatures for fee calculation
-                if (!sign) {
-                    BOOST_FOREACH (CTxIn& vin, txNew.vin)
-                        vin.scriptSig = CScript();
+                if (!sign) { // 如果我们使用虚拟签名进行计费，则移除脚本签名
+                    BOOST_FOREACH (CTxIn& vin, txNew.vin) // 遍历交易输入列表
+                        vin.scriptSig = CScript(); // 创建空脚本
                 }
 
-                // Embed the constructed transaction data in wtxNew.
+                // Embed the constructed transaction data in wtxNew. // 把构造的交易嵌入到 txNew
                 *static_cast<CTransaction*>(&wtxNew) = CTransaction(txNew);
 
                 // Limit size
@@ -2748,7 +2748,7 @@ void CReserveKey::KeepKey()
 void CReserveKey::ReturnKey()
 {
     if (nIndex != -1)
-        pwallet->ReturnKey(nIndex);
+        pwallet->ReturnKey(nIndex); // 把密钥重新放回密钥池
     nIndex = -1;
     vchPubKey = CPubKey();
 }

@@ -21,7 +21,7 @@ void RandAddSeedPerfmon(); // Linux 下转调 RandAddSeed()
  */
 void GetRandBytes(unsigned char* buf, int num);
 uint64_t GetRand(uint64_t nMax); // 获取一个小于 nMax 的随机正数
-int GetRandInt(int nMax);
+int GetRandInt(int nMax); // 转调上面的 GetRand
 uint256 GetRandHash();
 
 /**
