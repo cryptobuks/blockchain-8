@@ -32,7 +32,7 @@ class CBaseMainParams : public CBaseChainParams
 public:
     CBaseMainParams()
     {
-        nRPCPort = 8221;//8332; // 与 bitcoin-cli 进行通讯的默认端口
+        nRPCPort = 8332;//8331 // 与 bitcoin-cli 进行通讯的默认端口
     }
 };
 static CBaseMainParams mainParams;
@@ -45,7 +45,7 @@ class CBaseTestNetParams : public CBaseChainParams
 public:
     CBaseTestNetParams()
     {
-        nRPCPort = 18221;//18332;
+        nRPCPort = 18332;//18331
         strDataDir = "testnet3";
     }
 };
@@ -59,7 +59,7 @@ class CBaseRegTestParams : public CBaseChainParams
 public:
     CBaseRegTestParams()
     {
-        nRPCPort = 18221;//18332;
+        nRPCPort = 18332;//18331
         strDataDir = "regtest";
     }
 };
