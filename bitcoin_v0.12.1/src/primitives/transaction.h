@@ -259,7 +259,7 @@ public:
     // GetValueIn() is a method on CCoinsViewCache, because
     // inputs must be known to compute value in.
 
-    // Compute priority, given priority of inputs and (optionally) tx size
+    // Compute priority, given priority of inputs and (optionally) tx size // 计算优先级，基于输入的优先级和（可选的）交易大小
     double ComputePriority(double dPriorityInputs, unsigned int nTxSize=0) const;
 
     // Compute modified tx size for priority calculation (optionally given tx size)

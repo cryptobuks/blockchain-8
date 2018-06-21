@@ -14,19 +14,19 @@
 
 class CCoinsViewCache;
 
-/** Default for -blockmaxsize and -blockminsize, which control the range of sizes the mining code will create **/
-static const unsigned int DEFAULT_BLOCK_MAX_SIZE = 750000;
-static const unsigned int DEFAULT_BLOCK_MIN_SIZE = 0;
-/** Default for -blockprioritysize, maximum space for zero/low-fee transactions **/
-static const unsigned int DEFAULT_BLOCK_PRIORITY_SIZE = 0;
-/** The maximum size for transactions we're willing to relay/mine */
-static const unsigned int MAX_STANDARD_TX_SIZE = 100000;
+/** Default for -blockmaxsize and -blockminsize, which control the range of sizes the mining code will create **/ // 默认通过 -blockmaxsize 和 -blockminsize 选项设置，用于控制挖矿代码创建区块的大小范围
+static const unsigned int DEFAULT_BLOCK_MAX_SIZE = 750000; // 默认区块大小上限
+static const unsigned int DEFAULT_BLOCK_MIN_SIZE = 0; // 默认区块大小下限
+/** Default for -blockprioritysize, maximum space for zero/low-fee transactions **/ // 默认通过 -blockprioritysize 选项设置，用于 0/低费用交易的最大空间
+static const unsigned int DEFAULT_BLOCK_PRIORITY_SIZE = 0; // 默认区块优先级
+/** The maximum size for transactions we're willing to relay/mine */ // 我们希望中继/挖矿的交易大小上限
+static const unsigned int MAX_STANDARD_TX_SIZE = 100000; // 交易大小标准上限（接近 100KB）
 /** Maximum number of signature check operations in an IsStandard() P2SH script */
 static const unsigned int MAX_P2SH_SIGOPS = 15;
 /** The maximum number of sigops we're willing to relay/mine in a single tx */
 static const unsigned int MAX_STANDARD_TX_SIGOPS = MAX_BLOCK_SIGOPS/5;
-/** Default for -maxmempool, maximum megabytes of mempool memory usage */
-static const unsigned int DEFAULT_MAX_MEMPOOL_SIZE = 300;
+/** Default for -maxmempool, maximum megabytes of mempool memory usage */ // 默认通过 -maxmempool 选项设置，交易内存池内存用量的最大兆字节
+static const unsigned int DEFAULT_MAX_MEMPOOL_SIZE = 300; // 交易内存池大小上限（300MB）
 /**
  * Standard script verification flags that standard transactions will comply
  * with. However scripts violating these flags may still be present in valid

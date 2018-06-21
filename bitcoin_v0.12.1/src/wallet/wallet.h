@@ -51,14 +51,14 @@ static const CAmount DEFAULT_TRANSACTION_MAXFEE = 0.1 * COIN;
 static const CAmount MIN_CHANGE = CENT;
 //! Default for -spendzeroconfchange
 static const bool DEFAULT_SPEND_ZEROCONF_CHANGE = true;
-//! Default for -sendfreetransactions
-static const bool DEFAULT_SEND_FREE_TRANSACTIONS = false;
+//! Default for -sendfreetransactions // 默认通过 -sendfreetransactions 选项设置
+static const bool DEFAULT_SEND_FREE_TRANSACTIONS = false; // 默认免费发送交易，默认关闭
 //! -txconfirmtarget default
 static const unsigned int DEFAULT_TX_CONFIRM_TARGET = 2;
 //! -maxtxfee will warn if called with a higher fee than this amount (in satoshis)
 static const CAmount nHighTransactionMaxFeeWarning = 100 * nHighTransactionFeeWarning;
-//! Largest (in bytes) free transaction we're willing to create
-static const unsigned int MAX_FREE_TRANSACTION_CREATE_SIZE = 1000;
+//! Largest (in bytes) free transaction we're willing to create // 我们希望创建的最大（以字节为单位）免费交易
+static const unsigned int MAX_FREE_TRANSACTION_CREATE_SIZE = 1000; // 创建的最大免费交易大小（1000B）
 static const bool DEFAULT_WALLETBROADCAST = true;
 
 class CAccountingEntry;

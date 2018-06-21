@@ -38,7 +38,7 @@ CFeeRate payTxFee(DEFAULT_TRANSACTION_FEE); // 默认交易费为 0
 CAmount maxTxFee = DEFAULT_TRANSACTION_MAXFEE; // 交易费上限为 0.1 BTC
 unsigned int nTxConfirmTarget = DEFAULT_TX_CONFIRM_TARGET;
 bool bSpendZeroConfChange = DEFAULT_SPEND_ZEROCONF_CHANGE;
-bool fSendFreeTransactions = DEFAULT_SEND_FREE_TRANSACTIONS;
+bool fSendFreeTransactions = DEFAULT_SEND_FREE_TRANSACTIONS; // 免费发送交易标志，默认为 false
 
 /**
  * Fees smaller than this (in satoshi) are considered zero fee (for transaction creation)
@@ -2191,49 +2191,49 @@ bool CWallet::CreateTransaction(const vector<CRecipient>& vecSend, CWalletTx& wt
                 // Embed the constructed transaction data in wtxNew. // 把构造的交易嵌入到 txNew
                 *static_cast<CTransaction*>(&wtxNew) = CTransaction(txNew);
 
-                // Limit size
-                if (nBytes >= MAX_STANDARD_TX_SIZE)
+                // Limit size // 限制交易大小
+                if (nBytes >= MAX_STANDARD_TX_SIZE) // 序列化的交易大小必须小于交易大小上限
                 {
                     strFailReason = _("Transaction too large");
-                    return false;
+                    return false; // 创建交易失败
                 }
 
-                dPriority = wtxNew.ComputePriority(dPriority, nBytes);
+                dPriority = wtxNew.ComputePriority(dPriority, nBytes); // 计算交易优先级
 
-                // Can we complete this as a free transaction?
-                if (fSendFreeTransactions && nBytes <= MAX_FREE_TRANSACTION_CREATE_SIZE)
+                // Can we complete this as a free transaction? // 我们可以把它作为免费交易来完成吗？
+                if (fSendFreeTransactions && nBytes <= MAX_FREE_TRANSACTION_CREATE_SIZE) // 若免费发送 且 交易大小小于等于免费交易阈值
                 {
-                    // Not enough fee: enough priority?
-                    double dPriorityNeeded = mempool.estimateSmartPriority(nTxConfirmTarget);
-                    // Require at least hard-coded AllowFree.
+                    // Not enough fee: enough priority? // 没有足够的交易费：足够的优先级？
+                    double dPriorityNeeded = mempool.estimateSmartPriority(nTxConfirmTarget); // 智能估计优先级
+                    // Require at least hard-coded AllowFree. // 至少需要硬编的 AllowFree
                     if (dPriority >= dPriorityNeeded && AllowFree(dPriority))
                         break;
                 }
 
-                CAmount nFeeNeeded = GetMinimumFee(nBytes, nTxConfirmTarget, mempool);
+                CAmount nFeeNeeded = GetMinimumFee(nBytes, nTxConfirmTarget, mempool); // 获取所需最小交易费
                 if (coinControl && nFeeNeeded > 0 && coinControl->nMinimumTotalFee > nFeeNeeded) {
                     nFeeNeeded = coinControl->nMinimumTotalFee;
                 }
 
-                // If we made it here and we aren't even able to meet the relay fee on the next pass, give up
-                // because we must be at the maximum allowed fee.
-                if (nFeeNeeded < ::minRelayTxFee.GetFee(nBytes))
+                // If we made it here and we aren't even able to meet the relay fee on the next pass, give up // 如果我们做到这里，且我们无法满足下次的中继交易费，放弃
+                // because we must be at the maximum allowed fee. // 因为我们必须达到允许的最大费用（最小中继费）。
+                if (nFeeNeeded < ::minRelayTxFee.GetFee(nBytes)) // 若所需交易费小于最小中继交易费
                 {
                     strFailReason = _("Transaction too large for fee policy");
-                    return false;
+                    return false; // 创建交易失败
                 }
 
-                if (nFeeRet >= nFeeNeeded)
-                    break; // Done, enough fee included.
+                if (nFeeRet >= nFeeNeeded) // 当前交易费等于所需交易费时
+                    break; // Done, enough fee included. // 完成，跳出
 
                 // Include more fee and try again.
-                nFeeRet = nFeeNeeded;
-                continue;
+                nFeeRet = nFeeNeeded; // 设置交易费
+                continue; // while
             }
         }
     }
 
-    return true;
+    return true; // 创建成功，返回 true
 }
 
 /**
