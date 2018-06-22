@@ -120,20 +120,20 @@ public:
         //assert(consensus.hashGenesisBlock == uint256S("0x00000000b183b4db893e4dfc15bd22c5371080c13966e511751de4fe82c96384"));
         //assert(genesis.hashMerkleRoot == uint256S("0x4f2a288c72bed9ea981a47997d751d7a20464a14b39fd156415ee4a59dd8908a"));
 
-        vSeeds.push_back(CDNSSeedData("bitcoin.sipa.be", "seed.bitcoin.sipa.be")); // Pieter Wuille // dnsseed
+        vSeeds.push_back(CDNSSeedData("bitcoin.sipa.be", "seed.bitcoin.sipa.be")); // Pieter Wuille // dnsseed 若没有可以注释掉
         vSeeds.push_back(CDNSSeedData("bluematt.me", "dnsseed.bluematt.me")); // Matt Corallo
         vSeeds.push_back(CDNSSeedData("dashjr.org", "dnsseed.bitcoin.dashjr.org")); // Luke Dashjr
         vSeeds.push_back(CDNSSeedData("bitcoinstats.com", "seed.bitcoinstats.com")); // Christian Decker
         vSeeds.push_back(CDNSSeedData("xf2.org", "bitseed.xf2.org")); // Jeff Garzik
         vSeeds.push_back(CDNSSeedData("bitcoin.jonasschnelli.ch", "seed.bitcoin.jonasschnelli.ch")); // Jonas Schnelli
 
-        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,0); // 公钥地址前缀：https://en.bitcoin.it/wiki/List_of_address_prefixes（这里 0 对应 1）
-        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,5); // 5 对应 3
-        base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,128); // 128 对应 t
+        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,0); // 公钥地址前缀，10 进制的 0 对应 base58 编码的 1
+        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,5); // 脚本地址前缀，10 进制的 5 对应 base58 编码的 3
+        base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,128); // 密（私）钥前缀，10 进制的 128 对用 base58 编码的 K 或 L（压缩的私钥）
         base58Prefixes[EXT_PUBLIC_KEY] = boost::assign::list_of(0x04)(0x88)(0xB2)(0x1E).convert_to_container<std::vector<unsigned char> >();
         base58Prefixes[EXT_SECRET_KEY] = boost::assign::list_of(0x04)(0x88)(0xAD)(0xE4).convert_to_container<std::vector<unsigned char> >();
 
-        vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_main, pnSeed6_main + ARRAYLEN(pnSeed6_main)); // dnsseed
+        vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_main, pnSeed6_main + ARRAYLEN(pnSeed6_main)); // dnsseed 若没有可以注释掉
 
         fMiningRequiresPeers = true; // 挖矿是否需要伙伴，即是否单机挖矿，默认关闭，回归测试打开
         fDefaultConsistencyChecks = false; // 检查交易内存池完整性 和 区块索引的标志

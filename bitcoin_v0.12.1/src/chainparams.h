@@ -23,7 +23,7 @@ struct SeedSpec6 {
     uint16_t port;
 };
 
-typedef std::map<int, uint256> MapCheckpoints;
+typedef std::map<int, uint256> MapCheckpoints; // map<区块号（高度）， 区块哈希>
 
 struct CCheckpointData {
     MapCheckpoints mapCheckpoints;
