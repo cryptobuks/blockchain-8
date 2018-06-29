@@ -16,34 +16,34 @@
 #include <boost/variant.hpp>
 
 /** A virtual base class for key stores */
-class CKeyStore
+class CKeyStore // 一个密钥仓库的虚基类
 {
 protected:
     mutable CCriticalSection cs_KeyStore;
 
 public:
-    virtual ~CKeyStore() {}
+    virtual ~CKeyStore() {} // 虚析构
 
-    //! Add a key to the store.
-    virtual bool AddKeyPubKey(const CKey &key, const CPubKey &pubkey) =0;
-    virtual bool AddKey(const CKey &key);
+    //! Add a key to the store. // 添加一个密钥到仓库
+    virtual bool AddKeyPubKey(const CKey &key, const CPubKey &pubkey) =0; // 添加私钥和公钥到仓库
+    virtual bool AddKey(const CKey &key); // 添加私钥到仓库
 
-    //! Check whether a key corresponding to a given address is present in the store.
-    virtual bool HaveKey(const CKeyID &address) const =0;
-    virtual bool GetKey(const CKeyID &address, CKey& keyOut) const =0;
-    virtual void GetKeys(std::set<CKeyID> &setAddress) const =0;
-    virtual bool GetPubKey(const CKeyID &address, CPubKey& vchPubKeyOut) const =0;
+    //! Check whether a key corresponding to a given address is present in the store. // 检查仓库中是否存在与给定地址对应的密钥
+    virtual bool HaveKey(const CKeyID &address) const =0; // 仓库中是否有该地址私钥
+    virtual bool GetKey(const CKeyID &address, CKey& keyOut) const =0; // 通过地址索引获取对应的私钥
+    virtual void GetKeys(std::set<CKeyID> &setAddress) const =0; // 获取私钥集
+    virtual bool GetPubKey(const CKeyID &address, CPubKey& vchPubKeyOut) const =0; // 通过地址索引获取公钥
 
     //! Support for BIP 0013 : see https://github.com/bitcoin/bips/blob/master/bip-0013.mediawiki
     virtual bool AddCScript(const CScript& redeemScript) =0;
     virtual bool HaveCScript(const CScriptID &hash) const =0;
     virtual bool GetCScript(const CScriptID &hash, CScript& redeemScriptOut) const =0;
 
-    //! Support for Watch-only addresses
-    virtual bool AddWatchOnly(const CScript &dest) =0;
-    virtual bool RemoveWatchOnly(const CScript &dest) =0;
-    virtual bool HaveWatchOnly(const CScript &dest) const =0; // 是否有 watch-only 
-    virtual bool HaveWatchOnly() const =0;
+    //! Support for Watch-only addresses // 支持 Watch-only 地址集
+    virtual bool AddWatchOnly(const CScript &dest) =0; // 添加脚本到 Watch-only 集
+    virtual bool RemoveWatchOnly(const CScript &dest) =0; // 从 Watch-only 集中移除该脚本
+    virtual bool HaveWatchOnly(const CScript &dest) const =0; // Watch-only 集中是否有该脚本 
+    virtual bool HaveWatchOnly() const =0; // 纯虚函数的实现在其派生类中
 };
 
 typedef std::map<CKeyID, CKey> KeyMap; // 密钥索引和私钥的映射

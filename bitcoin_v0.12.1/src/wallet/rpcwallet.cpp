@@ -212,7 +212,7 @@ UniValue getaccountaddress(const UniValue& params, bool fHelp)
 
     UniValue ret(UniValue::VSTR);
 
-    ret = GetAccountAddress(strAccount).ToString(); // 获取指定账户的找零地址
+    ret = GetAccountAddress(strAccount).ToString(); // 获取指定账户的收款地址
     return ret; // 返回一个比特币地址
 }
 

@@ -197,7 +197,7 @@ extern UniValue estimatesmartfee(const UniValue& params, bool fHelp); // ÖÇÄÜ¹À¼
 extern UniValue estimatesmartpriority(const UniValue& params, bool fHelp); // ÖÇÄÜ¹À¼Æ½»Ò×ÓÅÏÈ¼¶
 
 extern UniValue getnewaddress(const UniValue& params, bool fHelp); // »ñÈ¡ĞÂµØÖ·
-extern UniValue getaccountaddress(const UniValue& params, bool fHelp); // »ñÈ¡ÕË»§ÕÒÁãµØÖ·
+extern UniValue getaccountaddress(const UniValue& params, bool fHelp); // »ñÈ¡ÕË»§ÊÕ¿îµØÖ·
 extern UniValue getrawchangeaddress(const UniValue& params, bool fHelp); // »ñÈ¡Ôª½»Ò×ÕÒÁãµØÖ·
 extern UniValue setaccount(const UniValue& params, bool fHelp); // ÉèÖÃµØÖ·¹ØÁªÕË»§
 extern UniValue getaccount(const UniValue& params, bool fHelp); // »ñÈ¡µØÖ·ËùÊôÕË»§
