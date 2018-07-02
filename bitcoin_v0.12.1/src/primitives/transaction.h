@@ -62,22 +62,22 @@ public:
     uint32_t nSequence; // 序列号
 
     /* Setting nSequence to this value for every input in a transaction
-     * disables nLockTime. */
-    static const uint32_t SEQUENCE_FINAL = 0xffffffff; // 规则 1：一笔交易中的每个输入的序列号都设置了该值，nLockTime 被禁止
+     * disables nLockTime. */ // 规则 1：一笔交易中的每个输入的序列号都设置了该值，该交易的 nLockTime 被禁止
+    static const uint32_t SEQUENCE_FINAL = 0xffffffff;
 
     /* Below flags apply in the context of BIP 68*/
     /* If this flag set, CTxIn::nSequence is NOT interpreted as a
-     * relative lock-time. */
-    static const uint32_t SEQUENCE_LOCKTIME_DISABLE_FLAG = (1 << 31); // 规则 2：如果设置了该标志，规则 1失效
+     * relative lock-time. */ // 规则 2：如果设置了该标志，规则 1 失效
+    static const uint32_t SEQUENCE_LOCKTIME_DISABLE_FLAG = (1 << 31);
 
     /* If CTxIn::nSequence encodes a relative lock-time and this flag
      * is set, the relative lock-time has units of 512 seconds,
-     * otherwise it specifies blocks with a granularity of 1. */
-    static const uint32_t SEQUENCE_LOCKTIME_TYPE_FLAG = (1 << 22); // 规则 3：如果规则 1 有效并设置了此变量，则相对锁定时间秒 512 秒，否则锁定时间为一个区块
+     * otherwise it specifies blocks with a granularity of 1. */ // 规则 3：如果规则 1 有效并设置了此变量，则相对锁定时间秒 512 秒，否则锁定时间为一个区块
+    static const uint32_t SEQUENCE_LOCKTIME_TYPE_FLAG = (1 << 22);
 
     /* If CTxIn::nSequence encodes a relative lock-time, this mask is
-     * applied to extract that lock-time from the sequence field. */
-    static const uint32_t SEQUENCE_LOCKTIME_MASK = 0x0000ffff; // 规则 4：如果规则 1 有效，则该变量用来从 nSequence 计算相对的锁定时间
+     * applied to extract that lock-time from the sequence field. */ // 规则 4：如果规则 1 有效，则该变量用来从 nSequence 计算相对的锁定时间
+    static const uint32_t SEQUENCE_LOCKTIME_MASK = 0x0000ffff;
 
     /* In order to use the same number of bits to encode roughly the
      * same wall-clock duration, and because blocks are naturally

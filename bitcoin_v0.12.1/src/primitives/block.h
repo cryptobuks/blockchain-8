@@ -16,7 +16,7 @@
  * to everyone and the block is added to the block chain.  The first transaction
  * in the block is a special one that creates a new coin owned by the creator
  * of the block.
- */
+ */ // 节点收集新交易到一个区块，把它们散列至哈希树中，并扫描 nonce 来满足所需的工作量证明要求。
 class CBlockHeader // 区块头部分（包含区块版本、前一个区块的哈希、默尔克树根哈希、创建区块的时间、难度对应值和随机数）共 80 bytes
 {
 public:
@@ -26,7 +26,7 @@ public:
     uint256 hashMerkleRoot; // 32 Bytes
     uint32_t nTime; // 4 Bytes
     uint32_t nBits; // 4 Bytes
-    uint32_t nNonce; // 4 Bytes,Number used once/Number once
+    uint32_t nNonce; // 4 Bytes, Number used once/Number once
 
     CBlockHeader()
     {
@@ -74,7 +74,7 @@ class CBlock : public CBlockHeader
 {
 public:
     // network and disk
-    std::vector<CTransaction> vtx; // 区块体部分（交易列表，至少有一笔，即创币交易）
+    std::vector<CTransaction> vtx; // 区块体部分（交易列表，至少有一笔创币交易）
 
     // memory only
     mutable bool fChecked;

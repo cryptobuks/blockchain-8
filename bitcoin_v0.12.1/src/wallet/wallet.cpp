@@ -450,7 +450,7 @@ void CWallet::SyncMetaData(pair<TxSpends::iterator, TxSpends::iterator> range)
 /**
  * Outpoint is spent if any non-conflicted transaction
  * spends it:
- */
+ */ // 若任何非冲突的交易花费了输出点，那么该输出点是否已花费
 bool CWallet::IsSpent(const uint256& hash, unsigned int n) const
 {
     const COutPoint outpoint(hash, n);
@@ -2575,115 +2575,115 @@ int64_t CWallet::GetOldestKeyPoolTime()
 
 std::map<CTxDestination, CAmount> CWallet::GetAddressBalances()
 {
-    map<CTxDestination, CAmount> balances;
+    map<CTxDestination, CAmount> balances; // 地址余额映射列表
 
     {
-        LOCK(cs_wallet);
-        BOOST_FOREACH(PAIRTYPE(uint256, CWalletTx) walletEntry, mapWallet)
-        {
-            CWalletTx *pcoin = &walletEntry.second;
+        LOCK(cs_wallet); // 钱包上锁
+        BOOST_FOREACH(PAIRTYPE(uint256, CWalletTx) walletEntry, mapWallet) // 遍历钱包交易映射列表
+        { // 获取一个钱包条目（交易索引，钱包交易）
+            CWalletTx *pcoin = &walletEntry.second; // 获取钱包交易
 
-            if (!CheckFinalTx(*pcoin) || !pcoin->IsTrusted())
-                continue;
+            if (!CheckFinalTx(*pcoin) || !pcoin->IsTrusted()) // 为最终交易 且 交易可信
+                continue; // 跳过
 
-            if (pcoin->IsCoinBase() && pcoin->GetBlocksToMaturity() > 0)
-                continue;
+            if (pcoin->IsCoinBase() && pcoin->GetBlocksToMaturity() > 0) // 若为创币交易 且 未成熟
+                continue; // 跳过
 
-            int nDepth = pcoin->GetDepthInMainChain();
+            int nDepth = pcoin->GetDepthInMainChain(); // 获取该交易所在区块的主链深度
             if (nDepth < (pcoin->IsFromMe(ISMINE_ALL) ? 0 : 1))
                 continue;
 
-            for (unsigned int i = 0; i < pcoin->vout.size(); i++)
+            for (unsigned int i = 0; i < pcoin->vout.size(); i++) // 遍历该交易的输出列表
             {
                 CTxDestination addr;
-                if (!IsMine(pcoin->vout[i]))
-                    continue;
-                if(!ExtractDestination(pcoin->vout[i].scriptPubKey, addr))
+                if (!IsMine(pcoin->vout[i])) // 若交易输出不是我的
+                    continue; // 跳过
+                if(!ExtractDestination(pcoin->vout[i].scriptPubKey, addr)) // 从交易输出中抽取交易地址
                     continue;
 
-                CAmount n = IsSpent(walletEntry.first, i) ? 0 : pcoin->vout[i].nValue;
+                CAmount n = IsSpent(walletEntry.first, i) ? 0 : pcoin->vout[i].nValue; // 若该交易未花费，获取其输出点的值
 
-                if (!balances.count(addr))
-                    balances[addr] = 0;
-                balances[addr] += n;
+                if (!balances.count(addr)) // 结果集中不含该地址
+                    balances[addr] = 0; // 初始化
+                balances[addr] += n; // 累加地址余额（未花费的输出点）
             }
         }
     }
 
-    return balances;
+    return balances; // 返回地址余额映射列表
 }
 
 set< set<CTxDestination> > CWallet::GetAddressGroupings()
 {
     AssertLockHeld(cs_wallet); // mapWallet
-    set< set<CTxDestination> > groupings;
-    set<CTxDestination> grouping;
+    set< set<CTxDestination> > groupings; // 地址分组集合（即地址集的集合）
+    set<CTxDestination> grouping; // 地址分组（地址集）
 
-    BOOST_FOREACH(PAIRTYPE(uint256, CWalletTx) walletEntry, mapWallet)
+    BOOST_FOREACH(PAIRTYPE(uint256, CWalletTx) walletEntry, mapWallet) // 遍历钱包交易映射列表
     {
-        CWalletTx *pcoin = &walletEntry.second;
+        CWalletTx *pcoin = &walletEntry.second; // 获取钱包交易
 
-        if (pcoin->vin.size() > 0)
+        if (pcoin->vin.size() > 0) // 若该交易的输入列表有元素
         {
             bool any_mine = false;
             // group all input addresses with each other
-            BOOST_FOREACH(CTxIn txin, pcoin->vin)
+            BOOST_FOREACH(CTxIn txin, pcoin->vin) // 遍历交易输入列表
             {
                 CTxDestination address;
-                if(!IsMine(txin)) /* If this input isn't mine, ignore it */
-                    continue;
-                if(!ExtractDestination(mapWallet[txin.prevout.hash].vout[txin.prevout.n].scriptPubKey, address))
-                    continue;
-                grouping.insert(address);
+                if(!IsMine(txin)) /* If this input isn't mine, ignore it */ // 若该输入不是我的
+                    continue; // 跳过
+                if(!ExtractDestination(mapWallet[txin.prevout.hash].vout[txin.prevout.n].scriptPubKey, address)) // 从交易输入的前一边交易输出的脚本公钥提取地址
+                    continue; // 失败跳过
+                grouping.insert(address); // 插入地址分组
                 any_mine = true;
             }
 
             // group change with input addresses
-            if (any_mine)
+            if (any_mine) // 找零输出
             {
-               BOOST_FOREACH(CTxOut txout, pcoin->vout)
-                   if (IsChange(txout))
+               BOOST_FOREACH(CTxOut txout, pcoin->vout) // 遍历该交易的输出列表
+                   if (IsChange(txout)) // 输出是否为找零
                    {
                        CTxDestination txoutAddr;
-                       if(!ExtractDestination(txout.scriptPubKey, txoutAddr))
-                           continue;
-                       grouping.insert(txoutAddr);
+                       if(!ExtractDestination(txout.scriptPubKey, txoutAddr)) // 从交易输出脚本公钥提取交易输出地址
+                           continue; // 失败跳过
+                       grouping.insert(txoutAddr); // 插入地址分组
                    }
             }
-            if (grouping.size() > 0)
+            if (grouping.size() > 0) // 若地址分组中有地址
             {
-                groupings.insert(grouping);
-                grouping.clear();
+                groupings.insert(grouping); // 插入地址分组集合
+                grouping.clear(); // 同时清空该地址分组
             }
         }
 
         // group lone addrs by themselves
-        for (unsigned int i = 0; i < pcoin->vout.size(); i++)
-            if (IsMine(pcoin->vout[i]))
+        for (unsigned int i = 0; i < pcoin->vout.size(); i++) // 遍历交易输入列表
+            if (IsMine(pcoin->vout[i])) // 若交易输出是我的
             {
                 CTxDestination address;
-                if(!ExtractDestination(pcoin->vout[i].scriptPubKey, address))
-                    continue;
-                grouping.insert(address);
-                groupings.insert(grouping);
+                if(!ExtractDestination(pcoin->vout[i].scriptPubKey, address)) // 从输出的脚本公钥提取地址
+                    continue; // 失败跳过
+                grouping.insert(address); // 插入地址分组
+                groupings.insert(grouping); // 插入地址分组集合
                 grouping.clear();
             }
     }
 
     set< set<CTxDestination>* > uniqueGroupings; // a set of pointers to groups of addresses
     map< CTxDestination, set<CTxDestination>* > setmap;  // map addresses to the unique group containing it
-    BOOST_FOREACH(set<CTxDestination> grouping, groupings)
+    BOOST_FOREACH(set<CTxDestination> grouping, groupings) // 遍历交易地址分组集合
     {
         // make a set of all the groups hit by this new group
-        set< set<CTxDestination>* > hits;
+        set< set<CTxDestination>* > hits; // 地址分组指针集合
         map< CTxDestination, set<CTxDestination>* >::iterator it;
-        BOOST_FOREACH(CTxDestination address, grouping)
+        BOOST_FOREACH(CTxDestination address, grouping) // 遍历地址分组
             if ((it = setmap.find(address)) != setmap.end())
                 hits.insert((*it).second);
 
         // merge all hit groups into a new single group and delete old groups
         set<CTxDestination>* merged = new set<CTxDestination>(grouping);
-        BOOST_FOREACH(set<CTxDestination>* hit, hits)
+        BOOST_FOREACH(set<CTxDestination>* hit, hits) // 遍历地址分组指针集合
         {
             merged->insert(hit->begin(), hit->end());
             uniqueGroupings.erase(hit);

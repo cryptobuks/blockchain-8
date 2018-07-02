@@ -37,9 +37,9 @@ std::string HelpRequiringPassphrase()
         : "";
 }
 
-bool EnsureWalletIsAvailable(bool avoidException)
+bool EnsureWalletIsAvailable(bool avoidException) // 检查当前钱包是否可用
 {
-    if (!pwalletMain) // 若当前钱包未创建
+    if (!pwalletMain) // 若钱包未创建
     {
         if (!avoidException)
             throw JSONRPCError(RPC_METHOD_NOT_FOUND, "Method not found (disabled)");
@@ -456,12 +456,12 @@ UniValue sendtoaddress(const UniValue& params, bool fHelp)
     return wtx.GetHash().GetHex(); // 获取交易哈希，转化为 16 进制并返回
 }
 
-UniValue listaddressgroupings(const UniValue& params, bool fHelp)
+UniValue listaddressgroupings(const UniValue& params, bool fHelp) // 列出地址分组信息（地址、余额、账户）
 {
-    if (!EnsureWalletIsAvailable(fHelp)) // 确保当前钱包可用
+    if (!EnsureWalletIsAvailable(fHelp)) // 1.确保当前钱包可用
         return NullUniValue;
     
-    if (fHelp) // 没有参数
+    if (fHelp) // 2.没有参数
         throw runtime_error( // 命令帮助反馈
             "listaddressgroupings\n"
             "\nLists groups of addresses which have had their common ownership\n"
@@ -484,27 +484,27 @@ UniValue listaddressgroupings(const UniValue& params, bool fHelp)
             + HelpExampleRpc("listaddressgroupings", "")
         );
 
-    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 3.钱包上锁
 
-    UniValue jsonGroupings(UniValue::VARR); // 创建数组类型结果对象
-    map<CTxDestination, CAmount> balances = pwalletMain->GetAddressBalances(); // 获取地址余额映射列表
-    BOOST_FOREACH(set<CTxDestination> grouping, pwalletMain->GetAddressGroupings()) // 遍历地址分组集合
+    UniValue jsonGroupings(UniValue::VARR); // 4.地址分组集合对象
+    map<CTxDestination, CAmount> balances = pwalletMain->GetAddressBalances(); // 4.1.获取地址余额映射列表
+    BOOST_FOREACH(set<CTxDestination> grouping, pwalletMain->GetAddressGroupings()) // 4.2.获取并遍历地址分组集合
     {
-        UniValue jsonGrouping(UniValue::VARR);
+        UniValue jsonGrouping(UniValue::VARR); // 地址分组对象
         BOOST_FOREACH(CTxDestination address, grouping) // 遍历一个地址分组
         {
-            UniValue addressInfo(UniValue::VARR);
+            UniValue addressInfo(UniValue::VARR); // 一个地址信息（地址、余额、账户）
             addressInfo.push_back(CBitcoinAddress(address).ToString()); // 获取地址
             addressInfo.push_back(ValueFromAmount(balances[address])); // 获取地址余额
             {
-                if (pwalletMain->mapAddressBook.find(CBitcoinAddress(address).Get()) != pwalletMain->mapAddressBook.end()) // 若在地址簿中找到该地址
+                if (pwalletMain->mapAddressBook.find(CBitcoinAddress(address).Get()) != pwalletMain->mapAddressBook.end()) // 若地址簿中有该地址
                     addressInfo.push_back(pwalletMain->mapAddressBook.find(CBitcoinAddress(address).Get())->second.name); // 把该地址关联的账户名加入地址信息
             }
-            jsonGrouping.push_back(addressInfo);
+            jsonGrouping.push_back(addressInfo); // 加入地址分组
         }
-        jsonGroupings.push_back(jsonGrouping);
+        jsonGroupings.push_back(jsonGrouping); // 加入地址分组集合
     }
-    return jsonGroupings; // 返回结果集
+    return jsonGroupings; // 返回地址分组集合
 }
 
 UniValue signmessage(const UniValue& params, bool fHelp)
