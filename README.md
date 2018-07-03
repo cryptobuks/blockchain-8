@@ -4,9 +4,13 @@
 写在前面：与其说比特币是区块链技术的第一个应用，不如说区块链技术是为了实现虚拟数字货币比特币而出现的一种重组现有技术而得到的“新”技术，至于除了数字货币之外还能实现什么应用，我想等比特币落地那一天一切都会揭晓。
 #### 白皮书相关
 * [Bitcoin: A Peer-to-Peer Electronic Cash System](https://bitcoin.org/bitcoin.pdf) - 比特币白皮书（英文原版）
-* [Bitcoin: A Peer-to-Peer Electronic Cash System](https://bitcoin.org/en/bitcoin-paper) - 比特币白皮书（多种语言版本）
+* [Bitcoin: A Peer-to-Peer Electronic Cash System](https://bitcoin.org/en/bitcoin-paper) - 比特币白皮书（多种语言官方版本）
+* [Bitcoin whitepaper repository on GitHub](https://github.com/wbnns/bitcoinwhitepaper) - 比特币白皮书（GitHub 仓库）
+* [Bitcoin Whitepaper - Satoshi Nakamoto](http://satoshinakamoto.me/whitepaper) - 比特币白皮书（多语言非官方版本）
 * [比特币白皮书：一种点对点的电子现金系统 \| 巴比特](http://www.8btc.com/wiki/bitcoin-a-peer-to-peer-electronic-cash-system) - 比特币白皮书（中译版）
 * [比特币白皮书 个人翻译+注解](https://zhuanlan.zhihu.com/p/25039679) - 比特币白皮书（知乎）
+* [中本聪比特币论文 · Frank](https://frank-cq.github.io/2017/12/09/%E4%B8%AD%E6%9C%AC%E8%81%AA%E6%AF%94%E7%89%B9%E5%B8%81%E8%AE%BA%E6%96%87) - 比特币白皮书（GitHub Pages）
+* [比特币白皮书中英对照 - mistydew](http://www.8btc.com/wiki/bitcoin-a-peer-to-peer-electronic-cash-system) - 比特币白皮书（双语）
 #### 实现机制
 * [精通比特币 \| 巴比特图书](http://book.8btc.com/master_bitcoin)
 * [精通比特币（第二版） \| 巴比特图书](http://book.8btc.com/masterbitcoin2cn)
