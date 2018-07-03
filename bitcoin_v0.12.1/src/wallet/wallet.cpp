@@ -2791,7 +2791,7 @@ void CWallet::GetScriptForMining(boost::shared_ptr<CReserveScript> &script)
     if (!rKey->GetReservedKey(pubkey)) // 从密钥池中取一个公钥
         return;
 
-    script = rKey; // 把派生类对象赋值给基类对象（派生类 -> 基类）
+    script = rKey; // 把派生类对象赋值给基类对象（派生类 -> 基类）的引用
     script->reserveScript = CScript() << ToByteVector(pubkey) << OP_CHECKSIG; // 把公钥导入脚本
 }
 

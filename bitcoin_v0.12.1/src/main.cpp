@@ -3414,7 +3414,7 @@ static bool AcceptBlockHeader(const CBlockHeader& block, CValidationState& state
     return true;
 }
 
-/** Store block on disk. If dbp is non-NULL, the file is known to already reside on disk */
+/** Store block on disk. If dbp is non-NULL, the file is known to already reside on disk */ // 存储区块到硬盘。如果 dbp 非空，已知文件已经存在在硬盘上
 static bool AcceptBlock(const CBlock& block, CValidationState& state, const CChainParams& chainparams, CBlockIndex** ppindex, bool fRequested, CDiskBlockPos* dbp)
 {
     AssertLockHeld(cs_main);
@@ -3493,29 +3493,29 @@ static bool IsSuperMajority(int minVersion, const CBlockIndex* pstart, unsigned 
 
 bool ProcessNewBlock(CValidationState& state, const CChainParams& chainparams, const CNode* pfrom, const CBlock* pblock, bool fForceProcessing, CDiskBlockPos* dbp)
 {
-    // Preliminary checks
+    // Preliminary checks // 初步检查
     bool checked = CheckBlock(*pblock, state);
 
     {
         LOCK(cs_main);
-        bool fRequested = MarkBlockAsReceived(pblock->GetHash());
-        fRequested |= fForceProcessing;
+        bool fRequested = MarkBlockAsReceived(pblock->GetHash()); // 标记区块为已收到
+        fRequested |= fForceProcessing; // true
         if (!checked) {
             return error("%s: CheckBlock FAILED", __func__);
         }
 
         // Store to disk
-        CBlockIndex *pindex = NULL;
-        bool ret = AcceptBlock(*pblock, state, chainparams, &pindex, fRequested, dbp);
-        if (pindex && pfrom) {
+        CBlockIndex *pindex = NULL; // 区块索引
+        bool ret = AcceptBlock(*pblock, state, chainparams, &pindex, fRequested, dbp); // 接受该区块，存储区块数据到硬盘
+        if (pindex && pfrom) { // NULL
             mapBlockSource[pindex->GetBlockHash()] = pfrom->GetId();
         }
-        CheckBlockIndex(chainparams.GetConsensus());
+        CheckBlockIndex(chainparams.GetConsensus()); // 检查区块索引
         if (!ret)
             return error("%s: AcceptBlock FAILED", __func__);
     }
 
-    if (!ActivateBestChain(state, chainparams, pblock))
+    if (!ActivateBestChain(state, chainparams, pblock)) // 激活最佳链
         return error("%s: ActivateBestChain failed", __func__);
 
     return true;

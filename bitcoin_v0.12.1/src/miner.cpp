@@ -119,8 +119,8 @@ CBlockTemplate* CreateNewBlock(const CChainParams& chainparams, const CScript& s
 
     std::priority_queue<CTxMemPool::txiter, std::vector<CTxMemPool::txiter>, ScoreCompare> clearedTxs;
     bool fPrintPriority = GetBoolArg("-printpriority", DEFAULT_PRINTPRIORITY); // 打印优先级标志，默认关闭
-    uint64_t nBlockSize = 1000;
-    uint64_t nBlockTx = 0;
+    uint64_t nBlockSize = 1000; // 区块大小
+    uint64_t nBlockTx = 0; // 区块内交易数
     unsigned int nBlockSigOps = 100;
     int lastFewTxs = 0;
     CAmount nFees = 0;
@@ -132,7 +132,7 @@ CBlockTemplate* CreateNewBlock(const CChainParams& chainparams, const CScript& s
         pblock->nTime = GetAdjustedTime();
         const int64_t nMedianTimePast = pindexPrev->GetMedianTimePast();
 
-        pblock->nVersion = ComputeBlockVersion(pindexPrev, chainparams.GetConsensus());
+        pblock->nVersion = ComputeBlockVersion(pindexPrev, chainparams.GetConsensus()); // 计算区块版本
         // -regtest only: allow overriding block.nVersion with
         // -blockversion=N to test forking scenarios
         if (chainparams.MineBlocksOnDemand())
@@ -238,9 +238,9 @@ CBlockTemplate* CreateNewBlock(const CChainParams& chainparams, const CScript& s
             pblocktemplate->vTxFees.push_back(nTxFees);
             pblocktemplate->vTxSigOps.push_back(nTxSigOps);
             nBlockSize += nTxSize;
-            ++nBlockTx;
+            ++nBlockTx; // 区块内交易数加 1
             nBlockSigOps += nTxSigOps;
-            nFees += nTxFees;
+            nFees += nTxFees; // 累加交易费
 
             if (fPrintPriority) // 打印优先级
             {
@@ -272,13 +272,13 @@ CBlockTemplate* CreateNewBlock(const CChainParams& chainparams, const CScript& s
                 }
             }
         }
-        nLastBlockTx = nBlockTx;
-        nLastBlockSize = nBlockSize;
+        nLastBlockTx = nBlockTx; // 最新区块内交易数
+        nLastBlockSize = nBlockSize; // 最新区块大小
         LogPrintf("CreateNewBlock(): total size %u txs: %u fees: %ld sigops %d\n", nBlockSize, nBlockTx, nFees, nBlockSigOps);
 
-        // Compute final coinbase transaction.
+        // Compute final coinbase transaction. // 最后计算创币交易输出
         txNew.vout[0].nValue = nFees + GetBlockSubsidy(nHeight, chainparams.GetConsensus()); // 计算创币交易输出值（区块奖励），通过当前区块高度和共识
-        txNew.vin[0].scriptSig = CScript() << nHeight << OP_0; // 导入该交易输入的签名脚本，新区快的高度，OP_0 表示一个字节空串被推入栈
+        txNew.vin[0].scriptSig = CScript() << nHeight << OP_0; // 导入该交易输入的签名脚本，新区块的高度，OP_0 表示一个字节空串被推入栈
         pblock->vtx[0] = txNew; // 放入创币交易
         pblocktemplate->vTxFees[0] = -nFees; // 计算交易手续费，为 0
 
@@ -290,12 +290,12 @@ CBlockTemplate* CreateNewBlock(const CChainParams& chainparams, const CScript& s
         pblocktemplate->vTxSigOps[0] = GetLegacySigOpCount(pblock->vtx[0]); // 获取创币交易签名操作数
 
         CValidationState state;
-        if (!TestBlockValidity(state, chainparams, *pblock, pindexPrev, false, false)) {
+        if (!TestBlockValidity(state, chainparams, *pblock, pindexPrev, false, false)) { // 验证区块是否有效
             throw std::runtime_error(strprintf("%s: TestBlockValidity failed: %s", __func__, FormatStateMessage(state)));
         }
     }
 
-    return pblocktemplate.release();
+    return pblocktemplate.release(); // 释放并返回区块模板指针
 }
 
 void IncrementExtraNonce(CBlock* pblock, const CBlockIndex* pindexPrev, unsigned int& nExtraNonce)
@@ -320,34 +320,34 @@ void IncrementExtraNonce(CBlock* pblock, const CBlockIndex* pindexPrev, unsigned
 //////////////////////////////////////////////////////////////////////////////
 //
 // Internal miner
-//
+// 内部矿工
 
 //
 // ScanHash scans nonces looking for a hash with at least some zero bits.
 // The nonce is usually preserved between calls, but periodically or if the
 // nonce is 0xffff0000 or above, the block is rebuilt and nNonce starts over at
 // zero.
-//
+// ScanHash 扫描随机数来寻找一个至少有一些 0 位的散列。随机数通常在调用间保留，如果随机数等于或超过 0xffff0000，重建区块并重置随机数为 0。
 bool static ScanHash(const CBlockHeader *pblock, uint32_t& nNonce, uint256 *phash) // 挖矿算法
 {
     // Write the first 76 bytes of the block header to a double-SHA256 state.
-    CHash256 hasher;
+    CHash256 hasher; // 对区块头前 76 字节（不含随机数）到一个 DSHA256 状态。
     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-    ss << *pblock;
+    ss << *pblock; // 导入区块头数据（80 字节）
     assert(ss.size() == 80); // BlockHeader Size: 80 Bytes
     hasher.Write((unsigned char*)&ss[0], 76); // 写入前 5 个字段（nVersion、hashPrevBlock、hashMerkleRoot、nTime、nBits），最后一个字段 nNonce 作为变量
 
     while (true) {
-        nNonce++;
+        nNonce++; // 递增随机数，每次加 1
 
         // Write the last 4 bytes of the block header (the nonce) to a copy of
-        // the double-SHA256 state, and compute the result.
+        // the double-SHA256 state, and compute the result. // 写入随机数并进行 DSHA256
         CHash256(hasher).Write((unsigned char*)&nNonce, 4).Finalize((unsigned char*)phash);
 
         // Return the nonce if the hash has at least some zero bits,
         // caller will check if it has enough to reach the target
         if (((uint16_t*)phash)[15] == 0) // 共 32 字节，最后一个元素（2 个字节）为 0，即最后 16 位为 0，则返回
-            return true;
+            return true; // 至少最后有 4 个 16 进制的 0 才返回该随机数，减少和难度目标值的比较次数
 
         // If nothing found after trying for a while, return -1
         if ((nNonce & 0xfff) == 0)
@@ -368,11 +368,11 @@ static bool ProcessBlockFound(const CBlock* pblock, const CChainParams& chainpar
     }
 
     // Inform about the new block
-    GetMainSignals().BlockFound(pblock->GetHash()); // 通知新区块的哈希，在 validationinterface.cpp 中定义
+    GetMainSignals().BlockFound(pblock->GetHash()); // 通知新区块的哈希，在 validationinterface.cpp 中定义，重置该区块的请求次数为 0
 
     // Process this block the same as if we had received it from another node
     CValidationState state; // 默认为有效状态
-    if (!ProcessNewBlock(state, chainparams, NULL, pblock, true, NULL))
+    if (!ProcessNewBlock(state, chainparams, NULL, pblock, true, NULL)) // 处理新区块（存储新区块到本地、激活最佳链）
         return error("BitcoinMiner: ProcessNewBlock, block not accepted");
 
     return true;
@@ -450,13 +450,13 @@ void static BitcoinMiner(const CChainParams& chainparams)
             unsigned int nTransactionsUpdatedLast = mempool.GetTransactionsUpdated(); // 获取内存池中交易更新的数量
             CBlockIndex* pindexPrev = chainActive.Tip(); // 获取链尖区块（即最后一块）作为新建区块的父区块
 
-            auto_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock(chainparams, coinbaseScript->reserveScript)); // 新建区块
+            auto_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock(chainparams, coinbaseScript->reserveScript)); // 创建新的区块模板（区块头的默尔克树根哈希字段为空）
             if (!pblocktemplate.get())
             {
                 LogPrintf("Error in BitcoinMiner: Keypool ran out, please call keypoolrefill before restarting the mining thread\n");
                 return;
             }
-            CBlock *pblock = &pblocktemplate->block;
+            CBlock *pblock = &pblocktemplate->block; // 获取区块对象
             IncrementExtraNonce(pblock, pindexPrev, nExtraNonce); // 改变创币交易的输入脚本，并计算创世区块的默尔克数根哈希
 
             LogPrintf("Running BitcoinMiner with %u transactions in block (%u bytes)\n", pblock->vtx.size(),
@@ -479,15 +479,15 @@ void static BitcoinMiner(const CChainParams& chainparams)
                     if (UintToArith256(hash) <= hashTarget) // 转化为小端模式，与难度目标值比较，判断是否为合格的块
                     { // 满足条件（小于目标值）
                         // Found a solution
-                        pblock->nNonce = nNonce; // 记录当前块的随机数
+                        pblock->nNonce = nNonce; // 记录当前随机数到区块头
                         assert(hash == pblock->GetHash()); // 验证一下区块的哈希
 
                         SetThreadPriority(THREAD_PRIORITY_NORMAL); // 提高挖矿线程优先级
                         LogPrintf("BitcoinMiner:\n");
-                        LogPrintf("proof-of-work found  \n  hash: %s  \ntarget: %s\n", hash.GetHex(), hashTarget.GetHex()); // 记录挖到矿的相关信息
-                        ProcessBlockFound(pblock, chainparams); // pending
+                        LogPrintf("proof-of-work found  \n  hash: %s  \ntarget: %s\n", hash.GetHex(), hashTarget.GetHex()); // 记录挖到区块的相关信息
+                        ProcessBlockFound(pblock, chainparams); // 找一个解决方案（通知新区块、本地存储该区块并激活最佳链）
                         SetThreadPriority(THREAD_PRIORITY_LOWEST); // 重置挖矿线程优先级
-                        coinbaseScript->KeepScript(); // pending
+                        coinbaseScript->KeepScript(); // 转调 KeepKey() 从密钥池中移除该密钥
 
                         // In regression test mode, stop mining after a block is found.
                         if (chainparams.MineBlocksOnDemand()) // 回归测试网，挖到一个矿后线程便中断

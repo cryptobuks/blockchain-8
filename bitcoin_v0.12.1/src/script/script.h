@@ -367,10 +367,10 @@ private:
     int64_t m_value;
 };
 
-typedef prevector<28, unsigned char> CScriptBase;
+typedef prevector<28, unsigned char> CScriptBase; // 脚本基础
 
 /** Serialized script, used inside transaction inputs and outputs */
-class CScript : public CScriptBase // 序列化的脚本，用于交易输入输出的内部
+class CScript : public CScriptBase // 序列化的脚本，用于内部交易的输入输出
 {
 protected:
     CScript& push_int64(int64_t n)
@@ -631,7 +631,7 @@ public:
     }
 };
 
-class CReserveScript
+class CReserveScript // 预分配脚本
 {
 public:
     CScript reserveScript;

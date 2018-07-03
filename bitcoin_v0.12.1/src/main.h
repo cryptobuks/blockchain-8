@@ -445,7 +445,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW = t
 bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationState& state, CBlockIndex *pindexPrev);
 bool ContextualCheckBlock(const CBlock& block, CValidationState& state, CBlockIndex *pindexPrev);
 
-/** Check a block is completely valid from start to finish (only works on top of our current best block, with cs_main held) */
+/** Check a block is completely valid from start to finish (only works on top of our current best block, with cs_main held) */ // 从头到尾检查区块是否完整有效（仅对我们当前最佳块有效，持有 cs_main 锁）
 bool TestBlockValidity(CValidationState& state, const CChainParams& chainparams, const CBlock& block, CBlockIndex* pindexPrev, bool fCheckPOW = true, bool fCheckMerkleRoot = true);
 
 
@@ -538,7 +538,7 @@ int GetSpendHeight(const CCoinsViewCache& inputs);
 
 /**
  * Determine what nVersion a new block should use.
- */
+ */ // 确定新区块应该使用的版本
 int32_t ComputeBlockVersion(const CBlockIndex* pindexPrev, const Consensus::Params& params);
 
 /** Reject codes greater or equal to this can be returned by AcceptToMemPool

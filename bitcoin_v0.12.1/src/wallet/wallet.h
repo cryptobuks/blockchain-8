@@ -558,7 +558,7 @@ public:
     TxItems wtxOrdered; // 有序交易映射列表
 
     int64_t nOrderPosNext; // 下一条交易的序号
-    std::map<uint256, int> mapRequestCount; // 交易请求（getdata）次数映射列表
+    std::map<uint256, int> mapRequestCount; // 消息请求（getdata）次数映射列表 <区块哈希，次数>
 
     std::map<CTxDestination, CAddressBookData> mapAddressBook; // 地址簿映射列表 <地址， 地址簿数据>
 
@@ -723,7 +723,7 @@ public:
 
     void UpdatedTransaction(const uint256 &hashTx);
 
-    void Inventory(const uint256 &hash)
+    void Inventory(const uint256 &hash) // 增加库存（指定区块的 getdata 请求次数）
     {
         {
             LOCK(cs_wallet);
@@ -734,7 +734,7 @@ public:
     }
 
     void GetScriptForMining(boost::shared_ptr<CReserveScript> &script);
-    void ResetRequestCount(const uint256 &hash)
+    void ResetRequestCount(const uint256 &hash) // 重置区块哈希对应的 getdata 请求次数为 0
     {
         LOCK(cs_wallet);
         mapRequestCount[hash] = 0;
