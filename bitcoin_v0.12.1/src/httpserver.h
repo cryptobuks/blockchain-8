@@ -22,19 +22,19 @@ class HTTPRequest;
 
 /** Initialize HTTP server.
  * Call this before RegisterHTTPHandler or EventBase().
- */
+ */ // 初始化 HTTP 服务。在 RegisterHTTPHandler 或 EventBase() 前调用该函数。
 bool InitHTTPServer();
 /** Start HTTP server.
  * This is separate from InitHTTPServer to give users race-condition-free time
- * to register their handlers between InitHTTPServer and StartHTTPServer.
- */
-bool StartHTTPServer(); // 从 InitHTTPServer 中分离出来
-/** Interrupt HTTP server threads */
+ * to register their handlers between InitHTTPServer and StartHTTPServerStartHTTPServer.
+ */ // 启动 HTTP 服务。该操作从 InitHTTPServer 中分离出来为用户提供无竞争条件时间，用于在 InitHTTPServer 和 StartHTTPServer 之间注册其处理函数。
+bool StartHTTPServer();
+/** Interrupt HTTP server threads */ // 中断 HTTP 服务线程
 void InterruptHTTPServer();
-/** Stop HTTP server */
+/** Stop HTTP server */ // 停止 HTTP 服务
 void StopHTTPServer();
 
-/** Handler for requests to a certain HTTP path */
+/** Handler for requests to a certain HTTP path */ // 用于请求一个确定的 HTTP 路径的处理函数
 typedef boost::function<void(HTTPRequest* req, const std::string &)> HTTPRequestHandler;
 /** Register handler for prefix.
  * If multiple handlers match a prefix, the first-registered one will
@@ -51,7 +51,7 @@ struct event_base* EventBase();
 
 /** In-flight HTTP request.
  * Thin C++ wrapper around evhttp_request.
- */
+ */ // 正在进行的 HTTP 请求。evhttp_request 的 C++ 简易包装器。
 class HTTPRequest
 {
 private:
@@ -124,7 +124,7 @@ public:
 };
 
 /** Event class. This can be used either as an cross-thread trigger or as a timer.
- */
+ */ // 事件类。可以用作跨线程触发器或定时器。
 class HTTPEvent
 {
 public:

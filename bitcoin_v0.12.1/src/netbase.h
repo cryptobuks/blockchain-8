@@ -19,10 +19,10 @@
 extern int nConnectTimeout;
 extern bool fNameLookup; // 名字发现标志
 
-//! -timeout default
-static const int DEFAULT_CONNECT_TIMEOUT = 5000;
-//! -dns default
-static const int DEFAULT_NAME_LOOKUP = true; // -dns 选项的默认值
+//! -timeout default // -timeout 选项默认值
+static const int DEFAULT_CONNECT_TIMEOUT = 5000; // ms
+//! -dns default // -dns 选项的默认值
+static const int DEFAULT_NAME_LOOKUP = true; // 开启
 
 #ifdef WIN32
 // In MSVC, this is defined as a macro, undefine it to prevent a compile and link error

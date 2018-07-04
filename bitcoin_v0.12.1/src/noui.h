@@ -5,6 +5,6 @@
 #ifndef BITCOIN_NOUI_H
 #define BITCOIN_NOUI_H
 
-extern void noui_connect();
+extern void noui_connect(); // 连接信号处理函数
 
 #endif // BITCOIN_NOUI_H

@@ -40,7 +40,7 @@ static const int PING_INTERVAL = 2 * 60;
 /** Time after which to disconnect, after waiting for a ping response (or inactivity). */
 static const int TIMEOUT_INTERVAL = 20 * 60;
 /** The maximum number of entries in an 'inv' protocol message */
-static const unsigned int MAX_INV_SZ = 50000;
+static const unsigned int MAX_INV_SZ = 50000; // 一个 'inv' 协议消息中条目数量的阈值
 /** The maximum number of new addresses to accumulate before announcing. */
 static const unsigned int MAX_ADDR_TO_SEND = 1000;
 /** Maximum length of incoming protocol messages (no message over 2 MiB is currently acceptable). */
@@ -73,8 +73,8 @@ static const size_t DEFAULT_MAXSENDBUFFER    = 1 * 1000;
 // NOTE: When adjusting this, update rpcnet:setban's help ("24h") // 当调整该项，更新 rpcnet:setban 的帮助信息（"24h"）
 static const unsigned int DEFAULT_MISBEHAVING_BANTIME = 60 * 60 * 24;  // Default 24-hour ban
 
-unsigned int ReceiveFloodSize();
-unsigned int SendBufferSize();
+unsigned int ReceiveFloodSize(); // 获取接收缓冲区阈值
+unsigned int SendBufferSize(); // 获取发送缓冲区阈值
 
 void AddOneShot(const std::string& strDest);
 void AddressCurrentlyConnected(const CService& addr);
@@ -87,9 +87,9 @@ bool OpenNetworkConnection(const CAddress& addrConnect, CSemaphoreGrant *grantOu
 void MapPort(bool fUseUPnP);
 unsigned short GetListenPort();
 bool BindListenPort(const CService &bindAddr, std::string& strError, bool fWhitelisted = false);
-void StartNode(boost::thread_group& threadGroup, CScheduler& scheduler);
-bool StopNode();
-void SocketSendData(CNode *pnode);
+void StartNode(boost::thread_group& threadGroup, CScheduler& scheduler); // 启动各种线程
+bool StopNode(); // 停止启动的线程
+void SocketSendData(CNode *pnode); // 通过套接字发送数据
 
 typedef int NodeId;
 
@@ -108,7 +108,7 @@ struct CombinerAll
     }
 };
 
-// Signals for message handling
+// Signals for message handling // 用于处理消息的信号
 struct CNodeSignals
 {
     boost::signals2::signal<int ()> GetHeight;
@@ -210,9 +210,9 @@ public:
 
 
 
-class CNetMessage {
+class CNetMessage { // 网络消息类
 public:
-    bool in_data;                   // parsing header (false) or data (true)
+    bool in_data;                   // parsing header (false) or data (true) // 表示当前解析的头或身体
 
     CDataStream hdrbuf;             // partially received header
     CMessageHeader hdr;             // complete header
@@ -324,8 +324,8 @@ public:
     std::deque<CSerializeData> vSendMsg;
     CCriticalSection cs_vSend;
 
-    std::deque<CInv> vRecvGetData;
-    std::deque<CNetMessage> vRecvMsg;
+    std::deque<CInv> vRecvGetData; // inv 队列
+    std::deque<CNetMessage> vRecvMsg; // 接收的网络消息队列
     CCriticalSection cs_vRecvMsg;
     uint64_t nRecvBytes;
     int nRecvVersion;
@@ -358,7 +358,7 @@ public:
     CSemaphoreGrant grantOutbound;
     CCriticalSection cs_filter;
     CBloomFilter* pfilter;
-    int nRefCount;
+    int nRefCount; // 节点的引用计数
     NodeId id;
 protected:
 
@@ -462,13 +462,13 @@ public:
             msg.SetVersion(nVersionIn);
     }
 
-    CNode* AddRef()
+    CNode* AddRef() // 引用计数加 1
     {
         nRefCount++;
         return this;
     }
 
-    void Release()
+    void Release() // 引用计数减 1
     {
         nRefCount--;
     }

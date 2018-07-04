@@ -109,7 +109,7 @@ CCriticalSection cs_nLastNodeId;
 static CSemaphore *semOutbound = NULL;
 boost::condition_variable messageHandlerCondition;
 
-// Signals for message handling
+// Signals for message handling // 处理消息的信号全局静态对象
 static CNodeSignals g_signals;
 CNodeSignals& GetNodeSignals() { return g_signals; }
 
@@ -1707,7 +1707,8 @@ bool OpenNetworkConnection(const CAddress& addrConnect, CSemaphoreGrant *grantOu
 }
 
 
-void ThreadMessageHandler()
+
+void ThreadMessageHandler() // 线程消息处理函数
 {
     boost::mutex condition_mutex;
     boost::unique_lock<boost::mutex> lock(condition_mutex);
@@ -1715,58 +1716,58 @@ void ThreadMessageHandler()
     SetThreadPriority(THREAD_PRIORITY_BELOW_NORMAL);
     while (true) // 循环接收并处理消息，然后发送消息
     {
-        vector<CNode*> vNodesCopy;
+        vector<CNode*> vNodesCopy; // 已建立连接的节点列表副本
         {
             LOCK(cs_vNodes);
-            vNodesCopy = vNodes;
-            BOOST_FOREACH(CNode* pnode, vNodesCopy) {
-                pnode->AddRef();
+            vNodesCopy = vNodes; // 复制已建立连接的节点列表
+            BOOST_FOREACH(CNode* pnode, vNodesCopy) { // 遍历该副本
+                pnode->AddRef(); // 使每个节点的引用计数加 1
             }
         }
 
-        bool fSleep = true;
+        bool fSleep = true; // 是否睡觉，默认睡觉
 
-        BOOST_FOREACH(CNode* pnode, vNodesCopy)
+        BOOST_FOREACH(CNode* pnode, vNodesCopy) // 遍历节点列表副本
         {
-            if (pnode->fDisconnect)
+            if (pnode->fDisconnect) // 检查连接状态
                 continue;
 
-            // Receive messages
+            // Receive messages // 接收消息
             {
-                TRY_LOCK(pnode->cs_vRecvMsg, lockRecv);
+                TRY_LOCK(pnode->cs_vRecvMsg, lockRecv); // 上锁
                 if (lockRecv)
                 {
-                    if (!g_signals.ProcessMessages(pnode)) // 比特币协议核心处理的入口，解析消息头，然后分发到 ProcessMessage 中处理消息
-                        pnode->CloseSocketDisconnect();
+                    if (!g_signals.ProcessMessages(pnode)) // 比特币协议核心消息处理的入口，解析消息头，然后分发到 ProcessMessage 中处理消息，一次处理一条消息
+                        pnode->CloseSocketDisconnect(); // 若失败，关闭该节点套接字并断开连接
 
-                    if (pnode->nSendSize < SendBufferSize())
+                    if (pnode->nSendSize < SendBufferSize()) // 若发送数据字节小于发送缓冲区阈值
                     {
                         if (!pnode->vRecvGetData.empty() || (!pnode->vRecvMsg.empty() && pnode->vRecvMsg[0].complete()))
-                        {
-                            fSleep = false;
+                        { // 且 接收数据非空 或 接收消息非空 且 首个消息完整
+                            fSleep = false; // 睡眠状态置为 false，表示正在工作
                         }
                     }
                 }
             }
-            boost::this_thread::interruption_point();
+            boost::this_thread::interruption_point(); // 打个断点
 
-            // Send messages
+            // Send messages // 发送消息
             {
-                TRY_LOCK(pnode->cs_vSend, lockSend);
+                TRY_LOCK(pnode->cs_vSend, lockSend); // 上锁
                 if (lockSend)
                     g_signals.SendMessages(pnode); // 发送消息，内部调用 PushMessage 进行数据打包
             }
-            boost::this_thread::interruption_point();
+            boost::this_thread::interruption_point(); // 再打个断点
         }
 
         {
-            LOCK(cs_vNodes);
-            BOOST_FOREACH(CNode* pnode, vNodesCopy)
-                pnode->Release();
+            LOCK(cs_vNodes); // 节点列表上锁
+            BOOST_FOREACH(CNode* pnode, vNodesCopy) // 遍历节点列表副本
+                pnode->Release(); // 引用计数减 1
         }
 
-        if (fSleep)
-            messageHandlerCondition.timed_wait(lock, boost::posix_time::microsec_clock::universal_time() + boost::posix_time::milliseconds(100));
+        if (fSleep) // 若当前处于睡眠状态（未接收数据），
+            messageHandlerCondition.timed_wait(lock, boost::posix_time::microsec_clock::universal_time() + boost::posix_time::milliseconds(100)); // 睡 100ms
     }
 }
 

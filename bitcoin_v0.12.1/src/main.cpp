@@ -406,7 +406,7 @@ void ProcessBlockAvailability(NodeId nodeid) {
     }
 }
 
-/** Update tracking information about which blocks a peer is assumed to have. */
+/** Update tracking information about which blocks a peer is assumed to have. */ // 更新关于假定对端有那些区块的追踪信息
 void UpdateBlockAvailability(NodeId nodeid, const uint256 &hash) {
     CNodeState *state = State(nodeid);
     assert(state != NULL);
@@ -2451,7 +2451,7 @@ enum FlushStateMode {
  * The caches and indexes are flushed depending on the mode we're called with
  * if they're too large, if it's been a while since the last write,
  * or always and in all cases if we're in prune mode and are deleting files.
- */
+ */ // 更新磁盘上的链状态。
 bool static FlushStateToDisk(CValidationState &state, FlushStateMode mode) {
     const CChainParams& chainparams = Params();
     LOCK2(cs_main, cs_LastBlockFile);
@@ -2556,8 +2556,8 @@ void FlushStateToDisk() {
 
 void PruneAndFlush() {
     CValidationState state;
-    fCheckForPruning = true;
-    FlushStateToDisk(state, FLUSH_STATE_NONE);
+    fCheckForPruning = true; // 全局修剪标志置为 true
+    FlushStateToDisk(state, FLUSH_STATE_NONE); // 刷新磁盘上的链状态
 }
 
 /** Update chainActive and related internal data structures. */
@@ -4537,7 +4537,7 @@ void static ProcessGetData(CNode* pfrom, const Consensus::Params& consensusParam
     }
 }
 
-bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, int64_t nTimeReceived)
+bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, int64_t nTimeReceived) // （节点，命令，数据，接收时间）
 {
     const CChainParams& chainparams = Params(); // 获取链参数
     RandAddSeedPerfmon(); // 设置随机数种子
@@ -4717,8 +4717,8 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
     else if (strCommand == NetMsgType::ADDR) // 地址消息，转发节点地址列表
     {
-        vector<CAddress> vAddr;
-        vRecv >> vAddr; // 接收地址列表
+        vector<CAddress> vAddr; // 地址列表
+        vRecv >> vAddr; // 导入接收的数据
 
         // Don't want addr from older versions unless seeding
         if (pfrom->nVersion < CADDR_TIME_VERSION && addrman.size() > 1000) // 协议版本过早且本地连接库存大于 1000 条
@@ -4729,13 +4729,13 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             return error("message addr size() = %u", vAddr.size());
         }
 
-        // Store the new addresses
+        // Store the new addresses // 存储新地址
         vector<CAddress> vAddrOk;
         int64_t nNow = GetAdjustedTime();
         int64_t nSince = nNow - 10 * 60;
-        BOOST_FOREACH(CAddress& addr, vAddr)
+        BOOST_FOREACH(CAddress& addr, vAddr) // 遍历地址列表
         {
-            boost::this_thread::interruption_point();
+            boost::this_thread::interruption_point(); // 打个断点
 
             if (addr.nTime <= 100000000 || addr.nTime > nNow + 10 * 60)
                 addr.nTime = nNow - 5 * 24 * 60 * 60;
@@ -4790,8 +4790,8 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
     else if (strCommand == NetMsgType::INV) // 库存消息，用于发送本节点的交易和区块列表
     {
-        vector<CInv> vInv;
-        vRecv >> vInv; // 接收库存（包含交易、区块列表）
+        vector<CInv> vInv; // 库存列表
+        vRecv >> vInv; // 接收数据导入库存（包含交易、区块列表）
         if (vInv.size() > MAX_INV_SZ) // 库存条目最大 50000 条
         {
             Misbehaving(pfrom->GetId(), 20);
@@ -4800,27 +4800,27 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
         bool fBlocksOnly = GetBoolArg("-blocksonly", DEFAULT_BLOCKSONLY);
 
-        // Allow whitelisted peers to send data other than blocks in blocks only mode if whitelistrelay is true
-        if (pfrom->fWhitelisted && GetBoolArg("-whitelistrelay", DEFAULT_WHITELISTRELAY))
+        // Allow whitelisted peers to send data other than blocks in blocks only mode if whitelistrelay is true // 如果 whitelistrelay 为 true，则允许白名单的对端在仅区块模式中发送块之外的数据
+        if (pfrom->fWhitelisted && GetBoolArg("-whitelistrelay", DEFAULT_WHITELISTRELAY)) // 默认允许
             fBlocksOnly = false;
 
         LOCK(cs_main);
 
         std::vector<CInv> vToFetch;
 
-        for (unsigned int nInv = 0; nInv < vInv.size(); nInv++)
+        for (unsigned int nInv = 0; nInv < vInv.size(); nInv++) // 遍历 'inv' 列表
         {
-            const CInv &inv = vInv[nInv];
+            const CInv &inv = vInv[nInv]; // 获取一条 'inv'
 
-            boost::this_thread::interruption_point();
-            pfrom->AddInventoryKnown(inv);
+            boost::this_thread::interruption_point(); // 打个断点
+            pfrom->AddInventoryKnown(inv); // 添加到已知的库存
 
-            bool fAlreadyHave = AlreadyHave(inv);
+            bool fAlreadyHave = AlreadyHave(inv); // 是否已经有此库存条目
             LogPrint("net", "got inv: %s  %s peer=%d\n", inv.ToString(), fAlreadyHave ? "have" : "new", pfrom->id);
 
-            if (inv.type == MSG_BLOCK) {
+            if (inv.type == MSG_BLOCK) { // 库存条目类型为 block
                 UpdateBlockAvailability(pfrom->GetId(), inv.hash);
-                if (!fAlreadyHave && !fImporting && !fReindex && !mapBlocksInFlight.count(inv.hash)) {
+                if (!fAlreadyHave && !fImporting && !fReindex && !mapBlocksInFlight.count(inv.hash)) { // 满足这 4 个条件
                     // First request the headers preceding the announced block. In the normal fully-synced
                     // case where a new block is announced that succeeds the current tip (no reorganization),
                     // there are no such headers.
@@ -4829,13 +4829,13 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
                     // time the block arrives, the header chain leading up to it is already validated. Not
                     // doing this will result in the received block being rejected as an orphan in case it is
                     // not a direct successor.
-                    pfrom->PushMessage(NetMsgType::GETHEADERS, chainActive.GetLocator(pindexBestHeader), inv.hash);
-                    CNodeState *nodestate = State(pfrom->GetId());
+                    pfrom->PushMessage(NetMsgType::GETHEADERS, chainActive.GetLocator(pindexBestHeader), inv.hash); // 获取区块头
+                    CNodeState *nodestate = State(pfrom->GetId()); // 获取节点当前的状态
                     if (CanDirectFetch(chainparams.GetConsensus()) &&
-                        nodestate->nBlocksInFlight < MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
-                        vToFetch.push_back(inv);
+                        nodestate->nBlocksInFlight < MAX_BLOCKS_IN_TRANSIT_PER_PEER) { // 冲突区块数小于 16
+                        vToFetch.push_back(inv); // 把 'inv' 条目加入用于获取的列表
                         // Mark block as in flight already, even though the actual "getdata" message only goes out
-                        // later (within the same cs_main lock, though).
+                        // later (within the same cs_main lock, though). // 尽管真正的 "getdata" 数据在后面发送，在这里标记该区块为已经飞行。
                         MarkBlockAsInFlight(pfrom->GetId(), inv.hash, chainparams.GetConsensus());
                     }
                     LogPrint("net", "getheaders (%d) %s to peer=%d\n", pindexBestHeader->nHeight, inv.hash.ToString(), pfrom->id);
@@ -4849,8 +4849,8 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
                     pfrom->AskFor(inv);
             }
 
-            // Track requests for our stuff
-            GetMainSignals().Inventory(inv.hash);
+            // Track requests for our stuff // 追踪我们请求的东西
+            GetMainSignals().Inventory(inv.hash); // 增加指定区块的 getdata 请求次数
 
             if (pfrom->nSendSize > (SendBufferSize() * 2)) {
                 Misbehaving(pfrom->GetId(), 50);
@@ -4865,21 +4865,21 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
     else if (strCommand == NetMsgType::GETDATA) // 获取数据消息，用于收到 INV 消息后请求自己不存在的 tx 或 block
     {
-        vector<CInv> vInv;
-        vRecv >> vInv;
-        if (vInv.size() > MAX_INV_SZ)
+        vector<CInv> vInv; // 'inv' 列表
+        vRecv >> vInv; // 到入接收数据
+        if (vInv.size() > MAX_INV_SZ) // 数据尺寸检查
         {
             Misbehaving(pfrom->GetId(), 20);
             return error("message getdata size() = %u", vInv.size());
         }
 
-        if (fDebug || (vInv.size() != 1))
+        if (fDebug || (vInv.size() != 1)) // 调试打印
             LogPrint("net", "received getdata (%u invsz) peer=%d\n", vInv.size(), pfrom->id);
 
         if ((fDebug && vInv.size() > 0) || (vInv.size() == 1))
             LogPrint("net", "received getdata for: %s peer=%d\n", vInv[0].ToString(), pfrom->id);
 
-        pfrom->vRecvGetData.insert(pfrom->vRecvGetData.end(), vInv.begin(), vInv.end());
+        pfrom->vRecvGetData.insert(pfrom->vRecvGetData.end(), vInv.begin(), vInv.end()); // 插入 'inv' 双端队列
         ProcessGetData(pfrom, chainparams.GetConsensus());
     }
 
@@ -5489,7 +5489,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 // requires LOCK(cs_vRecvMsg)
 bool ProcessMessages(CNode* pfrom)
 {
-    const CChainParams& chainparams = Params();
+    const CChainParams& chainparams = Params(); // 获取链参数
     //if (fDebug)
     //    LogPrintf("%s(%u messages)\n", __func__, pfrom->vRecvMsg.size());
 
@@ -5503,19 +5503,19 @@ bool ProcessMessages(CNode* pfrom)
     //
     bool fOk = true;
 
-    if (!pfrom->vRecvGetData.empty())
-        ProcessGetData(pfrom, chainparams.GetConsensus());
+    if (!pfrom->vRecvGetData.empty()) // 若 inv 队列非空
+        ProcessGetData(pfrom, chainparams.GetConsensus()); // 处理获取的数据
 
-    // this maintains the order of responses
+    // this maintains the order of responses // 该操作维持响应顺序
     if (!pfrom->vRecvGetData.empty()) return fOk;
 
     std::deque<CNetMessage>::iterator it = pfrom->vRecvMsg.begin();
-    while (!pfrom->fDisconnect && it != pfrom->vRecvMsg.end()) {
-        // Don't bother if send buffer is too full to respond anyway
-        if (pfrom->nSendSize >= SendBufferSize())
-            break;
+    while (!pfrom->fDisconnect && it != pfrom->vRecvMsg.end()) { // 若未断开连接，则遍历接收消息队列
+        // Don't bother if send buffer is too full to respond anyway // 若发送缓冲区太满而无法响应，不要打扰
+        if (pfrom->nSendSize >= SendBufferSize()) // 若发送缓冲区大小超过其阈值
+            break; // 跳出
 
-        // get next message
+        // get next message // 获取下一条消息
         CNetMessage& msg = *it;
 
         //if (fDebug)
@@ -5524,21 +5524,21 @@ bool ProcessMessages(CNode* pfrom)
         //            msg.complete() ? "Y" : "N");
 
         // end, if an incomplete message is found
-        if (!msg.complete())
-            break;
+        if (!msg.complete()) // 若消息不完整
+            break; // 跳出
 
-        // at this point, any failure means we can delete the current message
-        it++;
+        // at this point, any failure means we can delete the current message // 此时，任何失败意味着我们可以删除当前消息
+        it++; // 消息队列迭代器向后移动一位
 
-        // Scan for message start
-        if (memcmp(msg.hdr.pchMessageStart, chainparams.MessageStart(), MESSAGE_START_SIZE) != 0) { // 检查消息头（魔数）
+        // Scan for message start // 扫描消息魔数
+        if (memcmp(msg.hdr.pchMessageStart, chainparams.MessageStart(), MESSAGE_START_SIZE) != 0) { // 检查消息魔数（4bytes）
             LogPrintf("PROCESSMESSAGE: INVALID MESSAGESTART %s peer=%d\n", SanitizeString(msg.hdr.GetCommand()), pfrom->id);
-            fOk = false;
-            break;
+            fOk = false; // 若消息魔数不匹配，状态置为 false
+            break; // 跳出
         }
 
-        // Read header
-        CMessageHeader& hdr = msg.hdr; // 读消息头
+        // Read header // 读消息头
+        CMessageHeader& hdr = msg.hdr; // 获取消息头
         if (!hdr.IsValid(chainparams.MessageStart())) // 再次检查消息头魔数是否一致
         {
             LogPrintf("PROCESSMESSAGE: ERRORS IN HEADER %s peer=%d\n", SanitizeString(hdr.GetCommand()), pfrom->id);
@@ -5560,15 +5560,15 @@ bool ProcessMessages(CNode* pfrom)
             continue;
         }
 
-        // Process message
+        // Process message // 处理消息
         bool fRet = false;
         try
         {
             fRet = ProcessMessage(pfrom, strCommand, vRecv, msg.nTime); // 根据命令进行响应
-            boost::this_thread::interruption_point();
+            boost::this_thread::interruption_point(); // 打个断点
         }
         catch (const std::ios_base::failure& e)
-        {
+        { // 失败根据错误类型进行响应
             pfrom->PushMessage(NetMsgType::REJECT, strCommand, REJECT_MALFORMED, string("error parsing message"));
             if (strstr(e.what(), "end of data"))
             {
@@ -5600,9 +5600,9 @@ bool ProcessMessages(CNode* pfrom)
         break;
     }
 
-    // In case the connection got shut down, its receive buffer was wiped
-    if (!pfrom->fDisconnect)
-        pfrom->vRecvMsg.erase(pfrom->vRecvMsg.begin(), it);
+    // In case the connection got shut down, its receive buffer was wiped // 一旦连接关闭，其接收缓冲区会被擦除
+    if (!pfrom->fDisconnect) // 若未断开连接
+        pfrom->vRecvMsg.erase(pfrom->vRecvMsg.begin(), it); // 从接收消息队列中擦除读取过的网络消息
 
     return fOk;
 }

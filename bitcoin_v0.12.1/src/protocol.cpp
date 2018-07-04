@@ -12,7 +12,7 @@
 # include <arpa/inet.h>
 #endif
 
-namespace NetMsgType {
+namespace NetMsgType { // 网络消息类型
 const char *VERSION="version";
 const char *VERACK="verack";
 const char *ADDR="addr";

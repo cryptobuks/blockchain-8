@@ -21,11 +21,11 @@
 #define MESSAGE_START_SIZE 4
 
 /** Message header.
- * (4) message start.
- * (12) command.
- * (4) size.
- * (4) checksum.
- */
+ * (4) message start. // 4 字节魔数
+ * (12) command. // 12 字节命令
+ * (4) size. // 4 字节数据大小
+ * (4) checksum. // 4 字节数据校验和
+ */ // 消息头。
 class CMessageHeader
 {
 public:

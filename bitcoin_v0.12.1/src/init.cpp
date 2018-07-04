@@ -597,10 +597,10 @@ void CleanupBlockRevFiles() // 删除某个缺失区块之后的所有区块数据，和前缀为 rev 
     }
 }
 
-void ThreadImport(std::vector<boost::filesystem::path> vImportFiles)
+void ThreadImport(std::vector<boost::filesystem::path> vImportFiles) // 导入区块线程处理函数
 {
     const CChainParams& chainparams = Params();
-    RenameThread("bitcoin-loadblk");
+    RenameThread("bitcoin-loadblk"); // 加载区块线程
     // -reindex
     if (fReindex) {
         CImportingNow imp;
@@ -782,7 +782,7 @@ void InitLogging()
 
 /** Initialize bitcoin.
  *  @pre Parameters should be parsed and config file should be read.
- */
+ */ // 初始化比特币。前提：参数应该被解析，配置文件应该被读取。
 bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.11.程序初始化，共 12 步
 {
     // ********************************************************* Step 1: setup // 安装网络环境，挂接事件处理器
@@ -943,13 +943,13 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
     if (nConnectTimeout <= 0)
         nConnectTimeout = DEFAULT_CONNECT_TIMEOUT;
 
-    // Fee-per-kilobyte amount considered the same as "free"
-    // If you are mining, be careful setting this:
-    // if you set it to zero then
-    // a transaction spammer can cheaply fill blocks using
+    // Fee-per-kilobyte amount considered the same as "free" // 每千字节的交易费被视为与“免费”相同
+    // If you are mining, be careful setting this: // 如果你正在挖矿，小心设置该选项：
+    // if you set it to zero then // 如果你设置该值为 0
+    // a transaction spammer can cheaply fill blocks using // 一个粉尘交易发送者可以轻松使用 1 satoshi 交易费的交易来填充块。
     // 1-satoshi-fee transactions. It should be set above the real
-    // cost to you of processing a transaction.
-    if (mapArgs.count("-minrelaytxfee"))
+    // cost to you of processing a transaction. // 该值应该设置为处理交易的成本之上。
+    if (mapArgs.count("-minrelaytxfee")) // 最低中继交易费选项
     {
         CAmount n = 0;
         if (ParseMoney(mapArgs["-minrelaytxfee"], n) && n > 0)
@@ -964,7 +964,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
     nBytesPerSigOp = GetArg("-bytespersigop", nBytesPerSigOp);
 
 #ifdef ENABLE_WALLET
-    if (mapArgs.count("-mintxfee"))
+    if (mapArgs.count("-mintxfee")) // 最低交易费选项
     {
         CAmount n = 0;
         if (ParseMoney(mapArgs["-mintxfee"], n) && n > 0)
@@ -981,7 +981,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
             InitWarning(_("-fallbackfee is set very high! This is the transaction fee you may pay when fee estimates are not available."));
         CWallet::fallbackFee = CFeeRate(nFeePerK);
     }
-    if (mapArgs.count("-paytxfee"))
+    if (mapArgs.count("-paytxfee")) // 交易费选项
     {
         CAmount nFeePerK = 0;
         if (!ParseMoney(mapArgs["-paytxfee"], nFeePerK))
@@ -995,7 +995,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
                                        mapArgs["-paytxfee"], ::minRelayTxFee.ToString()));
         }
     }
-    if (mapArgs.count("-maxtxfee"))
+    if (mapArgs.count("-maxtxfee")) // 最高交易费选项
     {
         CAmount nMaxFee = 0;
         if (!ParseMoney(mapArgs["-maxtxfee"], nMaxFee))
@@ -1039,21 +1039,21 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
 
     // ********************************************************* Step 4: application initialization: dir lock, daemonize, pidfile, debug log // 初始化 ECC，目录锁检查（保证只有一个 bitcoind 运行），pid 文件，debug 日志
 
-    // Initialize elliptic curve code
+    // Initialize elliptic curve code // 初始化椭圆曲线代码
     ECC_Start(); // 椭圆曲线编码启动
     globalVerifyHandle.reset(new ECCVerifyHandle()); // pending
 
-    // Sanity check
+    // Sanity check // 完整性检查
     if (!InitSanityCheck()) // 初始化完整性检查 pending
         return InitError(_("Initialization sanity check failed. Bitcoin Core is shutting down."));
 
     std::string strDataDir = GetDataDir().string();
 #ifdef ENABLE_WALLET // 若开启钱包功能
-    // Wallet file must be a plain filename without a directory
+    // Wallet file must be a plain filename without a directory // 钱包文件必须是没有目录的文件名
     if (strWalletFile != boost::filesystem::basename(strWalletFile) + boost::filesystem::extension(strWalletFile)) // 验证钱包文件名的完整性，basename 获取文件基础名 "wallet"，extension 获取文件扩展名 ".dat"
         return InitError(strprintf(_("Wallet %s resides outside data directory %s"), strWalletFile, strDataDir));
 #endif // 钱包名校验结束
-    // Make sure only a single Bitcoin process is using the data directory.
+    // Make sure only a single Bitcoin process is using the data directory. // 确保只有一个比特币进程使用该数据目录。
     boost::filesystem::path pathLockFile = GetDataDir() / ".lock"; // 空的 lock 隐藏文件，作用：作为临界资源，保证当前只有一个 Bitcoin 进程使用数据目录
     FILE* file = fopen(pathLockFile.string().c_str(), "a"); // empty lock file; created if it doesn't exist.
     if (file) fclose(file); // 若文件正常打开则关闭该空文件
@@ -1100,7 +1100,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
      * and not really process calls already (but it will signify connections
      * that the server is there and will be ready later).  Warmup mode will
      * be disabled when initialisation is finished.
-     */
+     */ // 已经启动 RPC 服务。将以“预热”模式启动，而非真正地处理调用（但它表示服务器的连接并在之后准备好）。初始化完成后预热模式将被关闭。
     if (fServer) // 服务标志，默认打开
     {
         uiInterface.InitMessage.connect(SetRPCWarmupStatus); // 注册 设置 RPC 预热状态函数
@@ -1290,7 +1290,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
         }
     }
 
-    // cache size calculations
+    // cache size calculations // 缓存大小计算
     int64_t nTotalCache = (GetArg("-dbcache", nDefaultDbCache) << 20); // 总缓存大小
     nTotalCache = std::max(nTotalCache, nMinDbCache << 20); // total cache cannot be less than nMinDbCache
     nTotalCache = std::min(nTotalCache, nMaxDbCache << 20); // total cache cannot be greated than nMaxDbcache
@@ -1592,7 +1592,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
         nLocalServices &= ~NODE_NETWORK;
         if (!fReindex) {
             uiInterface.InitMessage(_("Pruning blockstore..."));
-            PruneAndFlush();
+            PruneAndFlush(); // 设置修建标志并刷新磁盘上的链状态
         }
     }
 
@@ -1602,22 +1602,22 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
         uiInterface.NotifyBlockTip.connect(BlockNotifyCallback);
 
     uiInterface.InitMessage(_("Activating best chain..."));
-    // scan for better chains in the block chain database, that are not yet connected in the active best chain
+    // scan for better chains in the block chain database, that are not yet connected in the active best chain // 扫描区块链数据库中的最佳链，这些链还没连接到激活的最佳链
     CValidationState state;
-    if (!ActivateBestChain(state, chainparams))
+    if (!ActivateBestChain(state, chainparams)) // 激活最佳链
         strErrors << "Failed to connect best block";
 
-    std::vector<boost::filesystem::path> vImportFiles;
-    if (mapArgs.count("-loadblock"))
+    std::vector<boost::filesystem::path> vImportFiles; // 存放导入区块文件的路径
+    if (mapArgs.count("-loadblock")) // 导入区块文件选项
     {
         BOOST_FOREACH(const std::string& strFile, mapMultiArgs["-loadblock"])
             vImportFiles.push_back(strFile);
     }
-    threadGroup.create_thread(boost::bind(&ThreadImport, vImportFiles));
-    if (chainActive.Tip() == NULL) {
+    threadGroup.create_thread(boost::bind(&ThreadImport, vImportFiles)); // 创建一个线程用于导入区块
+    if (chainActive.Tip() == NULL) { // 至少创世区块要加载完成
         LogPrintf("Waiting for genesis block to be imported...\n");
-        while (!fRequestShutdown && chainActive.Tip() == NULL)
-            MilliSleep(10);
+        while (!fRequestShutdown && chainActive.Tip() == NULL) // 必须保证至少加载创世区块
+            MilliSleep(10); // 否则睡 10ms 等待导入区块线程完成工作
     }
 
     // ********************************************************* Step 11: start node // 启动节点服务，监听网络 P2P 请求，挖矿线程
@@ -1630,7 +1630,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
 
     RandAddSeedPerfmon(); // 用于给钱包生成随机私钥种子
 
-    //// debug print
+    //// debug print // 调试打印
     LogPrintf("mapBlockIndex.size() = %u\n",   mapBlockIndex.size());
     LogPrintf("nBestHeight = %d\n",                   chainActive.Height());
 #ifdef ENABLE_WALLET
@@ -1662,7 +1662,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
 
     // ********************************************************* Step 12: finished // 完成
 
-    SetRPCWarmupFinished();
+    SetRPCWarmupFinished(); // 设置 RPC 预热已完成
     uiInterface.InitMessage(_("Done loading")); // 提示加载完成信息
 
 #ifdef ENABLE_WALLET
