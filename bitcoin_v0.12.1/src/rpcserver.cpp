@@ -376,7 +376,7 @@ static const CRPCCommand vRPCCommands[] =
 #endif // ENABLE_WALLET
 };
 
-CRPCTable::CRPCTable()
+CRPCTable::CRPCTable() // 在该文件末尾创建全局常量对象，调用该函数进行 RPC 命令注册
 {
     unsigned int vcidx;
     for (vcidx = 0; vcidx < (sizeof(vRPCCommands) / sizeof(vRPCCommands[0])); vcidx++)
@@ -569,4 +569,4 @@ void RPCRunLater(const std::string& name, boost::function<void(void)> func, int6
     deadlineTimers.insert(std::make_pair(name, boost::shared_ptr<RPCTimerBase>(timerInterface->NewTimer(func, nSeconds*1000)))); // 和定时器名字配对，插入到截止时间定时器映射列表中
 }
 
-const CRPCTable tableRPC;
+const CRPCTable tableRPC; // 在这里注册全部 RPC 命令

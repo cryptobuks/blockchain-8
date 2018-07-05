@@ -51,7 +51,7 @@ public:
     bool CreateSig(std::vector<unsigned char>& vchSig, const CKeyID& keyid, const CScript& scriptCode) const;
 };
 
-/** Produce a script signature using a generic signature creator. */
+/** Produce a script signature using a generic signature creator. */ // 使用通用签名器产生一个脚本签名
 bool ProduceSignature(const BaseSignatureCreator& creator, const CScript& scriptPubKey, CScript& scriptSig);
 
 /** Produce a script signature for a transaction. */

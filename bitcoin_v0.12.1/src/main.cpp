@@ -3370,13 +3370,13 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, CBlockIn
 static bool AcceptBlockHeader(const CBlockHeader& block, CValidationState& state, const CChainParams& chainparams, CBlockIndex** ppindex=NULL)
 {
     AssertLockHeld(cs_main);
-    // Check for duplicate
-    uint256 hash = block.GetHash();
-    BlockMap::iterator miSelf = mapBlockIndex.find(hash);
+    // Check for duplicate // 查重
+    uint256 hash = block.GetHash(); // 获取区块哈希
+    BlockMap::iterator miSelf = mapBlockIndex.find(hash); // 在区块索引映射列表中查询
     CBlockIndex *pindex = NULL;
     if (hash != chainparams.GetConsensus().hashGenesisBlock) {
 
-        if (miSelf != mapBlockIndex.end()) {
+        if (miSelf != mapBlockIndex.end()) { // 若该区块已存在
             // Block header is already known.
             pindex = miSelf->second;
             if (ppindex)
@@ -3389,27 +3389,27 @@ static bool AcceptBlockHeader(const CBlockHeader& block, CValidationState& state
         if (!CheckBlockHeader(block, state))
             return false;
 
-        // Get prev block index
+        // Get prev block index // 获取前一个区块索引
         CBlockIndex* pindexPrev = NULL;
-        BlockMap::iterator mi = mapBlockIndex.find(block.hashPrevBlock);
-        if (mi == mapBlockIndex.end())
-            return state.DoS(10, error("%s: prev block not found", __func__), 0, "bad-prevblk");
-        pindexPrev = (*mi).second;
-        if (pindexPrev->nStatus & BLOCK_FAILED_MASK)
+        BlockMap::iterator mi = mapBlockIndex.find(block.hashPrevBlock); // 查找前一个区块索引迭代器
+        if (mi == mapBlockIndex.end()) // 若未找到
+            return state.DoS(10, error("%s: prev block not found", __func__), 0, "bad-prevblk"); // 报错
+        pindexPrev = (*mi).second; // 拿到前一个区块索引
+        if (pindexPrev->nStatus & BLOCK_FAILED_MASK) // 检查区块验证状态
             return state.DoS(100, error("%s: prev block invalid", __func__), REJECT_INVALID, "bad-prevblk");
 
-        assert(pindexPrev);
-        if (fCheckpointsEnabled && !CheckIndexAgainstCheckpoint(pindexPrev, state, chainparams, hash))
+        assert(pindexPrev); // 不能为空
+        if (fCheckpointsEnabled && !CheckIndexAgainstCheckpoint(pindexPrev, state, chainparams, hash)) // 若检测点功能开启，检查是否符合检测点
             return error("%s: CheckIndexAgainstCheckpoint(): %s", __func__, state.GetRejectReason().c_str());
 
-        if (!ContextualCheckBlockHeader(block, state, pindexPrev))
+        if (!ContextualCheckBlockHeader(block, state, pindexPrev)) // 检查区块头上下文
             return false;
     }
-    if (pindex == NULL)
-        pindex = AddToBlockIndex(block);
+    if (pindex == NULL) // 若区块索引为空，表示区块索引映射列表中不存在该新区块
+        pindex = AddToBlockIndex(block); // 添加该区块到区块索引映射列表
 
-    if (ppindex)
-        *ppindex = pindex;
+    if (ppindex) // 添加新区块完成后
+        *ppindex = pindex; // 把前一个区块索引指针指向添加的新区块
 
     return true;
 }
@@ -3421,12 +3421,12 @@ static bool AcceptBlock(const CBlock& block, CValidationState& state, const CCha
 
     CBlockIndex *&pindex = *ppindex;
 
-    if (!AcceptBlockHeader(block, state, chainparams, &pindex))
+    if (!AcceptBlockHeader(block, state, chainparams, &pindex)) // 接受区块头（添加新区块到区块索引映射列表）
         return false;
 
-    // Try to process all requested blocks that we don't have, but only
-    // process an unrequested block if it's new and has enough work to
-    // advance our tip, and isn't too many blocks ahead.
+    // Try to process all requested blocks that we don't have, but only // 尝试处理我们没有的请求的块，
+    // process an unrequested block if it's new and has enough work to // 但只处理一个未请求的块，如果它是新的且
+    // advance our tip, and isn't too many blocks ahead. // 有足够的工作量来推进我们的链尖，且前面没有太多区块。
     bool fAlreadyHave = pindex->nStatus & BLOCK_HAVE_DATA;
     bool fHasMoreWork = (chainActive.Tip() ? pindex->nChainWork > chainActive.Tip()->nChainWork : true);
     // Blocks that are too out-of-order needlessly limit the effectiveness of
@@ -3453,9 +3453,9 @@ static bool AcceptBlock(const CBlock& block, CValidationState& state, const CCha
         return false;
     }
 
-    int nHeight = pindex->nHeight;
+    int nHeight = pindex->nHeight; // 获取区块高度
 
-    // Write block to history file
+    // Write block to history file // 写区块到历史文件
     try {
         unsigned int nBlockSize = ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION);
         CDiskBlockPos blockPos;
