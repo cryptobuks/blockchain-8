@@ -140,14 +140,14 @@ static bool RPCAuthorized(const std::string& strAuth)
     return multiUserAuthorized(strUserPass);
 }
 
-static bool HTTPReq_JSONRPC(HTTPRequest* req, const std::string &)
+static bool HTTPReq_JSONRPC(HTTPRequest* req, const std::string &) // HTTP 请求处理函数
 {
-    // JSONRPC handles only POST
+    // JSONRPC handles only POST // JSONRPC 仅处理 POST 类型 HTTP 请求
     if (req->GetRequestMethod() != HTTPRequest::POST) {
         req->WriteReply(HTTP_BAD_METHOD, "JSONRPC server handles only POST requests");
         return false;
     }
-    // Check authorization
+    // Check authorization // 检查授权
     std::pair<bool, std::string> authHeader = req->GetHeader("authorization");
     if (!authHeader.first) {
         req->WriteHeader("WWW-Authenticate", WWW_AUTH_HEADER_DATA);
@@ -155,44 +155,44 @@ static bool HTTPReq_JSONRPC(HTTPRequest* req, const std::string &)
         return false;
     }
 
-    if (!RPCAuthorized(authHeader.second)) {
+    if (!RPCAuthorized(authHeader.second)) { // 获取授权信息进行验证
         LogPrintf("ThreadRPCServer incorrect password attempt from %s\n", req->GetPeer().ToString());
 
         /* Deter brute-forcing
            If this results in a DoS the user really
            shouldn't have their RPC port exposed. */
-        MilliSleep(250);
+        MilliSleep(250); // 睡 250ms
 
         req->WriteHeader("WWW-Authenticate", WWW_AUTH_HEADER_DATA);
         req->WriteReply(HTTP_UNAUTHORIZED);
         return false;
     }
 
-    JSONRequest jreq;
+    JSONRequest jreq; // JSON 请求对象
     try {
-        // Parse request
+        // Parse request // 解析请求
         UniValue valRequest;
-        if (!valRequest.read(req->ReadBody()))
+        if (!valRequest.read(req->ReadBody())) // 获取请求体
             throw JSONRPCError(RPC_PARSE_ERROR, "Parse error");
 
-        std::string strReply;
-        // singleton request
-        if (valRequest.isObject()) {
-            jreq.parse(valRequest);
+        std::string strReply; // 响应内容
+        // singleton request // 单例请求
+        if (valRequest.isObject()) { // 请求体是一个对象
+            jreq.parse(valRequest); // 解析请求
 
-            UniValue result = tableRPC.execute(jreq.strMethod, jreq.params);
+            UniValue result = tableRPC.execute(jreq.strMethod, jreq.params); // 执行相应方法及其参数
 
-            // Send reply
-            strReply = JSONRPCReply(result, NullUniValue, jreq.id);
+            // Send reply // 发送响应
+            strReply = JSONRPCReply(result, NullUniValue, jreq.id); // 包装为 JSONRPC 响应内容
 
-        // array of requests
-        } else if (valRequest.isArray())
-            strReply = JSONRPCExecBatch(valRequest.get_array());
+        // array of requests // 请求数组
+        } else if (valRequest.isArray()) // 数组
+            strReply = JSONRPCExecBatch(valRequest.get_array()); // 获取请求内容
         else
             throw JSONRPCError(RPC_PARSE_ERROR, "Top-level object parse error");
 
-        req->WriteHeader("Content-Type", "application/json");
-        req->WriteReply(HTTP_OK, strReply);
+        req->WriteHeader("Content-Type", "application/json"); // 写入响应头
+        req->WriteReply(HTTP_OK, strReply); // 写入状态码和响应体
     } catch (const UniValue& objError) {
         JSONErrorReply(req, objError, jreq.id);
         return false;

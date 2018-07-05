@@ -38,7 +38,7 @@ static std::vector<RPCTimerInterface*> timerInterfaces; // RPC 定时器接口列表
  * @note Can be changed to std::unique_ptr when C++11 */ // 定时器名字映射
 static std::map<std::string, boost::shared_ptr<RPCTimerBase> > deadlineTimers; // 截止时间定时器
 
-static struct CRPCSignals
+static struct CRPCSignals // RPC 信号
 {
     boost::signals2::signal<void ()> Started;
     boost::signals2::signal<void ()> Stopped;
@@ -388,12 +388,12 @@ CRPCTable::CRPCTable()
     }
 }
 
-const CRPCCommand *CRPCTable::operator[](const std::string &name) const
+const CRPCCommand *CRPCTable::operator[](const std::string &name) const // 重载的下标运算符
 {
-    map<string, const CRPCCommand*>::const_iterator it = mapCommands.find(name);
-    if (it == mapCommands.end())
-        return NULL;
-    return (*it).second;
+    map<string, const CRPCCommand*>::const_iterator it = mapCommands.find(name); // 通过命令名查找相应命令
+    if (it == mapCommands.end()) // 若未找到
+        return NULL; // 返回空
+    return (*it).second; // 找到返回相应命令
 }
 
 bool StartRPC()
@@ -482,8 +482,8 @@ static UniValue JSONRPCExecOne(const UniValue& req)
     try {
         jreq.parse(req);
 
-        UniValue result = tableRPC.execute(jreq.strMethod, jreq.params);
-        rpc_result = JSONRPCReplyObj(result, NullUniValue, jreq.id);
+        UniValue result = tableRPC.execute(jreq.strMethod, jreq.params); // 还是调用 execute 执行命令
+        rpc_result = JSONRPCReplyObj(result, NullUniValue, jreq.id); // 包装响应内容为 JSONRPC 格式
     }
     catch (const UniValue& objError)
     {
@@ -501,39 +501,39 @@ static UniValue JSONRPCExecOne(const UniValue& req)
 std::string JSONRPCExecBatch(const UniValue& vReq)
 {
     UniValue ret(UniValue::VARR);
-    for (unsigned int reqIdx = 0; reqIdx < vReq.size(); reqIdx++)
-        ret.push_back(JSONRPCExecOne(vReq[reqIdx]));
+    for (unsigned int reqIdx = 0; reqIdx < vReq.size(); reqIdx++) // 遍历请求
+        ret.push_back(JSONRPCExecOne(vReq[reqIdx])); // 执行一次并把响应内容追加到结果集中
 
     return ret.write() + "\n";
 }
 
 UniValue CRPCTable::execute(const std::string &strMethod, const UniValue &params) const
 {
-    // Return immediately if in warmup
+    // Return immediately if in warmup // 如果处于预热状态，立刻返回
     {
         LOCK(cs_rpcWarmup);
         if (fRPCInWarmup)
             throw JSONRPCError(RPC_IN_WARMUP, rpcWarmupStatus);
     }
 
-    // Find method
-    const CRPCCommand *pcmd = tableRPC[strMethod];
+    // Find method // 查找方法
+    const CRPCCommand *pcmd = tableRPC[strMethod]; // 通过查遍获取对应 RPC 命令方法
     if (!pcmd)
         throw JSONRPCError(RPC_METHOD_NOT_FOUND, "Method not found");
 
-    g_rpcSignals.PreCommand(*pcmd);
+    g_rpcSignals.PreCommand(*pcmd); // 预命令（检查该命令是否打开安全模式）
 
     try
     {
-        // Execute
-        return pcmd->actor(params, false);
+        // Execute // 执行
+        return pcmd->actor(params, false); // 执行响应的函数行为
     }
     catch (const std::exception& e)
     {
         throw JSONRPCError(RPC_MISC_ERROR, e.what());
     }
 
-    g_rpcSignals.PostCommand(*pcmd);
+    g_rpcSignals.PostCommand(*pcmd); // 该信号未注册处理函数
 }
 
 std::string HelpExampleCli(const std::string& methodname, const std::string& args)

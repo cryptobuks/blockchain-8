@@ -140,8 +140,8 @@ public:
      * @param params   UniValue Array of arguments (JSON objects)
      * @returns Result of the call.
      * @throws an exception (UniValue) when an error happens.
-     */
-    UniValue execute(const std::string &method, const UniValue &params) const; // 执行一个方法
+     */ // 执行一个方法
+    UniValue execute(const std::string &method, const UniValue &params) const;
 };
 
 extern const CRPCTable tableRPC; // 在 rpcserver.cpp 中创建的一个全局的常量对象
@@ -268,6 +268,6 @@ extern UniValue reconsiderblock(const UniValue& params, bool fHelp); // 再考虑区
 bool StartRPC();
 void InterruptRPC();
 void StopRPC();
-std::string JSONRPCExecBatch(const UniValue& vReq);
+std::string JSONRPCExecBatch(const UniValue& vReq); // JSONRPC 批量执行
 
 #endif // BITCOIN_RPCSERVER_H

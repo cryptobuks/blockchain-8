@@ -39,7 +39,7 @@ typedef boost::function<void(HTTPRequest* req, const std::string &)> HTTPRequest
 /** Register handler for prefix.
  * If multiple handlers match a prefix, the first-registered one will
  * be invoked.
- */
+ */ // 注册前缀处理函数。若多个处理函数匹配到一个前缀，则调用首个注册的函数。
 void RegisterHTTPHandler(const std::string &prefix, bool exactMatch, const HTTPRequestHandler &handler);
 /** Unregister handler for prefix */
 void UnregisterHTTPHandler(const std::string &prefix, bool exactMatch);
@@ -89,11 +89,11 @@ public:
     std::pair<bool, std::string> GetHeader(const std::string& hdr);
 
     /**
-     * Read request body.
+     * Read request body. // 读请求体。
      *
      * @note As this consumes the underlying buffer, call this only once.
      * Repeated calls will return an empty string.
-     */
+     */ // 注：因为这会消耗底层缓冲区，所以仅调用一次。重复调用将返回一个空串。
     std::string ReadBody();
 
     /**

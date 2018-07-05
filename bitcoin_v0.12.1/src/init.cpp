@@ -300,7 +300,7 @@ void OnRPCStopped()
 
 void OnRPCPreCommand(const CRPCCommand& cmd)
 {
-    // Observe safe mode
+    // Observe safe mode // 观察安全模式
     string strWarning = GetWarnings("rpc");
     if (strWarning != "" && !GetBoolArg("-disablesafemode", DEFAULT_DISABLE_SAFEMODE) &&
         !cmd.okSafeMode) // 若有警告信息
@@ -680,7 +680,7 @@ bool AppInitServers(boost::thread_group& threadGroup)
         return false;
     if (!StartRPC()) // 启动 RPC 远程过程调用服务
         return false;
-    if (!StartHTTPRPC()) // 启动 HTTP RPC 服务
+    if (!StartHTTPRPC()) // 启动 HTTP RPC 服务（这里注册的 RPC 处理函数）
         return false;
     if (GetBoolArg("-rest", DEFAULT_REST_ENABLE) && !StartREST()) // 启动 REST 服务，默认关闭
         return false;
