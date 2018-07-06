@@ -369,7 +369,7 @@ UniValue getaddressesbyaccount(const UniValue& params, bool fHelp)
 
 static void SendMoney(const CTxDestination &address, CAmount nValue, bool fSubtractFeeFromAmount, CWalletTx& wtxNew)
 {
-    CAmount curBalance = pwalletMain->GetBalance(); // 获取钱包余额
+    CAmount curBalance = pwalletMain->GetBalance(); // 1.获取钱包余额
 
     // Check amount // 检查发送的金额
     if (nValue <= 0) // 该金额必须为正数
@@ -379,7 +379,7 @@ static void SendMoney(const CTxDestination &address, CAmount nValue, bool fSubtr
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Insufficient funds");
 
     // Parse Bitcoin address // 解析比特币地址
-    CScript scriptPubKey = GetScriptForDestination(address); // 从目标地址中获取脚本
+    CScript scriptPubKey = GetScriptForDestination(address); // 2.从目标地址中获取脚本
 
     // Create and send the transaction // 创建并发送交易
     CReserveKey reservekey(pwalletMain); // 初始化一个密钥池密钥对象
@@ -394,16 +394,16 @@ static void SendMoney(const CTxDestination &address, CAmount nValue, bool fSubtr
             strError = strprintf("Error: This transaction requires a transaction fee of at least %s because of its amount, complexity, or use of recently received funds!", FormatMoney(nFeeRequired));
         throw JSONRPCError(RPC_WALLET_ERROR, strError);
     }
-    if (!pwalletMain->CommitTransaction(wtxNew, reservekey)) // 提交交易
+    if (!pwalletMain->CommitTransaction(wtxNew, reservekey)) // 3.提交交易
         throw JSONRPCError(RPC_WALLET_ERROR, "Error: The transaction was rejected! This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.");
 }
 
 UniValue sendtoaddress(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp)) // 验证钱包当前可用
+    if (!EnsureWalletIsAvailable(fHelp)) // 1.确保钱包当前可用
         return NullUniValue;
     
-    if (fHelp || params.size() < 2 || params.size() > 5) // 参数至少为 2 个，至多为 5 个
+    if (fHelp || params.size() < 2 || params.size() > 5) // 2.参数至少为 2 个，至多为 5 个
         throw runtime_error( // 命令帮助反馈
             "sendtoaddress \"bitcoinaddress\" amount ( \"comment\" \"comment-to\" subtractfeefromamount )\n"
             "\nSend an amount to a given address.\n"
@@ -427,13 +427,13 @@ UniValue sendtoaddress(const UniValue& params, bool fHelp)
             + HelpExampleRpc("sendtoaddress", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\", 0.1, \"donation\", \"seans outpost\"")
         );
 
-    LOCK2(cs_main, pwalletMain->cs_wallet); // 钱包上锁
+    LOCK2(cs_main, pwalletMain->cs_wallet); // 3.钱包上锁
 
-    CBitcoinAddress address(params[0].get_str()); // 获取指定的比特币地址
+    CBitcoinAddress address(params[0].get_str()); // 4.获取指定的比特币地址
     if (!address.IsValid()) // 验证地址是否有效
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Bitcoin address");
 
-    // Amount
+    // Amount // 金额
     CAmount nAmount = AmountFromValue(params[1]); // 获取转账金额
     if (nAmount <= 0) // 金额不能小于等于 0
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount for send");
@@ -449,11 +449,11 @@ UniValue sendtoaddress(const UniValue& params, bool fHelp)
     if (params.size() > 4)
         fSubtractFeeFromAmount = params[4].get_bool(); // 获取设置
 
-    EnsureWalletIsUnlocked(); // 确保当前钱包处于解密状态
+    EnsureWalletIsUnlocked(); // 5.确保当前钱包处于解密状态
 
-    SendMoney(address.Get(), nAmount, fSubtractFeeFromAmount, wtx); // 发送金额到指定地址
+    SendMoney(address.Get(), nAmount, fSubtractFeeFromAmount, wtx); // 6.发送金额到指定地址
 
-    return wtx.GetHash().GetHex(); // 获取交易哈希，转化为 16 进制并返回
+    return wtx.GetHash().GetHex(); // 7.获取交易哈希，转化为 16 进制并返回
 }
 
 UniValue listaddressgroupings(const UniValue& params, bool fHelp) // 列出地址分组信息（地址、余额、账户）

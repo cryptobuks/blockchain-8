@@ -49,5 +49,5 @@ void UnregisterAllValidationInterfaces() {
 }
 
 void SyncWithWallets(const CTransaction &tx, const CBlock *pblock) {
-    g_signals.SyncTransaction(tx, pblock);
+    g_signals.SyncTransaction(tx, pblock); // 同步交易至钱包信号
 }

@@ -447,14 +447,14 @@ public:
     /**
      * Removes the transaction with the given hash from the cache, if it is
      * not modified.
-     */
+     */ // 如果未修改，则从缓存中移除指定哈希的交易。
     void Uncache(const uint256 &txid);
 
     //! Calculate the size of the cache (in number of transactions)
-    unsigned int GetCacheSize() const;
+    unsigned int GetCacheSize() const; // 计算缓存大小（交易数）
 
     //! Calculate the size of the cache (in bytes)
-    size_t DynamicMemoryUsage() const;
+    size_t DynamicMemoryUsage() const; // 计算缓存大小（字节数）
 
     /** 
      * Amount of bitcoins coming in to a transaction

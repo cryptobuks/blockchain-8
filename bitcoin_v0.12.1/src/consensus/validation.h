@@ -29,7 +29,7 @@ private:
     int nDoS;
     std::string strRejectReason;
     unsigned int chRejectCode;
-    bool corruptionPossible;
+    bool corruptionPossible; // 옵콘릭겨
     std::string strDebugMessage;
 public:
     CValidationState() : mode(MODE_VALID), nDoS(0), chRejectCode(0), corruptionPossible(false) {}

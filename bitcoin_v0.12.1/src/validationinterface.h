@@ -20,13 +20,13 @@ class uint256;
 
 // These functions dispatch to one or all registered wallets
 
-/** Register a wallet to receive updates from core */
-void RegisterValidationInterface(CValidationInterface* pwalletIn); // 注册一个用来接收内核升级的钱包
-/** Unregister a wallet from core */
+/** Register a wallet to receive updates from core */ // 注册一个用来接收内核升级的钱包
+void RegisterValidationInterface(CValidationInterface* pwalletIn);
+/** Unregister a wallet from core */ // 从内核解注册一个钱包
 void UnregisterValidationInterface(CValidationInterface* pwalletIn);
-/** Unregister all wallets from core */
+/** Unregister all wallets from core */ // 从内核解注册全部钱包
 void UnregisterAllValidationInterfaces();
-/** Push an updated transaction to all registered wallets */
+/** Push an updated transaction to all registered wallets */ // 推送一个更新的交易到全部已注册的钱包
 void SyncWithWallets(const CTransaction& tx, const CBlock* pblock = NULL);
 
 class CValidationInterface { // 验证接口
@@ -49,7 +49,7 @@ struct CMainSignals { // 主信号类
     /** Notifies listeners of updated block chain tip */
     boost::signals2::signal<void (const CBlockIndex *)> UpdatedBlockTip;
     /** Notifies listeners of updated transaction data (transaction, and optionally the block it is found in. */
-    boost::signals2::signal<void (const CTransaction &, const CBlock *)> SyncTransaction;
+    boost::signals2::signal<void (const CTransaction &, const CBlock *)> SyncTransaction; // 通知监听者更新的交易数据（交易，和可选的所在区块）
     /** Notifies listeners of an updated transaction without new data (for now: a coinbase potentially becoming visible). */
     boost::signals2::signal<void (const uint256 &)> UpdatedTransaction;
     /** Notifies listeners of a new active block chain. */

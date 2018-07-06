@@ -14,10 +14,10 @@
 
 #include <vector>
 
-struct CDiskBlockPos
+struct CDiskBlockPos // 磁盘区块位置
 {
-    int nFile;
-    unsigned int nPos;
+    int nFile; // 区块文件号
+    unsigned int nPos; // 位置
 
     ADD_SERIALIZE_METHODS;
 
@@ -55,11 +55,11 @@ struct CDiskBlockPos
 };
 
 enum BlockStatus { // 区块状态枚举
-    //! Unused.
-    BLOCK_VALID_UNKNOWN      =    0, // 无用的
+    //! Unused. // 无用的
+    BLOCK_VALID_UNKNOWN      =    0,
 
     //! Parsed, version ok, hash satisfies claimed PoW, 1 <= vtx count <= max, timestamp not in future
-    BLOCK_VALID_HEADER       =    1,
+    BLOCK_VALID_HEADER       =    1, // 解析过的，版本正确，哈希满足工作量证明，交易数(1, max)，时间戳在过去
 
     //! All parent headers found, difficulty matches, timestamp >= median previous, checkpoint. Implies all parents
     //! are also at least TREE.
@@ -69,7 +69,7 @@ enum BlockStatus { // 区块状态枚举
      * Only first tx is coinbase, 2 <= coinbase input script length <= 100, transactions valid, no duplicate txids,
      * sigops, size, merkle root. Implies all parents are at least TREE but not necessarily TRANSACTIONS. When all
      * parent blocks also have TRANSACTIONS, CBlockIndex::nChainTx will be set.
-     */
+     */ // 只有第一笔交易是创币交易，创币交易输入脚本长度（2, 100），交易有效，不重复，签名操作，大小，默尔克树根。表明全部双亲都是 TREE 而非 TRANSACTIONS。当全部双亲区块有 TRANSACTIONS 时，CBlockIndex::nChainTx 将被设置。
     BLOCK_VALID_TRANSACTIONS =    3,
 
     //! Outputs do not overspend inputs, no double spends, coinbase output ok, no immature coinbase spends, BIP30.

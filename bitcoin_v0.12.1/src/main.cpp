@@ -1006,43 +1006,43 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState &state, const C
                               bool* pfMissingInputs, bool fOverrideMempoolLimit, bool fRejectAbsurdFee,
                               std::vector<uint256>& vHashTxnToUncache)
 {
-    AssertLockHeld(cs_main);
+    AssertLockHeld(cs_main); // 验证持有主锁
     if (pfMissingInputs)
         *pfMissingInputs = false;
 
-    if (!CheckTransaction(tx, state))
+    if (!CheckTransaction(tx, state)) // 检查交易状态
         return false;
 
-    // Coinbase is only valid in a block, not as a loose transaction
-    if (tx.IsCoinBase()) // 筛选创币交易
+    // Coinbase is only valid in a block, not as a loose transaction // 创币交易只在块中有效，而非一笔松散的交易
+    if (tx.IsCoinBase()) // 不能是创币交易
         return state.DoS(100, false, REJECT_INVALID, "coinbase");
 
-    // Rather not work on nonstandard transactions (unless -testnet/-regtest)
+    // Rather not work on nonstandard transactions (unless -testnet/-regtest) // 而不是非标准交易（除非 -testnet/-regtest）
     string reason;
-    if (fRequireStandard && !IsStandardTx(tx, reason))
+    if (fRequireStandard && !IsStandardTx(tx, reason)) // 若要求标准交易，而非标准交易
         return state.DoS(0, false, REJECT_NONSTANDARD, reason);
 
     // Don't relay version 2 transactions until CSV is active, and we can be
     // sure that such transactions will be mined (unless we're on
-    // -testnet/-regtest).
-    const CChainParams& chainparams = Params();
+    // -testnet/-regtest). // 在 CSV 激活前不要中继版本 2 交易，且我们可以确保这些交易将被挖（除非我们在 -testnet/-regtest）。
+    const CChainParams& chainparams = Params(); // 获取链参数
     if (fRequireStandard && tx.nVersion >= 2 && VersionBitsTipState(chainparams.GetConsensus(), Consensus::DEPLOYMENT_CSV) != THRESHOLD_ACTIVE) {
         return state.DoS(0, false, REJECT_NONSTANDARD, "premature-version2-tx");
     }
 
     // Only accept nLockTime-using transactions that can be mined in the next
     // block; we don't want our mempool filled up with transactions that can't
-    // be mined yet.
-    if (!CheckFinalTx(tx, STANDARD_LOCKTIME_VERIFY_FLAGS))
+    // be mined yet. // 只接受能被挖到下一个区块的使用 nLockTime 的交易；我们不想我们我们的矿池充满不能开采的交易。
+    if (!CheckFinalTx(tx, STANDARD_LOCKTIME_VERIFY_FLAGS)) // 检查是否为最终交易（即能被挖到下一个区块的使用 nLockTime 的交易）
         return state.DoS(0, false, REJECT_NONSTANDARD, "non-final");
 
-    // is it already in the memory pool?
-    uint256 hash = tx.GetHash();
-    if (pool.exists(hash))
+    // is it already in the memory pool? // 交易是否已经在内存池中？
+    uint256 hash = tx.GetHash(); // 获取交易哈希
+    if (pool.exists(hash)) // 检测该交易是否在内存池中已存在
         return state.Invalid(false, REJECT_ALREADY_KNOWN, "txn-already-in-mempool");
 
-    // Check for conflicts with in-memory transactions
-    set<uint256> setConflicts;
+    // Check for conflicts with in-memory transactions // 检测内存中的交易冲突
+    set<uint256> setConflicts; // 交易冲突集合
     {
     LOCK(pool.cs); // protect pool.mapNextTx
     BOOST_FOREACH(const CTxIn &txin, tx.vin)
@@ -1421,19 +1421,19 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState &state, const C
         }
     }
 
-    SyncWithWallets(tx, NULL);
+    SyncWithWallets(tx, NULL); // 通过交易到钱包
 
-    return true;
+    return true; // 成功返回 true
 }
 
 bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransaction &tx, bool fLimitFree,
                         bool* pfMissingInputs, bool fOverrideMempoolLimit, bool fRejectAbsurdFee)
 {
-    std::vector<uint256> vHashTxToUncache;
-    bool res = AcceptToMemoryPoolWorker(pool, state, tx, fLimitFree, pfMissingInputs, fOverrideMempoolLimit, fRejectAbsurdFee, vHashTxToUncache);
-    if (!res) {
-        BOOST_FOREACH(const uint256& hashTx, vHashTxToUncache)
-            pcoinsTip->Uncache(hashTx);
+    std::vector<uint256> vHashTxToUncache; // 未缓存交易哈希列表
+    bool res = AcceptToMemoryPoolWorker(pool, state, tx, fLimitFree, pfMissingInputs, fOverrideMempoolLimit, fRejectAbsurdFee, vHashTxToUncache); // 接收到内存池工作者
+    if (!res) { // 若添加失败
+        BOOST_FOREACH(const uint256& hashTx, vHashTxToUncache) // 遍历为缓存的交易哈希列表
+            pcoinsTip->Uncache(hashTx); // 从缓存中移除该交易索引
     }
     return res;
 }
@@ -1506,7 +1506,7 @@ bool GetTransaction(const uint256 &hash, CTransaction &txOut, const Consensus::P
 
 //////////////////////////////////////////////////////////////////////////////
 //
-// CBlock and CBlockIndex
+// CBlock and CBlockIndex // 区块和区块索引
 //
 
 bool WriteBlockToDisk(const CBlock& block, CDiskBlockPos& pos, const CMessageHeader::MessageStartChars& messageStart)
@@ -3069,7 +3069,7 @@ CBlockIndex* AddToBlockIndex(const CBlockHeader& block)
     return pindexNew;
 }
 
-/** Mark a block as having its data received and checked (up to BLOCK_VALID_TRANSACTIONS). */
+/** Mark a block as having its data received and checked (up to BLOCK_VALID_TRANSACTIONS). */ // 标记一个区块为已接收和检查（）
 bool ReceivedBlockTransactions(const CBlock &block, CValidationState& state, CBlockIndex *pindexNew, const CDiskBlockPos& pos)
 {
     pindexNew->nTx = block.vtx.size();
@@ -3417,9 +3417,9 @@ static bool AcceptBlockHeader(const CBlockHeader& block, CValidationState& state
 /** Store block on disk. If dbp is non-NULL, the file is known to already reside on disk */ // 存储区块到硬盘。如果 dbp 非空，已知文件已经存在在硬盘上
 static bool AcceptBlock(const CBlock& block, CValidationState& state, const CChainParams& chainparams, CBlockIndex** ppindex, bool fRequested, CDiskBlockPos* dbp)
 {
-    AssertLockHeld(cs_main);
+    AssertLockHeld(cs_main); // 持有主锁
 
-    CBlockIndex *&pindex = *ppindex;
+    CBlockIndex *&pindex = *ppindex; // 获取前一个（当前最佳）区块索引指针
 
     if (!AcceptBlockHeader(block, state, chainparams, &pindex)) // 接受区块头（添加新区块到区块索引映射列表）
         return false;
@@ -3427,52 +3427,52 @@ static bool AcceptBlock(const CBlock& block, CValidationState& state, const CCha
     // Try to process all requested blocks that we don't have, but only // 尝试处理我们没有的请求的块，
     // process an unrequested block if it's new and has enough work to // 但只处理一个未请求的块，如果它是新的且
     // advance our tip, and isn't too many blocks ahead. // 有足够的工作量来推进我们的链尖，且前面没有太多区块。
-    bool fAlreadyHave = pindex->nStatus & BLOCK_HAVE_DATA;
-    bool fHasMoreWork = (chainActive.Tip() ? pindex->nChainWork > chainActive.Tip()->nChainWork : true);
-    // Blocks that are too out-of-order needlessly limit the effectiveness of
-    // pruning, because pruning will not delete block files that contain any
-    // blocks which are too close in height to the tip.  Apply this test
+    bool fAlreadyHave = pindex->nStatus & BLOCK_HAVE_DATA; // 已经存在标志
+    bool fHasMoreWork = (chainActive.Tip() ? pindex->nChainWork > chainActive.Tip()->nChainWork : true); // 工作量是否充足
+    // Blocks that are too out-of-order needlessly limit the effectiveness of // 过于无序的区块不必要地限制了修剪效率，
+    // pruning, because pruning will not delete block files that contain any // 因为修剪不会删除包含任何与链尖太接近的区块的文件。
+    // blocks which are too close in height to the tip.  Apply this test // 无论是否开启修剪都应用此项；
     // regardless of whether pruning is enabled; it should generally be safe to
-    // not process unrequested blocks.
-    bool fTooFarAhead = (pindex->nHeight > int(chainActive.Height() + MIN_BLOCKS_TO_KEEP));
+    // not process unrequested blocks. // 不处理未请求块通常是安全的。
+    bool fTooFarAhead = (pindex->nHeight > int(chainActive.Height() + MIN_BLOCKS_TO_KEEP)); // 区块过高，超过当前链高度 + 288
 
     // TODO: deal better with return value and error conditions for duplicate
-    // and unrequested blocks.
-    if (fAlreadyHave) return true;
-    if (!fRequested) {  // If we didn't ask for it:
-        if (pindex->nTx != 0) return true;  // This is a previously-processed block that was pruned
-        if (!fHasMoreWork) return true;     // Don't process less-work chains
-        if (fTooFarAhead) return true;      // Block height is too high
+    // and unrequested blocks. // TODO：更好地处理重复和未请求区块的返回值和错误条件。
+    if (fAlreadyHave) return true; // 若已经存在该区块，直接返回 true
+    if (!fRequested) {  // If we didn't ask for it: // 若我么们没有要求它：
+        if (pindex->nTx != 0) return true;  // This is a previously-processed block that was pruned // 这是一个已修剪的预处理过的区块
+        if (!fHasMoreWork) return true;     // Don't process less-work chains // 不处理低工作量链
+        if (fTooFarAhead) return true;      // Block height is too high // 区块高度过高
     }
 
-    if ((!CheckBlock(block, state)) || !ContextualCheckBlock(block, state, pindex->pprev)) {
-        if (state.IsInvalid() && !state.CorruptionPossible()) {
-            pindex->nStatus |= BLOCK_FAILED_VALID;
-            setDirtyBlockIndex.insert(pindex);
+    if ((!CheckBlock(block, state)) || !ContextualCheckBlock(block, state, pindex->pprev)) { // 检查区块状态和上下文
+        if (state.IsInvalid() && !state.CorruptionPossible()) { // 若状态无效 且 
+            pindex->nStatus |= BLOCK_FAILED_VALID; // 设置该区块状态为无效
+            setDirtyBlockIndex.insert(pindex); // 插入无效区块索引集合
         }
         return false;
     }
 
     int nHeight = pindex->nHeight; // 获取区块高度
 
-    // Write block to history file // 写区块到历史文件
+    // Write block to history file // 写区块数据到历史文件
     try {
-        unsigned int nBlockSize = ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION);
+        unsigned int nBlockSize = ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION); // 获取序列化的区块大小
         CDiskBlockPos blockPos;
         if (dbp != NULL)
             blockPos = *dbp;
-        if (!FindBlockPos(state, blockPos, nBlockSize+8, nHeight, block.GetBlockTime(), dbp != NULL))
+        if (!FindBlockPos(state, blockPos, nBlockSize+8, nHeight, block.GetBlockTime(), dbp != NULL)) // 查找区块位置
             return error("AcceptBlock(): FindBlockPos failed");
-        if (dbp == NULL)
-            if (!WriteBlockToDisk(block, blockPos, chainparams.MessageStart()))
+        if (dbp == NULL) // 若未找到
+            if (!WriteBlockToDisk(block, blockPos, chainparams.MessageStart())) // 把该区块写入磁盘
                 AbortNode(state, "Failed to write block");
-        if (!ReceivedBlockTransactions(block, state, pindex, blockPos))
+        if (!ReceivedBlockTransactions(block, state, pindex, blockPos)) // 标记区块交易为已接收
             return error("AcceptBlock(): ReceivedBlockTransactions failed");
     } catch (const std::runtime_error& e) {
         return AbortNode(state, std::string("System error: ") + e.what());
     }
 
-    if (fCheckForPruning)
+    if (fCheckForPruning) // 若检查修剪，则刷新状态到磁盘
         FlushStateToDisk(state, FLUSH_STATE_NONE); // we just allocated more disk space for block files
 
     return true;

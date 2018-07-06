@@ -902,18 +902,18 @@ void CWallet::MarkConflicted(const uint256& hashBlock, const uint256& hashTx)
 
 void CWallet::SyncTransaction(const CTransaction& tx, const CBlock* pblock)
 {
-    LOCK2(cs_main, cs_wallet);
+    LOCK2(cs_main, cs_wallet); // 钱包上锁
 
-    if (!AddToWalletIfInvolvingMe(tx, pblock, true))
+    if (!AddToWalletIfInvolvingMe(tx, pblock, true)) // 添加该交易到钱包
         return; // Not one of ours
 
     // If a transaction changes 'conflicted' state, that changes the balance
     // available of the outputs it spends. So force those to be
-    // recomputed, also:
-    BOOST_FOREACH(const CTxIn& txin, tx.vin)
+    // recomputed, also: // 如果交易改变“已冲突”状态，改变其花费输出的可用余额。所以强制重新计算，且：
+    BOOST_FOREACH(const CTxIn& txin, tx.vin) // 遍历交易输入列表
     {
-        if (mapWallet.count(txin.prevout.hash))
-            mapWallet[txin.prevout.hash].MarkDirty();
+        if (mapWallet.count(txin.prevout.hash)) // 若该交易输入的前一笔输出的交易在钱包交易映射列表中
+            mapWallet[txin.prevout.hash].MarkDirty(); // 标记该交易已改变
     }
 }
 
@@ -1949,10 +1949,10 @@ bool CWallet::FundTransaction(CMutableTransaction& tx, CAmount &nFeeRet, int& nC
 }
 
 bool CWallet::CreateTransaction(const vector<CRecipient>& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, CAmount& nFeeRet,
-                                int& nChangePosRet, std::string& strFailReason, const CCoinControl* coinControl, bool sign) // NULL true
+                                int& nChangePosRet, std::string& strFailReason, const CCoinControl* coinControl, bool sign)
 {
-    CAmount nValue = 0; // 发送的总金额
-    unsigned int nSubtractFeeFromAmount = 0; // 减去的交易费总数
+    CAmount nValue = 0; // 1.记录发送的总金额
+    unsigned int nSubtractFeeFromAmount = 0; // 从发送金额减去的总交易费
     BOOST_FOREACH (const CRecipient& recipient, vecSend) // 遍历发送列表
     {
         if (nValue < 0 || recipient.nAmount < 0) // 发送金额为负数
@@ -1973,7 +1973,7 @@ bool CWallet::CreateTransaction(const vector<CRecipient>& vecSend, CWalletTx& wt
 
     wtxNew.fTimeReceivedIsTxTime = true; // 接收时间是交易时间标志置为 true
     wtxNew.BindWallet(this); // 交易绑定当前钱包
-    CMutableTransaction txNew; // 易变的交易费
+    CMutableTransaction txNew; // 易变的交易对象
 
     // Discourage fee sniping. // 阻止交易费用。
     //
@@ -2025,7 +2025,7 @@ bool CWallet::CreateTransaction(const vector<CRecipient>& vecSend, CWalletTx& wt
                     nValueToSelect += nFeeRet; // 发送的金额加上交易费
                 double dPriority = 0; // 优先级
                 // vouts to the payees // 输出到收款人
-                BOOST_FOREACH (const CRecipient& recipient, vecSend) // 遍历发送列表
+                BOOST_FOREACH (const CRecipient& recipient, vecSend) // 3.遍历发送列表
                 {
                     CTxOut txout(recipient.nAmount, recipient.scriptPubKey); // 构造交易输出对象
 
@@ -2056,15 +2056,15 @@ bool CWallet::CreateTransaction(const vector<CRecipient>& vecSend, CWalletTx& wt
                     txNew.vout.push_back(txout); // 加入交易输出列表
                 }
 
-                // Choose coins to use // 选择要使用的币
+                // Choose coins to use // 4.选择要使用的币
                 set<pair<const CWalletTx*,unsigned int> > setCoins; // 硬币集合
-                CAmount nValueIn = 0;
+                CAmount nValueIn = 0; // 记录选择的硬币总金额
                 if (!SelectCoins(nValueToSelect, setCoins, nValueIn, coinControl)) // 选择硬币
                 {
                     strFailReason = _("Insufficient funds");
                     return false; // 创建交易失败
                 }
-                BOOST_FOREACH(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, setCoins) // 遍历硬币集合
+                BOOST_FOREACH(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, setCoins) // 5.遍历硬币集合
                 {
                     CAmount nCredit = pcoin.first->vout[pcoin.second].nValue; // 获取钱包交易输出金额
                     //The coin age after the next block (depth+1) is used instead of the current, // 使用下一个块（深度+1）之后的币龄代替当前，
@@ -2078,7 +2078,7 @@ bool CWallet::CreateTransaction(const vector<CRecipient>& vecSend, CWalletTx& wt
                     dPriority += (double)nCredit * age; // 币龄和币数量用于计算优先级
                 }
 
-                const CAmount nChange = nValueIn - nValueToSelect; // 找零
+                const CAmount nChange = nValueIn - nValueToSelect; // 6.找零
                 if (nChange > 0) // 大于 0 表示存在找零
                 {
                     // Fill a vout to ourself // 填充一个输出列表到我们自己
@@ -2151,7 +2151,7 @@ bool CWallet::CreateTransaction(const vector<CRecipient>& vecSend, CWalletTx& wt
                 else
                     reservekey.ReturnKey(); // 把密钥放回密钥池
 
-                // Fill vin // 填充输入列表
+                // Fill vin // 7.填充输入列表
                 //
                 // Note how the sequence number is set to max()-1 so that the
                 // nLockTime set above actually works. // 注：序号如何设置到 max()-1 以至上面设置的锁定时间实际工作。
@@ -2159,7 +2159,7 @@ bool CWallet::CreateTransaction(const vector<CRecipient>& vecSend, CWalletTx& wt
                     txNew.vin.push_back(CTxIn(coin.first->GetHash(),coin.second,CScript(), // 加入交易输入列表
                                               std::numeric_limits<unsigned int>::max()-1));
 
-                // Sign // 签名
+                // Sign // 8.签名
                 int nIn = 0; // 输入索引
                 CTransaction txNewConst(txNew); // 通过易变的交易构建一笔不变的交易
                 BOOST_FOREACH(const PAIRTYPE(const CWalletTx*,unsigned int)& coin, setCoins) // 遍历币集合
@@ -2188,7 +2188,7 @@ bool CWallet::CreateTransaction(const vector<CRecipient>& vecSend, CWalletTx& wt
                         vin.scriptSig = CScript(); // 创建空脚本
                 }
 
-                // Embed the constructed transaction data in wtxNew. // 把构造的交易嵌入到 txNew
+                // Embed the constructed transaction data in wtxNew. // 9.把构造的交易嵌入到 txNew
                 *static_cast<CTransaction*>(&wtxNew) = CTransaction(txNew);
 
                 // Limit size // 限制交易大小
@@ -2248,14 +2248,14 @@ bool CWallet::CommitTransaction(CWalletTx& wtxNew, CReserveKey& reservekey)
             // This is only to keep the database open to defeat the auto-flush for the // 这只是为了在该期间内保持数据库打开以防自动刷新。
             // duration of this scope.  This is the only place where this optimization // 这是唯一这种优化可能有意义的地方。
             // maybe makes sense; please don't do it anywhere else. // 请不要在其他地方做这个。
-            CWalletDB* pwalletdb = fFileBacked ? new CWalletDB(strWalletFile,"r+") : NULL;
+            CWalletDB* pwalletdb = fFileBacked ? new CWalletDB(strWalletFile,"r+") : NULL; // 创建钱包数据库对象，r+ 表示可读写方式打开钱包数据库文件
 
             // Take key pair from key pool so it won't be used again // 从密钥池中拿出密钥对，以至它无法再次被使用
-            reservekey.KeepKey();
+            reservekey.KeepKey(); // 从密钥池中移除该密钥
 
             // Add tx to wallet, because if it has change it's also ours, // 添加交易到钱包，因为如果它有找零也是我们的，
             // otherwise just for transaction history. // 否则仅用于交易交易历史记录。
-            AddToWallet(wtxNew, false, pwalletdb);
+            AddToWallet(wtxNew, false, pwalletdb); // 添加钱包交易到钱包数据库
 
             // Notify that old coins are spent // 通知旧的币被花费
             set<CWalletTx*> setCoins; // 钱包交易索引集合
@@ -2270,19 +2270,19 @@ bool CWallet::CommitTransaction(CWalletTx& wtxNew, CReserveKey& reservekey)
                 delete pwalletdb; // 销毁钱包数据库对象
         }
 
-        // Track how many getdata requests our transaction gets
-        mapRequestCount[wtxNew.GetHash()] = 0; // 追踪我们的交易获取了多少次 getdata 请求，初始化为 0 次
+        // Track how many getdata requests our transaction gets // 2.追踪我们的交易获取了多少次 getdata 请求
+        mapRequestCount[wtxNew.GetHash()] = 0; // 初始化为 0 次
 
         if (fBroadcastTransactions) // 若开启了交易广播标志
         {
             // Broadcast // 广播
-            if (!wtxNew.AcceptToMemoryPool(false)) // 把交易添加到内存池中
+            if (!wtxNew.AcceptToMemoryPool(false)) // 3.把交易添加到内存池中
             { // 这步不能失败。该交易已经签署并记录。
                 // This must not fail. The transaction has already been signed and recorded.
                 LogPrintf("CommitTransaction(): Error: Transaction not valid\n");
                 return false;
             }
-            wtxNew.RelayWalletTransaction(); // 中继钱包交易
+            wtxNew.RelayWalletTransaction(); // 4.中继钱包交易
         }
     }
     return true;
