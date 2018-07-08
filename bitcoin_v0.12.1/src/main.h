@@ -114,8 +114,8 @@ static const bool DEFAULT_TXINDEX = false;
 static const unsigned int DEFAULT_BANSCORE_THRESHOLD = 100;
 
 static const bool DEFAULT_TESTSAFEMODE = false;
-/** Default for -mempoolreplacement */
-static const bool DEFAULT_ENABLE_REPLACEMENT = true;
+/** Default for -mempoolreplacement */ // 默认通过 -mempoolreplacement 选项设置
+static const bool DEFAULT_ENABLE_REPLACEMENT = true; // 内存池替换功能，默认开启
 
 /** Maximum number of headers to announce when relaying blocks with headers message.*/
 static const unsigned int MAX_BLOCKS_TO_ANNOUNCE = 8; // 当使用头信息中继区块时，用于广播的区块头的最大数目

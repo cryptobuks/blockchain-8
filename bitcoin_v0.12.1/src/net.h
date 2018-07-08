@@ -310,8 +310,8 @@ public:
 
 typedef std::map<CSubNet, CBanEntry> banmap_t; // 禁止列表：子网与禁止条目的映射
 
-/** Information about a peer */
-class CNode // 关于对端节点的信息
+/** Information about a peer */ // 关于对端节点的信息
+class CNode // 对端节点信息类
 {
 public:
     // socket

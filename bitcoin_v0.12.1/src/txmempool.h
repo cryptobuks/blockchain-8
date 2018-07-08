@@ -260,12 +260,12 @@ public:
 
 class CBlockPolicyEstimator;
 
-/** An inpoint - a combination of a transaction and an index n into its vin */
-class CInPoint
+/** An inpoint - a combination of a transaction and an index n into its vin */ // 输入点 - 一笔交易和其内部输入列表的索引/序号 n 的联合体
+class CInPoint // 输入点类
 {
 public:
-    const CTransaction* ptx;
-    uint32_t n;
+    const CTransaction* ptx; // 交易指针
+    uint32_t n; // 索引序号
 
     CInPoint() { SetNull(); }
     CInPoint(const CTransaction* ptxIn, uint32_t nIn) { ptx = ptxIn; n = nIn; }

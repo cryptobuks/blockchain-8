@@ -91,7 +91,7 @@ vector<CNode*> vNodes; // 成功建立连接的节点列表
 CCriticalSection cs_vNodes;
 map<CInv, CDataStream> mapRelay; // 中继数据映射列表
 deque<pair<int64_t, CInv> > vRelayExpiration; // 中继到期队列 <过期时间，消息库存条目（用于中继）>
-CCriticalSection cs_mapRelay; // 中继映射锁
+CCriticalSection cs_mapRelay; // 中继映射列表锁
 limitedmap<CInv, int64_t> mapAlreadyAskedFor(MAX_INV_SZ);
 
 static deque<string> vOneShots; // 意味不明 pending
@@ -2061,7 +2061,7 @@ void RelayTransaction(const CTransaction& tx, const CDataStream& ss)
 {
     CInv inv(MSG_TX, tx.GetHash()); // 根据交易哈希创建 inv 对象
     {
-        LOCK(cs_mapRelay);
+        LOCK(cs_mapRelay); // 中继映射列表上锁
         // Expire old relay messages // 使旧的中继数据过期
         while (!vRelayExpiration.empty() && vRelayExpiration.front().first < GetTime())
         { // 中继到期队列非空 且 中继过期队列队头元素过期时间小于当前时间（表示已过期）
@@ -2070,11 +2070,11 @@ void RelayTransaction(const CTransaction& tx, const CDataStream& ss)
         }
 
         // Save original serialized message so newer versions are preserved // 保存原始的序列化消息，以便保留新版本
-        mapRelay.insert(std::make_pair(inv, ss)); // 插入中继数据映射列表
+        mapRelay.insert(std::make_pair(inv, ss)); // 把该交易插入中继数据映射列表
         vRelayExpiration.push_back(std::make_pair(GetTime() + 15 * 60, inv)); // 加上 15min 的过期时间，加入过期队列
     }
-    LOCK(cs_vNodes); // 以建立连接的节点列表上锁
-    BOOST_FOREACH(CNode* pnode, vNodes) // 遍历当前已建立链接的节点列表
+    LOCK(cs_vNodes); // 已建立连接的节点列表上锁
+    BOOST_FOREACH(CNode* pnode, vNodes) // 遍历当前已建立连接的节点列表
     {
         if(!pnode->fRelayTxes) // 若中继交易状态为 false
             continue; // 跳过该节点

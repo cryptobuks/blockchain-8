@@ -72,11 +72,11 @@ bool fIsBareMultisigStd = DEFAULT_PERMIT_BAREMULTISIG;
 bool fRequireStandard = true;
 unsigned int nBytesPerSigOp = DEFAULT_BYTES_PER_SIGOP;
 bool fCheckBlockIndex = false;
-bool fCheckpointsEnabled = DEFAULT_CHECKPOINTS_ENABLED; // true 表示检查点功能默认开启
+bool fCheckpointsEnabled = DEFAULT_CHECKPOINTS_ENABLED; // true 表示检查点标志，默认开启
 size_t nCoinCacheUsage = 5000 * 300;
 uint64_t nPruneTarget = 0;
 bool fAlerts = DEFAULT_ALERTS;
-bool fEnableReplacement = DEFAULT_ENABLE_REPLACEMENT;
+bool fEnableReplacement = DEFAULT_ENABLE_REPLACEMENT; // 内存池替换标志，默认开题
 
 /** Fees smaller than this (in satoshi) are considered zero fee (for relaying, mining and transaction creation) */ // 小于词费用（单位为 satoshi）被当作 0 费用（用于中继，挖矿和创建交易）
 CFeeRate minRelayTxFee = CFeeRate(DEFAULT_MIN_RELAY_TX_FEE); // 最小中继交易费
@@ -1045,12 +1045,12 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState &state, const C
     set<uint256> setConflicts; // 交易冲突集合
     {
     LOCK(pool.cs); // protect pool.mapNextTx
-    BOOST_FOREACH(const CTxIn &txin, tx.vin)
+    BOOST_FOREACH(const CTxIn &txin, tx.vin) // 便利该交易的输入列表
     {
-        if (pool.mapNextTx.count(txin.prevout))
-        {
-            const CTransaction *ptxConflicting = pool.mapNextTx[txin.prevout].ptx;
-            if (!setConflicts.count(ptxConflicting->GetHash()))
+        if (pool.mapNextTx.count(txin.prevout)) // 若该输入的上一笔输出存在于内存池下一笔交易映射列表
+        { // 表示交易冲突
+            const CTransaction *ptxConflicting = pool.mapNextTx[txin.prevout].ptx; // 获取冲突的下一笔交易
+            if (!setConflicts.count(ptxConflicting->GetHash())) // 若该交易存在于交易冲突集合
             {
                 // Allow opt-out of transaction replacement by setting
                 // nSequence >= maxint-1 on all inputs.
@@ -1064,14 +1064,14 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState &state, const C
                 // first-seen mempool behavior should be checking all
                 // unconfirmed ancestors anyway; doing otherwise is hopelessly
                 // insecure.
-                bool fReplacementOptOut = true;
-                if (fEnableReplacement)
+                bool fReplacementOptOut = true; // 替换最优输出标志
+                if (fEnableReplacement) // 若开启了内存池替换
                 {
-                    BOOST_FOREACH(const CTxIn &txin, ptxConflicting->vin)
+                    BOOST_FOREACH(const CTxIn &txin, ptxConflicting->vin) // 遍历冲突的交易输入列表
                     {
-                        if (txin.nSequence < std::numeric_limits<unsigned int>::max()-1)
+                        if (txin.nSequence < std::numeric_limits<unsigned int>::max()-1) // 若交易输入序列号小于 -1
                         {
-                            fReplacementOptOut = false;
+                            fReplacementOptOut = false; // 替换最优输出标志置为 false
                             break;
                         }
                     }
@@ -1079,15 +1079,15 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState &state, const C
                 if (fReplacementOptOut)
                     return state.Invalid(false, REJECT_CONFLICT, "txn-mempool-conflict");
 
-                setConflicts.insert(ptxConflicting->GetHash());
+                setConflicts.insert(ptxConflicting->GetHash()); // 把该交易插入交易冲突集合
             }
         }
     }
     }
 
     {
-        CCoinsView dummy;
-        CCoinsViewCache view(&dummy);
+        CCoinsView dummy; // 创建币视图对象
+        CCoinsViewCache view(&dummy); // 创建币视图缓存对象
 
         CAmount nValueIn = 0;
         LockPoints lp;
@@ -1104,7 +1104,7 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState &state, const C
             return state.Invalid(false, REJECT_ALREADY_KNOWN, "txn-already-known");
         }
 
-        // do all inputs exist?
+        // do all inputs exist? // 全部输入存在？
         // Note that this does not check for the presence of actual outputs (see the next check for that),
         // and only helps with filling in pfMissingInputs (to determine missing vs spent).
         BOOST_FOREACH(const CTxIn txin, tx.vin) {
@@ -1117,16 +1117,16 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState &state, const C
             }
         }
 
-        // are the actual inputs available?
-        if (!view.HaveInputs(tx))
+        // are the actual inputs available? // 是可用的真正的输入？
+        if (!view.HaveInputs(tx)) // 查询是否有该交易的全部输入
             return state.Invalid(false, REJECT_DUPLICATE, "bad-txns-inputs-spent");
 
-        // Bring the best block into scope
-        view.GetBestBlock();
+        // Bring the best block into scope // 把最佳区块纳入范围
+        view.GetBestBlock(); // 获取最佳区块
 
         nValueIn = view.GetValueIn(tx);
 
-        // we have all inputs cached now, so switch back to dummy, so we don't need to keep lock on mempool
+        // we have all inputs cached now, so switch back to dummy, so we don't need to keep lock on mempool // 现在我们缓存了全部的输入，切换回假，所以我们不需要锁定内存池
         view.SetBackend(dummy);
 
         // Only accept BIP68 sequence locked transactions that can be mined in the next
@@ -1421,7 +1421,7 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState &state, const C
         }
     }
 
-    SyncWithWallets(tx, NULL); // 通过交易到钱包
+    SyncWithWallets(tx, NULL); // 同步交易到钱包
 
     return true; // 成功返回 true
 }
@@ -1432,7 +1432,7 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransa
     std::vector<uint256> vHashTxToUncache; // 未缓存交易哈希列表
     bool res = AcceptToMemoryPoolWorker(pool, state, tx, fLimitFree, pfMissingInputs, fOverrideMempoolLimit, fRejectAbsurdFee, vHashTxToUncache); // 接收到内存池工作者
     if (!res) { // 若添加失败
-        BOOST_FOREACH(const uint256& hashTx, vHashTxToUncache) // 遍历为缓存的交易哈希列表
+        BOOST_FOREACH(const uint256& hashTx, vHashTxToUncache) // 遍历未缓存的交易哈希列表
             pcoinsTip->Uncache(hashTx); // 从缓存中移除该交易索引
     }
     return res;

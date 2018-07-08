@@ -1261,10 +1261,10 @@ void CWallet::ReacceptWalletTransactions()
 
 bool CWalletTx::RelayWalletTransaction()
 {
-    assert(pwallet->GetBroadcastTransactions()); // 验证钱包是否广播交易
-    if (!IsCoinBase()) // 该交易非创币交易
+    assert(pwallet->GetBroadcastTransactions()); // 验证钱包广播交易是否开启
+    if (!IsCoinBase()) // 若该交易非创币交易
     {
-        if (GetDepthInMainChain() == 0 && !isAbandoned()) { // 链深度为 0（即未上链）且 未被标记为已抛弃
+        if (GetDepthInMainChain() == 0 && !isAbandoned()) { // 若链深度为 0（即未上链）且 未被标记为已抛弃
             LogPrintf("Relaying wtx %s\n", GetHash().ToString()); // 记录中继交易哈希
             RelayTransaction((CTransaction)*this); // 进行交易中继
             return true;
@@ -2242,7 +2242,7 @@ bool CWallet::CreateTransaction(const vector<CRecipient>& vecSend, CWalletTx& wt
 bool CWallet::CommitTransaction(CWalletTx& wtxNew, CReserveKey& reservekey)
 {
     {
-        LOCK2(cs_main, cs_wallet); // 钱包上锁
+        LOCK2(cs_main, cs_wallet); // 1.钱包上锁
         LogPrintf("CommitTransaction:\n%s", wtxNew.ToString()); // 记录交易信息
         {
             // This is only to keep the database open to defeat the auto-flush for the // 这只是为了在该期间内保持数据库打开以防自动刷新。
@@ -3035,6 +3035,6 @@ int CMerkleTx::GetBlocksToMaturity() const
 
 bool CMerkleTx::AcceptToMemoryPool(bool fLimitFree, bool fRejectAbsurdFee)
 {
-    CValidationState state;
+    CValidationState state; // 验证状态
     return ::AcceptToMemoryPool(mempool, state, *this, fLimitFree, NULL, false, fRejectAbsurdFee); // 添加交易到内存池
 }
