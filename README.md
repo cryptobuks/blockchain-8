@@ -1,8 +1,8 @@
 # Blockchain
 ## 区块链 v1.0 推荐阅读
-### 比特币相关
+### 比特币
 写在前面：与其说比特币是区块链技术的第一个应用，不如说区块链技术是为了实现虚拟数字货币比特币而出现的一种重组现有技术而得到的“新”技术，至于除了数字货币之外还能实现什么应用，我想等比特币落地那一天一切都会揭晓。
-#### 白皮书相关
+#### 白皮书
 * [Bitcoin: A Peer-to-Peer Electronic Cash System](https://bitcoin.org/bitcoin.pdf) - 比特币白皮书（英文原版）
 * [Bitcoin: A Peer-to-Peer Electronic Cash System](https://bitcoin.org/en/bitcoin-paper) - 比特币白皮书（多种语言官方版本）
 * [Bitcoin whitepaper repository on GitHub](https://github.com/wbnns/bitcoinwhitepaper) - 比特币白皮书（GitHub 仓库）
@@ -31,5 +31,12 @@
 * [比特币源码解读 - ttblack](https://www.jianshu.com/u/ef215107c407) v0.9.5rc2
 * [比特币源码研读 - 菜菜子_forest](https://www.jianshu.com/u/30081a05cf95) 0.14
 * [比特币源码剖析 - mistydew](https://mistydew.github.io) v0.12.1
+#### 基础知识
+* [C++ reference - cppreference.com](https://en.cppreference.com/w/cpp)
+* [Boost C++ Libraries](https://www.boost.org)
+* [Fast portable non-blocking network programming with Libevent](http://www.wangafu.net/~nickm/libevent-book)
+* [JSON](http://www.json.org)
+* [Remote procedure call - Wikipedia](https://en.wikipedia.org/wiki/Remote_procedure_call)
+* [JSON-RPC](https://www.jsonrpc.org)
 #### 比特币核心服务启动流程 v0.12.1
 ![bitcoindsetup](/images/bitcoindsetup.png)
