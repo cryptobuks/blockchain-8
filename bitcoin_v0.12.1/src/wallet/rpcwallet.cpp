@@ -2435,10 +2435,10 @@ UniValue listunspent(const UniValue& params, bool fHelp)
 
 UniValue fundrawtransaction(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp)) // 确保当前钱包可用
+    if (!EnsureWalletIsAvailable(fHelp)) // 1.确保当前钱包可用
         return NullUniValue;
 
-    if (fHelp || params.size() < 1 || params.size() > 2) // 参数为 1 或 2 个
+    if (fHelp || params.size() < 1 || params.size() > 2) // 2.参数为 1 或 2 个
         throw runtime_error( // 命令帮助反馈
                             "fundrawtransaction \"hexstring\" includeWatching\n"
                             "\nAdd inputs to a transaction until it has enough in value to meet its out value.\n"
@@ -2470,7 +2470,7 @@ UniValue fundrawtransaction(const UniValue& params, bool fHelp)
                             + HelpExampleCli("sendrawtransaction", "\"signedtransactionhex\"")
                             );
 
-    RPCTypeCheck(params, boost::assign::list_of(UniValue::VSTR)(UniValue::VBOOL)); // 检查参数类型
+    RPCTypeCheck(params, boost::assign::list_of(UniValue::VSTR)(UniValue::VBOOL)); // 3.检查参数类型
 
     // parse hex string from parameter
     CTransaction origTx; // 原始交易
@@ -2484,14 +2484,14 @@ UniValue fundrawtransaction(const UniValue& params, bool fHelp)
     if (params.size() > 1)
         includeWatching = params[1].get_bool(); // 获取用户设置
 
-    CMutableTransaction tx(origTx); // 构建一笔可变版本的交易
+    CMutableTransaction tx(origTx); // 4.构建一笔可变版本的交易
     CAmount nFee; // 交易费
     string strFailReason;
     int nChangePos = -1; // 改变位置
     if(!pwalletMain->FundTransaction(tx, nFee, nChangePos, strFailReason, includeWatching)) // 资助交易，增加输入和找零输出（如果有的话）
         throw JSONRPCError(RPC_INTERNAL_ERROR, strFailReason);
 
-    UniValue result(UniValue::VOBJ);
+    UniValue result(UniValue::VOBJ); // 5.创建对象类型结果集
     result.push_back(Pair("hex", EncodeHexTx(tx))); // 16 进制编码交易
     result.push_back(Pair("changepos", nChangePos)); // 改变位置
     result.push_back(Pair("fee", ValueFromAmount(nFee))); // 交易费

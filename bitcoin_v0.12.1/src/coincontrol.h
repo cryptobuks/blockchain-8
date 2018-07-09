@@ -46,7 +46,7 @@ public:
 
     void Select(const COutPoint& output)
     {
-        setSelected.insert(output);
+        setSelected.insert(output); // 加入选择币集合
     }
 
     void UnSelect(const COutPoint& output)

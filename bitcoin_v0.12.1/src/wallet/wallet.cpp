@@ -1906,46 +1906,46 @@ bool CWallet::SelectCoins(const CAmount& nTargetValue, set<pair<const CWalletTx*
 
 bool CWallet::FundTransaction(CMutableTransaction& tx, CAmount &nFeeRet, int& nChangePosRet, std::string& strFailReason, bool includeWatching)
 {
-    vector<CRecipient> vecSend;
+    vector<CRecipient> vecSend; // 1.发送列表
 
-    // Turn the txout set into a CRecipient vector
-    BOOST_FOREACH(const CTxOut& txOut, tx.vout)
+    // Turn the txout set into a CRecipient vector // 把交易输出集转换为发送（接收者）列表
+    BOOST_FOREACH(const CTxOut& txOut, tx.vout) // 遍历交易输出列表
     {
-        CRecipient recipient = {txOut.scriptPubKey, txOut.nValue, false};
-        vecSend.push_back(recipient);
+        CRecipient recipient = {txOut.scriptPubKey, txOut.nValue, false}; // 初始化接收者对象
+        vecSend.push_back(recipient); // 加入发送列表
     }
 
     CCoinControl coinControl;
     coinControl.fAllowOtherInputs = true;
     coinControl.fAllowWatchOnly = includeWatching;
-    BOOST_FOREACH(const CTxIn& txin, tx.vin)
-        coinControl.Select(txin.prevout);
+    BOOST_FOREACH(const CTxIn& txin, tx.vin) // 2.遍历交易输入列表
+        coinControl.Select(txin.prevout); // 把输入的前一笔交易输出加入币选择集合
 
     CReserveKey reservekey(this);
-    CWalletTx wtx;
-    if (!CreateTransaction(vecSend, wtx, reservekey, nFeeRet, nChangePosRet, strFailReason, &coinControl, false))
+    CWalletTx wtx; // 创建一笔钱包交易
+    if (!CreateTransaction(vecSend, wtx, reservekey, nFeeRet, nChangePosRet, strFailReason, &coinControl, false)) // 3.创建交易
         return false;
 
-    if (nChangePosRet != -1)
-        tx.vout.insert(tx.vout.begin() + nChangePosRet, wtx.vout[nChangePosRet]);
+    if (nChangePosRet != -1) // 4.若找零输出位置（序号）不等于 -1，表示有位置
+        tx.vout.insert(tx.vout.begin() + nChangePosRet, wtx.vout[nChangePosRet]); // 插入原交易输出列表的指定位置
 
-    // Add new txins (keeping original txin scriptSig/order)
-    BOOST_FOREACH(const CTxIn& txin, wtx.vin)
+    // Add new txins (keeping original txin scriptSig/order) // 5.添加新的交易输入列表（保留原始交易输入脚本签名/顺序）
+    BOOST_FOREACH(const CTxIn& txin, wtx.vin) // 遍历新的钱包交易输入列表
     {
         bool found = false;
-        BOOST_FOREACH(const CTxIn& origTxIn, tx.vin)
+        BOOST_FOREACH(const CTxIn& origTxIn, tx.vin) // 遍历旧的交易输入列表
         {
-            if (txin.prevout.hash == origTxIn.prevout.hash && txin.prevout.n == origTxIn.prevout.n)
+            if (txin.prevout.hash == origTxIn.prevout.hash && txin.prevout.n == origTxIn.prevout.n) // 若是重复输入（相同的上一笔交易哈希和输出序号）
             {
                 found = true;
                 break;
             }
         }
-        if (!found)
-            tx.vin.push_back(txin);
+        if (!found) // 若未找到该输入
+            tx.vin.push_back(txin); // 把该输入加入原交易的输入列表
     }
 
-    return true;
+    return true; // 成功返回 true
 }
 
 bool CWallet::CreateTransaction(const vector<CRecipient>& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, CAmount& nFeeRet,

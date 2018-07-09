@@ -660,7 +660,7 @@ public:
     /**
      * Insert additional inputs into the transaction by
      * calling CreateTransaction();
-     */
+     */ // 通过调用 CreateTransaction() 插入额外的输入到交易中；
     bool FundTransaction(CMutableTransaction& tx, CAmount& nFeeRet, int& nChangePosRet, std::string& strFailReason, bool includeWatching);
 
     /**
