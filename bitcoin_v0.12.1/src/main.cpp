@@ -190,7 +190,7 @@ namespace {
     uint256 hashRecentRejectsChainTip;
 
     /** Blocks that are in flight, and that are in the queue to be downloaded. Protected by cs_main. */
-    struct QueuedBlock {
+    struct QueuedBlock { // 飞行中的区块，和处于下载队列中的区块。
         uint256 hash;
         CBlockIndex* pindex;     //!< Optional.
         bool fValidatedHeaders;  //!< Whether this block has validated headers at the time of request.
@@ -228,20 +228,20 @@ struct CBlockReject {
  * by CNode's own locks. This simplifies asynchronous operation, where
  * processing of incoming data is done after the ProcessMessage call returns,
  * and we're no longer holding the node's locks.
- */
-struct CNodeState {
+ */ // 维护通过 cs_main 锁保护的节点特定的验证状态，而非 CNode 自己的锁。这简化了异步操作，在 ProcessMessage 调用返回后完成传入数据的处理，且我们不再持有节点的锁。
+struct CNodeState { // 节点状态
     //! The peer's address
-    CService address;
+    CService address; // 对端地址
     //! Whether we have a fully established connection.
-    bool fCurrentlyConnected;
+    bool fCurrentlyConnected; // 我们当前是否完全建立连接
     //! Accumulated misbehaviour score for this peer.
     int nMisbehavior;
     //! Whether this peer should be disconnected and banned (unless whitelisted).
-    bool fShouldBan;
+    bool fShouldBan; // 是否断开或禁止对端连接（除非在白名单中）
     //! String name of this peer (debugging/logging purposes).
-    std::string name;
+    std::string name; // 对端字符串类型的名字
     //! List of asynchronously-determined block rejections to notify this peer about.
-    std::vector<CBlockReject> rejects;
+    std::vector<CBlockReject> rejects; // 用于通知对端的异步确定的区块拒绝列表
     //! The best known block we know this peer has announced.
     CBlockIndex *pindexBestKnownBlock;
     //! The hash of the last unknown block this peer has announced.
@@ -253,16 +253,16 @@ struct CNodeState {
     //! Whether we've started headers synchronization with this peer.
     bool fSyncStarted;
     //! Since when we're stalling block download progress (in microseconds), or 0.
-    int64_t nStallingSince;
-    list<QueuedBlock> vBlocksInFlight;
-    //! When the first entry in vBlocksInFlight started downloading. Don't care when vBlocksInFlight is empty.
-    int64_t nDownloadingSince;
+    int64_t nStallingSince; // 当我们停止区块下载进度（以微秒为单位）的时间，或为 0。
+    list<QueuedBlock> vBlocksInFlight; // 飞行区块链表
+    //! When the first entry in vBlocksInFlight started downloading. Don't care when vBlocksInFlight is empty. // 当飞行区块链表中首个条目开始下载。不关心该链表为空。
+    int64_t nDownloadingSince; // 下载开始时间
     int nBlocksInFlight;
     int nBlocksInFlightValidHeaders;
     //! Whether we consider this a preferred download peer.
-    bool fPreferredDownload;
+    bool fPreferredDownload; // 我们是否认为这是首选的下载对端
     //! Whether this peer wants invs or headers (when possible) for block announcements.
-    bool fPreferHeaders;
+    bool fPreferHeaders; // 该对端是否想要区块通知的 invs 和区块头
 
     CNodeState() {
         fCurrentlyConnected = false;
@@ -283,17 +283,17 @@ struct CNodeState {
 };
 
 /** Map maintaining per-node state. Requires cs_main. */
-map<NodeId, CNodeState> mapNodeState;
+map<NodeId, CNodeState> mapNodeState; // 维持每个节点状态映射列表
 
 // Requires cs_main.
-CNodeState *State(NodeId pnode) {
+CNodeState *State(NodeId pnode) { // 通过节点 id 获取节点状态
     map<NodeId, CNodeState>::iterator it = mapNodeState.find(pnode);
     if (it == mapNodeState.end())
         return NULL;
     return &it->second;
 }
 
-int GetHeight()
+int GetHeight() // 获取激活链的高度
 {
     LOCK(cs_main);
     return chainActive.Height();
@@ -5608,40 +5608,40 @@ bool ProcessMessages(CNode* pfrom)
 }
 
 
-bool SendMessages(CNode* pto)
+bool SendMessages(CNode* pto) // 发送消息
 {
-    const Consensus::Params& consensusParams = Params().GetConsensus();
+    const Consensus::Params& consensusParams = Params().GetConsensus(); // 获取共识
     {
-        // Don't send anything until we get its version message
+        // Don't send anything until we get its version message // 在我们获取其版本信息前不发送任何内容
         if (pto->nVersion == 0) // 确保连接建立完毕，且版本号非 0
             return true;
 
         //
-        // Message: ping
+        // Message: ping // 消息：ping
         //
-        bool pingSend = false;
-        if (pto->fPingQueued) {
-            // RPC ping request by user
-            pingSend = true;
+        bool pingSend = false; // ping 发送标志初始化为 false
+        if (pto->fPingQueued) { // 若该节点请求一个 ping
+            // RPC ping request by user // 通过用户调用 RPC ping 请求
+            pingSend = true; // 发送 ping 标志置为 true
         }
-        if (pto->nPingNonceSent == 0 && pto->nPingUsecStart + PING_INTERVAL * 1000000 < GetTimeMicros()) { // ping 自动发送，用于延迟（2 分钟）刺探和保活
-            // Ping automatically sent as a latency probe & keepalive.
-            pingSend = true;
+        if (pto->nPingNonceSent == 0 && pto->nPingUsecStart + PING_INTERVAL * 1000000 < GetTimeMicros()) { // 若预计无 pong 响应且
+            // Ping automatically sent as a latency probe & keepalive. // ping 自动发送，用于延迟（2 分钟）刺探和保活
+            pingSend = true; // 发送 ping 标志置为 true
         }
-        if (pingSend) {
+        if (pingSend) { // 若发送 ping 的标志为 true
             uint64_t nonce = 0;
             while (nonce == 0) {
                 GetRandBytes((unsigned char*)&nonce, sizeof(nonce)); // 生成一个随机数
             }
             pto->fPingQueued = false;
-            pto->nPingUsecStart = GetTimeMicros();
-            if (pto->nVersion > BIP0031_VERSION) {
-                pto->nPingNonceSent = nonce;
-                pto->PushMessage(NetMsgType::PING, nonce);
-            } else {
+            pto->nPingUsecStart = GetTimeMicros(); // 设置当前时间（微秒）为最后一个 ping 的发送时间
+            if (pto->nVersion > BIP0031_VERSION) { // 若节点版本超过 60000（新版）
+                pto->nPingNonceSent = nonce; // 把随机数作为预计 pong 的响应时间
+                pto->PushMessage(NetMsgType::PING, nonce); // 发送 ping 命令
+            } else { // 否则对端太旧了，不支持带 nonce 的 ping 命令，pong 从不会到达。
                 // Peer is too old to support ping command with nonce, pong will never arrive.
                 pto->nPingNonceSent = 0;
-                pto->PushMessage(NetMsgType::PING);
+                pto->PushMessage(NetMsgType::PING); // 发送 ping 命令
             }
         }
 
@@ -5649,69 +5649,69 @@ bool SendMessages(CNode* pto)
         if (!lockMain)
             return true;
 
-        // Address refresh broadcast
-        int64_t nNow = GetTimeMicros();
-        if (!IsInitialBlockDownload() && pto->nNextLocalAddrSend < nNow) {
-            AdvertizeLocal(pto);
-            pto->nNextLocalAddrSend = PoissonNextSend(nNow, AVG_LOCAL_ADDRESS_BROADCAST_INTERVAL);
+        // Address refresh broadcast // 地址刷新广播
+        int64_t nNow = GetTimeMicros(); // 获取当前时间，微秒
+        if (!IsInitialBlockDownload() && pto->nNextLocalAddrSend < nNow) { // 若未初始化块下载完成 且 下一个本地地址发送时间小于当前时间
+            AdvertizeLocal(pto); // 推送我们自己的地址到对端
+            pto->nNextLocalAddrSend = PoissonNextSend(nNow, AVG_LOCAL_ADDRESS_BROADCAST_INTERVAL); // 泊松分布获取下一个发送的时间
         }
 
         //
-        // Message: addr
+        // Message: addr // 消息：地址
         //
         if (pto->nNextAddrSend < nNow) {
             pto->nNextAddrSend = PoissonNextSend(nNow, AVG_ADDRESS_BROADCAST_INTERVAL);
-            vector<CAddress> vAddr;
-            vAddr.reserve(pto->vAddrToSend.size());
-            BOOST_FOREACH(const CAddress& addr, pto->vAddrToSend)
+            vector<CAddress> vAddr; // 地址列表
+            vAddr.reserve(pto->vAddrToSend.size()); // 预开辟与待发送地址列表一样大小的空间
+            BOOST_FOREACH(const CAddress& addr, pto->vAddrToSend) // 遍历待发送的地址列表
             {
-                if (!pto->addrKnown.contains(addr.GetKey()))
+                if (!pto->addrKnown.contains(addr.GetKey())) // 若该地址不在已知的地址过滤器中
                 {
-                    pto->addrKnown.insert(addr.GetKey());
-                    vAddr.push_back(addr);
-                    // receiver rejects addr messages larger than 1000
-                    if (vAddr.size() >= 1000)
+                    pto->addrKnown.insert(addr.GetKey()); // 插入已知的地址过滤器
+                    vAddr.push_back(addr); // 并加入地址列表
+                    // receiver rejects addr messages larger than 1000 // 接收者拒绝条目超过 1000 的消息
+                    if (vAddr.size() >= 1000) // 若地址条目等于 1000
                     {
-                        pto->PushMessage(NetMsgType::ADDR, vAddr);
-                        vAddr.clear();
+                        pto->PushMessage(NetMsgType::ADDR, vAddr); // 发送该地址列表到对端
+                        vAddr.clear(); // 清空地址列表
                     }
                 }
             }
-            pto->vAddrToSend.clear();
-            if (!vAddr.empty())
-                pto->PushMessage(NetMsgType::ADDR, vAddr);
+            pto->vAddrToSend.clear(); // 清空待发送的地址列表
+            if (!vAddr.empty()) // 若地址列表非空
+                pto->PushMessage(NetMsgType::ADDR, vAddr); // 再次发送地址列表到对端
         }
 
-        CNodeState &state = *State(pto->GetId());
-        if (state.fShouldBan) {
-            if (pto->fWhitelisted)
+        CNodeState &state = *State(pto->GetId()); // 根据节点 id 获取节点状态
+        if (state.fShouldBan) { // 若该节点应该被断开或屏蔽
+            if (pto->fWhitelisted) // 且该节点在白名单中
                 LogPrintf("Warning: not punishing whitelisted peer %s!\n", pto->addr.ToString());
-            else {
-                pto->fDisconnect = true;
-                if (pto->addr.IsLocal())
+            else { // 否则
+                pto->fDisconnect = true; // 断开连接标志置为 true
+                if (pto->addr.IsLocal()) // 若对端是本地节点
                     LogPrintf("Warning: not banning local peer %s!\n", pto->addr.ToString());
-                else
+                else // 否则
                 {
-                    CNode::Ban(pto->addr, BanReasonNodeMisbehaving);
+                    CNode::Ban(pto->addr, BanReasonNodeMisbehaving); // 添加该节点地址到禁止列表（黑名单）中
                 }
             }
-            state.fShouldBan = false;
+            state.fShouldBan = false; // 应该屏蔽的状态置为 false
         }
 
-        BOOST_FOREACH(const CBlockReject& reject, state.rejects)
-            pto->PushMessage(NetMsgType::REJECT, (string)NetMsgType::BLOCK, reject.chRejectCode, reject.strRejectReason, reject.hashBlock);
-        state.rejects.clear();
+        BOOST_FOREACH(const CBlockReject& reject, state.rejects) // 遍历节点状态区块拒绝列表
+            pto->PushMessage(NetMsgType::REJECT, (string)NetMsgType::BLOCK, reject.chRejectCode, reject.strRejectReason, reject.hashBlock); // 推送到拒消息到对端
+        state.rejects.clear(); // 清空拒绝列表
 
-        // Start block sync
+        // Start block sync // 开始区块同步
         if (pindexBestHeader == NULL)
-            pindexBestHeader = chainActive.Tip();
+            pindexBestHeader = chainActive.Tip(); // 获取当前最佳链尖区块索引指针
         bool fFetch = state.fPreferredDownload || (nPreferredDownload == 0 && !pto->fClient && !pto->fOneShot); // Download if this is a nice peer, or we have no nice peers and this one might do.
         if (!state.fSyncStarted && !pto->fClient && !fImporting && !fReindex) {
             // Only actively request headers from a single peer, unless we're close to today.
             if ((nSyncStarted == 0 && fFetch) || pindexBestHeader->GetBlockTime() > GetAdjustedTime() - 24 * 60 * 60) {
-                state.fSyncStarted = true;
-                nSyncStarted++;
-                const CBlockIndex *pindexStart = pindexBestHeader;
+                state.fSyncStarted = true; // 开始同步标志置为 true
+                nSyncStarted++; // 开启同步标志的节点数量加 1
+                const CBlockIndex *pindexStart = pindexBestHeader; // 获取最佳区块索引
                 /* If possible, start at the block preceding the currently
                    best known header.  This ensures that we always get a
                    non-empty list of headers back as long as the peer
@@ -5719,23 +5719,23 @@ bool SendMessages(CNode* pto)
                    the peer's known best block.  This wouldn't be possible
                    if we requested starting at pindexBestHeader and
                    got back an empty response.  */
-                if (pindexStart->pprev)
-                    pindexStart = pindexStart->pprev;
+                if (pindexStart->pprev) // 若前一个块存在
+                    pindexStart = pindexStart->pprev; // 指向前一个块
                 LogPrint("net", "initial getheaders (%d) to peer=%d (startheight:%d)\n", pindexStart->nHeight, pto->id, pto->nStartingHeight);
-                pto->PushMessage(NetMsgType::GETHEADERS, chainActive.GetLocator(pindexStart), uint256());
+                pto->PushMessage(NetMsgType::GETHEADERS, chainActive.GetLocator(pindexStart), uint256()); // 发送获取区块头的消息
             }
         }
 
-        // Resend wallet transactions that haven't gotten in a block yet
-        // Except during reindex, importing and IBD, when old wallet
-        // transactions become unconfirmed and spams other nodes.
-        if (!fReindex && !fImporting && !IsInitialBlockDownload())
+        // Resend wallet transactions that haven't gotten in a block yet // 重新还没进入块发送钱包交易，
+        // Except during reindex, importing and IBD, when old wallet // 除了再索引，导入和 IBD 期间，
+        // transactions become unconfirmed and spams other nodes. // 当旧钱包交易变成未确认的且阻止其它节点
+        if (!fReindex && !fImporting && !IsInitialBlockDownload()) // 非再索引 且 非导入 且 非 IBD 完成
         {
-            GetMainSignals().Broadcast(nTimeBestReceived);
+            GetMainSignals().Broadcast(nTimeBestReceived); // 重新进行交易广播
         }
 
         //
-        // Try sending block announcements via headers
+        // Try sending block announcements via headers // 尝试通过区块头发送区块广播
         //
         {
             // If we have less than MAX_BLOCKS_TO_ANNOUNCE in our
@@ -5745,168 +5745,168 @@ bool SendMessages(CNode* pto)
             // If no header would connect, or if we have too many
             // blocks, or if the peer doesn't want headers, just
             // add all to the inv queue.
-            LOCK(pto->cs_inventory);
-            vector<CBlock> vHeaders;
+            LOCK(pto->cs_inventory); // 库存上锁
+            vector<CBlock> vHeaders; // 区块头列表
             bool fRevertToInv = (!state.fPreferHeaders || pto->vBlockHashesToAnnounce.size() > MAX_BLOCKS_TO_ANNOUNCE);
             CBlockIndex *pBestIndex = NULL; // last header queued for delivery
             ProcessBlockAvailability(pto->id); // ensure pindexBestKnownBlock is up-to-date
 
-            if (!fRevertToInv) {
+            if (!fRevertToInv) { // false
                 bool fFoundStartingHeader = false;
-                // Try to find first header that our peer doesn't have, and
-                // then send all headers past that one.  If we come across any
-                // headers that aren't on chainActive, give up.
-                BOOST_FOREACH(const uint256 &hash, pto->vBlockHashesToAnnounce) {
-                    BlockMap::iterator mi = mapBlockIndex.find(hash);
-                    assert(mi != mapBlockIndex.end());
-                    CBlockIndex *pindex = mi->second;
-                    if (chainActive[pindex->nHeight] != pindex) {
+                // Try to find first header that our peer doesn't have, and // 尝试找到我们对端没有的第一个头，
+                // then send all headers past that one.  If we come across any // 然后发送之后的所有区块头。
+                // headers that aren't on chainActive, give up. // 如果我们遇到任何不在激活链上的区块头，放弃。
+                BOOST_FOREACH(const uint256 &hash, pto->vBlockHashesToAnnounce) { // 遍历待通知的区块哈希列表
+                    BlockMap::iterator mi = mapBlockIndex.find(hash); // 从区块索引映射列表中查找该区块
+                    assert(mi != mapBlockIndex.end()); // 若找到
+                    CBlockIndex *pindex = mi->second; // 获取该区块索引
+                    if (chainActive[pindex->nHeight] != pindex) { // 验证该区块是否在激活的链上
                         // Bail out if we reorged away from this block
                         fRevertToInv = true;
                         break;
                     }
-                    assert(pBestIndex == NULL || pindex->pprev == pBestIndex);
-                    pBestIndex = pindex;
-                    if (fFoundStartingHeader) {
-                        // add this to the headers message
+                    assert(pBestIndex == NULL || pindex->pprev == pBestIndex); // 最佳区块索引为空 或 该区块前一个为最佳区块
+                    pBestIndex = pindex; // 最佳区块索引指向当前区块
+                    if (fFoundStartingHeader) { // false
+                        // add this to the headers message // 添加该区块到区块头消息
                         vHeaders.push_back(pindex->GetBlockHeader());
-                    } else if (PeerHasHeader(&state, pindex)) {
-                        continue; // keep looking for the first new block
-                    } else if (pindex->pprev == NULL || PeerHasHeader(&state, pindex->pprev)) {
+                    } else if (PeerHasHeader(&state, pindex)) { // 若对端有该区块头
+                        continue; // keep looking for the first new block // 跳过
+                    } else if (pindex->pprev == NULL || PeerHasHeader(&state, pindex->pprev)) { // 若该区块前没有区块 或 对端有前一个区块
                         // Peer doesn't have this header but they do have the prior one.
-                        // Start sending headers.
-                        fFoundStartingHeader = true;
-                        vHeaders.push_back(pindex->GetBlockHeader());
-                    } else {
+                        // Start sending headers. // 对端没有该区块头，但它们有前一个区块头。开始发送区块头。
+                        fFoundStartingHeader = true; // 找到并开始发送区块头标志置为 true
+                        vHeaders.push_back(pindex->GetBlockHeader()); // 获取该区块头并发送到对端
+                    } else { // 对端没有该区块头或前一个区块的头 -- 什么都不做，如此纾困
                         // Peer doesn't have this header or the prior one -- nothing will
                         // connect, so bail out.
                         fRevertToInv = true;
-                        break;
+                        break; // 跳出
                     }
                 }
             }
-            if (fRevertToInv) {
+            if (fRevertToInv) { // 若退回到使用 inv，只尝试 inv 链尖。
                 // If falling back to using an inv, just try to inv the tip.
                 // The last entry in vBlockHashesToAnnounce was our tip at some point
-                // in the past.
-                if (!pto->vBlockHashesToAnnounce.empty()) {
-                    const uint256 &hashToAnnounce = pto->vBlockHashesToAnnounce.back();
-                    BlockMap::iterator mi = mapBlockIndex.find(hashToAnnounce);
-                    assert(mi != mapBlockIndex.end());
-                    CBlockIndex *pindex = mi->second;
+                // in the past. // 待发送的区块列表中最新的条目是我们过去某时刻的链尖。
+                if (!pto->vBlockHashesToAnnounce.empty()) { // 若该列表非空
+                    const uint256 &hashToAnnounce = pto->vBlockHashesToAnnounce.back(); // 获取尾部（最新）的区块哈希
+                    BlockMap::iterator mi = mapBlockIndex.find(hashToAnnounce); // 在区块索引映射列表中查找
+                    assert(mi != mapBlockIndex.end()); // 若找到
+                    CBlockIndex *pindex = mi->second; // 获取对应的区块索引
 
                     // Warn if we're announcing a block that is not on the main chain.
                     // This should be very rare and could be optimized out.
-                    // Just log for now.
-                    if (chainActive[pindex->nHeight] != pindex) {
+                    // Just log for now. // 如果我们通知一个不在主链上的区块则发出警告。这应该是罕见的且可以优化。现在只做记录。
+                    if (chainActive[pindex->nHeight] != pindex) { // 若该区块不再激活的链上
                         LogPrint("net", "Announcing block %s not on main chain (tip=%s)\n",
-                            hashToAnnounce.ToString(), chainActive.Tip()->GetBlockHash().ToString());
+                            hashToAnnounce.ToString(), chainActive.Tip()->GetBlockHash().ToString()); // 记录日志
                     }
 
-                    // If the peer announced this block to us, don't inv it back.
+                    // If the peer announced this block to us, don't inv it back. // 如果对端向我们通知了该块，不要 inv 回它。
                     // (Since block announcements may not be via inv's, we can't solely rely on
-                    // setInventoryKnown to track this.)
-                    if (!PeerHasHeader(&state, pindex)) {
-                        pto->PushInventory(CInv(MSG_BLOCK, hashToAnnounce));
+                    // setInventoryKnown to track this.) // （因为区块通知可能不是通过 inv，所以我们不能单独依赖 setInventoryKnown 来跟踪它。）
+                    if (!PeerHasHeader(&state, pindex)) { // 若对端没有该区块头
+                        pto->PushInventory(CInv(MSG_BLOCK, hashToAnnounce)); // 发送 inv 消息到对端
                         LogPrint("net", "%s: sending inv peer=%d hash=%s\n", __func__,
                             pto->id, hashToAnnounce.ToString());
                     }
                 }
-            } else if (!vHeaders.empty()) {
-                if (vHeaders.size() > 1) {
+            } else if (!vHeaders.empty()) { // 若区块头列表非空
+                if (vHeaders.size() > 1) { // 且区块头列表元素个数大于 1
                     LogPrint("net", "%s: %u headers, range (%s, %s), to peer=%d\n", __func__,
                             vHeaders.size(),
                             vHeaders.front().GetHash().ToString(),
                             vHeaders.back().GetHash().ToString(), pto->id);
-                } else {
+                } else { // 只有一个或没有的情况
                     LogPrint("net", "%s: sending header %s to peer=%d\n", __func__,
                             vHeaders.front().GetHash().ToString(), pto->id);
                 }
-                pto->PushMessage(NetMsgType::HEADERS, vHeaders);
-                state.pindexBestHeaderSent = pBestIndex;
+                pto->PushMessage(NetMsgType::HEADERS, vHeaders); // 发送区块头列表到对端
+                state.pindexBestHeaderSent = pBestIndex; // 覆盖节点状态：发送的最佳区块头索引指针
             }
-            pto->vBlockHashesToAnnounce.clear();
+            pto->vBlockHashesToAnnounce.clear(); // 清空待通知的区块哈希列表
         }
 
         //
-        // Message: inventory
+        // Message: inventory // 消息：库存（交易）
         //
-        vector<CInv> vInv;
-        vector<CInv> vInvWait;
+        vector<CInv> vInv; // 库存列表
+        vector<CInv> vInvWait; // 库存等待列表
         {
-            bool fSendTrickle = pto->fWhitelisted;
-            if (pto->nNextInvSend < nNow) {
-                fSendTrickle = true;
+            bool fSendTrickle = pto->fWhitelisted; // 获取该节点加入白名单的标志作为涓流发送标志
+            if (pto->nNextInvSend < nNow) { // 若下一条库存发送时间小于当前时间
+                fSendTrickle = true; // 涓流发送标志置为 true
                 pto->nNextInvSend = PoissonNextSend(nNow, AVG_INVENTORY_BROADCAST_INTERVAL);
             }
-            LOCK(pto->cs_inventory);
-            vInv.reserve(std::min<size_t>(1000, pto->vInventoryToSend.size()));
-            vInvWait.reserve(pto->vInventoryToSend.size());
-            BOOST_FOREACH(const CInv& inv, pto->vInventoryToSend)
+            LOCK(pto->cs_inventory); // 库存上锁
+            vInv.reserve(std::min<size_t>(1000, pto->vInventoryToSend.size())); // 预开辟至多 1000 条目的空间
+            vInvWait.reserve(pto->vInventoryToSend.size()); // 库存等待列表预开辟和待发送库存列表一样大的空间
+            BOOST_FOREACH(const CInv& inv, pto->vInventoryToSend) // 遍历待发送库存列表
             {
-                if (inv.type == MSG_TX && pto->filterInventoryKnown.contains(inv.hash))
-                    continue;
+                if (inv.type == MSG_TX && pto->filterInventoryKnown.contains(inv.hash)) // 若条目类型为交易 且 已知的条目过滤器中含有此交易
+                    continue; // 跳过
 
-                // trickle out tx inv to protect privacy
-                if (inv.type == MSG_TX && !fSendTrickle)
+                // trickle out tx inv to protect privacy // 涓流交易条目来保护隐私
+                if (inv.type == MSG_TX && !fSendTrickle) // 类型为交易 且 涓流发送标志为 false
                 {
-                    // 1/4 of tx invs blast to all immediately
+                    // 1/4 of tx invs blast to all immediately // 1/4 的交易立刻对所有节点进行轰炸
                     static uint256 hashSalt;
                     if (hashSalt.IsNull())
-                        hashSalt = GetRandHash();
-                    uint256 hashRand = ArithToUint256(UintToArith256(inv.hash) ^ UintToArith256(hashSalt));
-                    hashRand = Hash(BEGIN(hashRand), END(hashRand));
-                    bool fTrickleWait = ((UintToArith256(hashRand) & 3) != 0);
+                        hashSalt = GetRandHash(); // 获取一个随机哈希作为盐值
+                    uint256 hashRand = ArithToUint256(UintToArith256(inv.hash) ^ UintToArith256(hashSalt)); // 该条目哈希 异或 盐值哈希
+                    hashRand = Hash(BEGIN(hashRand), END(hashRand)); // 把上步结果进行 hash256
+                    bool fTrickleWait = ((UintToArith256(hashRand) & 3) != 0); // 涓流等待标志
 
-                    if (fTrickleWait)
+                    if (fTrickleWait) // 若满足条件
                     {
-                        vInvWait.push_back(inv);
+                        vInvWait.push_back(inv); // 加入涓流等待条目列表
                         continue;
                     }
                 }
 
-                pto->filterInventoryKnown.insert(inv.hash);
+                pto->filterInventoryKnown.insert(inv.hash); // 把该条目哈希插入已知条目的过滤器中
 
-                vInv.push_back(inv);
-                if (vInv.size() >= 1000)
+                vInv.push_back(inv); // 加入库存列表
+                if (vInv.size() >= 1000) // 若库存列表元素等于 1000 个
                 {
-                    pto->PushMessage(NetMsgType::INV, vInv);
-                    vInv.clear();
+                    pto->PushMessage(NetMsgType::INV, vInv); // 发送该库存列表
+                    vInv.clear(); // 库存列表清空
                 }
             }
-            pto->vInventoryToSend = vInvWait;
+            pto->vInventoryToSend = vInvWait; // 把库存等待列表中的条目重新放入待发送的库存列表
         }
-        if (!vInv.empty())
-            pto->PushMessage(NetMsgType::INV, vInv);
+        if (!vInv.empty()) // 若库存列表非空
+            pto->PushMessage(NetMsgType::INV, vInv); // 再次发送库存列表
 
-        // Detect whether we're stalling
-        nNow = GetTimeMicros();
-        if (!pto->fDisconnect && state.nStallingSince && state.nStallingSince < nNow - 1000000 * BLOCK_STALLING_TIMEOUT) {
+        // Detect whether we're stalling // 检测我们是否停止不前
+        nNow = GetTimeMicros(); // 获取当前时间，微秒
+        if (!pto->fDisconnect && state.nStallingSince && state.nStallingSince < nNow - 1000000 * BLOCK_STALLING_TIMEOUT) { // 若节点未断开 且 停止区块下载时间非 0 且 停止时间据当前时间不能超过 2s
             // Stalling only triggers when the block download window cannot move. During normal steady state,
             // the download window should be much larger than the to-be-downloaded set of blocks, so disconnection
             // should only happen during initial block download.
             LogPrintf("Peer=%d is stalling block download, disconnecting\n", pto->id);
-            pto->fDisconnect = true;
+            pto->fDisconnect = true; // 节点断开连接标志置为 true
         }
         // In case there is a block that has been in flight from this peer for 2 + 0.5 * N times the block interval
         // (with N the number of peers from which we're downloading validated blocks), disconnect due to timeout.
         // We compensate for other peers to prevent killing off peers due to our own downstream link
         // being saturated. We only count validated in-flight blocks so peers can't advertise non-existing block hashes
         // to unreasonably increase our timeout.
-        if (!pto->fDisconnect && state.vBlocksInFlight.size() > 0) {
-            QueuedBlock &queuedBlock = state.vBlocksInFlight.front();
-            int nOtherPeersWithValidatedDownloads = nPeersWithValidatedDownloads - (state.nBlocksInFlightValidHeaders > 0);
-            if (nNow > state.nDownloadingSince + consensusParams.nPowTargetSpacing * (BLOCK_DOWNLOAD_TIMEOUT_BASE + BLOCK_DOWNLOAD_TIMEOUT_PER_PEER * nOtherPeersWithValidatedDownloads)) {
-                LogPrintf("Timeout downloading block %s from peer=%d, disconnecting\n", queuedBlock.hash.ToString(), pto->id);
-                pto->fDisconnect = true;
+        if (!pto->fDisconnect && state.vBlocksInFlight.size() > 0) { // 若节点未断开连接 且 飞行中区块链表有元素
+            QueuedBlock &queuedBlock = state.vBlocksInFlight.front(); // 获取链表中的首个元素
+            int nOtherPeersWithValidatedDownloads = nPeersWithValidatedDownloads - (state.nBlocksInFlightValidHeaders > 0); // 获取已验证下载的同伴个数
+            if (nNow > state.nDownloadingSince + consensusParams.nPowTargetSpacing * (BLOCK_DOWNLOAD_TIMEOUT_BASE + BLOCK_DOWNLOAD_TIMEOUT_PER_PEER * nOtherPeersWithValidatedDownloads)) { // 满足条件
+                LogPrintf("Timeout downloading block %s from peer=%d, disconnecting\n", queuedBlock.hash.ToString(), pto->id); // 超时下载区块记录
+                pto->fDisconnect = true; // 节点断开连接标志置为 true
             }
         }
 
         //
-        // Message: getdata (blocks)
+        // Message: getdata (blocks) // 消息：getdata（区块）
         //
-        vector<CInv> vGetData;
-        if (!pto->fDisconnect && !pto->fClient && (fFetch || !IsInitialBlockDownload()) && state.nBlocksInFlight < MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
+        vector<CInv> vGetData; // 获取数据条目列表
+        if (!pto->fDisconnect && !pto->fClient && (fFetch || !IsInitialBlockDownload()) && state.nBlocksInFlight < MAX_BLOCKS_IN_TRANSIT_PER_PEER) { // 若节点未断开连接 且 非客户端标志 且 
             vector<CBlockIndex*> vToDownload;
             NodeId staller = -1;
             FindNextBlocksToDownload(pto->GetId(), MAX_BLOCKS_IN_TRANSIT_PER_PEER - state.nBlocksInFlight, vToDownload, staller);

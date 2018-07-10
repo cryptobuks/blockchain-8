@@ -134,7 +134,7 @@ enum
 };
 
 bool IsPeerAddrLocalGood(CNode *pnode);
-void AdvertizeLocal(CNode *pnode);
+void AdvertizeLocal(CNode *pnode); // 广告本地地址到对端
 void SetLimited(enum Network net, bool fLimited = true);
 bool IsLimited(enum Network net);
 bool IsLimited(const CNetAddr& addr);
@@ -317,7 +317,7 @@ public:
     // socket
     uint64_t nServices;
     SOCKET hSocket; // 套接字
-    CDataStream ssSend;
+    CDataStream ssSend; // 发送数据流
     size_t nSendSize; // total size of all vSendMsg entries
     size_t nSendOffset; // offset inside the first vSendMsg already sent
     uint64_t nSendBytes;
@@ -337,13 +337,13 @@ public:
     CAddress addr;
     std::string addrName; // 节点的 IP
     CService addrLocal;
-    int nVersion;
+    int nVersion; // 节点版本
     // strSubVer is whatever byte array we read from the wire. However, this field is intended
     // to be printed out, displayed to humans in various forms and so on. So we sanitize it and
     // store the sanitized version in cleanSubVer. The original should be used when dealing with
     // the network or wire types and the cleaned string used when displayed or logged.
     std::string strSubVer, cleanSubVer;
-    bool fWhitelisted; // This peer can bypass DoS banning.
+    bool fWhitelisted; // This peer can bypass DoS banning. // 加入白名单标志，表示该同伴可以绕过 Dos 禁止
     bool fOneShot;
     bool fClient;
     bool fInbound;
@@ -359,7 +359,7 @@ public:
     CCriticalSection cs_filter;
     CBloomFilter* pfilter;
     int nRefCount; // 节点的引用计数
-    NodeId id;
+    NodeId id; // 建立连接节点的序号
 protected:
 
     // Denial-of-service detection/prevention
@@ -380,9 +380,9 @@ public:
     uint256 hashContinue;
     int nStartingHeight;
 
-    // flood relay
-    std::vector<CAddress> vAddrToSend;
-    CRollingBloomFilter addrKnown;
+    // flood relay // 流中继
+    std::vector<CAddress> vAddrToSend; // 待发送的地址列表
+    CRollingBloomFilter addrKnown; // 已知的地址过滤器
     bool fGetAddr;
     std::set<uint256> setKnown;
     int64_t nNextAddrSend;
@@ -390,20 +390,20 @@ public:
 
     // inventory based relay // 用于中继的库存数据
     CRollingBloomFilter filterInventoryKnown; // 布鲁姆过滤器
-    std::vector<CInv> vInventoryToSend; // 发送库存列表
+    std::vector<CInv> vInventoryToSend; // 待发送库存列表
     CCriticalSection cs_inventory;
     std::set<uint256> setAskFor;
     std::multimap<int64_t, CInv> mapAskFor;
     int64_t nNextInvSend;
     // Used for headers announcements - unfiltered blocks to relay // 用于区块头通告 - 用于中继的未过滤区块
     // Also protected by cs_inventory // 通过库存锁保护
-    std::vector<uint256> vBlockHashesToAnnounce;
+    std::vector<uint256> vBlockHashesToAnnounce; // 待通知的区块哈希列表
 
-    // Ping time measurement:
+    // Ping time measurement: // ping 时间测量：
     // The pong reply we're expecting, or 0 if no pong expected.
-    uint64_t nPingNonceSent;
+    uint64_t nPingNonceSent; // 我们预计的 pong 响应时间，如果预计无 pong 则为 0。
     // Time (in usec) the last ping was sent, or 0 if no ping was ever sent.
-    int64_t nPingUsecStart;
+    int64_t nPingUsecStart; // 发送最后一个 ping 的时间，如果未曾发送 ping 则为 0。
     // Last measured round-trip time.
     int64_t nPingUsecTime;
     // Best measured round-trip time.
@@ -522,7 +522,7 @@ public:
     void AskFor(const CInv& inv);
 
     // TODO: Document the postcondition of this function.  Is cs_vSend locked?
-    void BeginMessage(const char* pszCommand) EXCLUSIVE_LOCK_FUNCTION(cs_vSend);
+    void BeginMessage(const char* pszCommand) EXCLUSIVE_LOCK_FUNCTION(cs_vSend); // 初始化消息头并导入发送数据流
 
     // TODO: Document the precondition of this function.  Is cs_vSend locked?
     void AbortMessage() UNLOCK_FUNCTION(cs_vSend);
@@ -530,15 +530,15 @@ public:
     // TODO: Document the precondition of this function.  Is cs_vSend locked?
     void EndMessage() UNLOCK_FUNCTION(cs_vSend);
 
-    void PushVersion();
+    void PushVersion(); // 推送版本
 
 
-    void PushMessage(const char* pszCommand)
+    void PushMessage(const char* pszCommand) // 推送消息
     {
         try
         {
-            BeginMessage(pszCommand);
-            EndMessage();
+            BeginMessage(pszCommand); // 构造消息头并导入发送数据流
+            EndMessage(); // 构造消息体，并发送消息
         }
         catch (...)
         {
@@ -711,7 +711,7 @@ public:
     static bool IsBanned(CNetAddr ip);
     static bool IsBanned(CSubNet subnet);
     static void Ban(const CNetAddr &ip, const BanReason &banReason, int64_t bantimeoffset = 0, bool sinceUnixEpoch = false); // 转调下面添加子网的重载函数
-    static void Ban(const CSubNet &subNet, const BanReason &banReason, int64_t bantimeoffset = 0, bool sinceUnixEpoch = false);
+    static void Ban(const CSubNet &subNet, const BanReason &banReason, int64_t bantimeoffset = 0, bool sinceUnixEpoch = false); // 添加子网到禁止列表中
     static bool Unban(const CNetAddr &ip); // 调用下面的解禁子网的重载函数
     static bool Unban(const CSubNet &ip);
     static void GetBanned(banmap_t &banmap);
@@ -786,9 +786,9 @@ public:
     bool Read(banmap_t& banSet);
 };
 
-void DumpBanlist();
+void DumpBanlist(); // 导出禁止列表（黑名单）
 
-/** Return a timestamp in the future (in microseconds) for exponentially distributed events. */
+/** Return a timestamp in the future (in microseconds) for exponentially distributed events. */ // 返回指数分布事件的未来的时间戳（以毫秒为单位）
 int64_t PoissonNextSend(int64_t nNow, int average_interval_seconds);
 
 #endif // BITCOIN_NET_H

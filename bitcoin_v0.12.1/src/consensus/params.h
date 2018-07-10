@@ -33,15 +33,15 @@ struct BIP9Deployment {
 
 /**
  * Parameters that influence chain consensus.
- */
+ */ // 影响链共识的参数
 struct Params {
-    uint256 hashGenesisBlock;
+    uint256 hashGenesisBlock; // 创世区块哈希
     int nSubsidyHalvingInterval;
-    /** Used to check majorities for block version upgrade */
+    /** Used to check majorities for block version upgrade */ // 用于检查区块版本升级的大部分
     int nMajorityEnforceBlockUpgrade;
     int nMajorityRejectBlockOutdated;
     int nMajorityWindow;
-    /** Block height and hash at which BIP34 becomes active */
+    /** Block height and hash at which BIP34 becomes active */ // BIP34 激活的区块高度和哈希
     int BIP34Height;
     uint256 BIP34Hash;
     /**
@@ -50,15 +50,15 @@ struct Params {
      * Examples: 1916 for 95%, 1512 for testchains.
      */
     uint32_t nRuleChangeActivationThreshold;
-    uint32_t nMinerConfirmationWindow;
+    uint32_t nMinerConfirmationWindow; // 矿工确认窗口
     BIP9Deployment vDeployments[MAX_VERSION_BITS_DEPLOYMENTS];
-    /** Proof of work parameters */
+    /** Proof of work parameters */ // 工作量证明参数
     uint256 powLimit; // 最低难度
-    bool fPowAllowMinDifficultyBlocks;
+    bool fPowAllowMinDifficultyBlocks; // Pow 允许最小难度的区块
     bool fPowNoRetargeting;
-    int64_t nPowTargetSpacing;
-    int64_t nPowTargetTimespan;
-    int64_t DifficultyAdjustmentInterval() const { return nPowTargetTimespan / nPowTargetSpacing; }
+    int64_t nPowTargetSpacing; // 难度（工作量证明目标值）间隔
+    int64_t nPowTargetTimespan; // 难度（工作量证明目标值）时间跨度
+    int64_t DifficultyAdjustmentInterval() const { return nPowTargetTimespan / nPowTargetSpacing; } // 难度调整间隔
 };
 } // namespace Consensus
 

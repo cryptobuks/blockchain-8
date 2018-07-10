@@ -202,7 +202,7 @@ bool IsPeerAddrLocalGood(CNode *pnode)
            !IsLimited(pnode->addrLocal.GetNetwork());
 }
 
-// pushes our own address to a peer
+// pushes our own address to a peer // 推送我们自己的地址到对端
 void AdvertizeLocal(CNode *pnode)
 {
     if (fListen && pnode->fSuccessfullyConnected)
@@ -2446,7 +2446,7 @@ void CNode::AskFor(const CInv& inv)
 void CNode::BeginMessage(const char* pszCommand) EXCLUSIVE_LOCK_FUNCTION(cs_vSend)
 {
     ENTER_CRITICAL_SECTION(cs_vSend);
-    assert(ssSend.size() == 0);
+    assert(ssSend.size() == 0); // 发送数据流为空
     ssSend << CMessageHeader(Params().MessageStart(), pszCommand, 0); // 初始化消息头
     LogPrint("net", "sending: %s ", SanitizeString(pszCommand));
 }
@@ -2479,11 +2479,11 @@ void CNode::EndMessage() UNLOCK_FUNCTION(cs_vSend)
         LEAVE_CRITICAL_SECTION(cs_vSend);
         return;
     }
-    // Set the size
+    // Set the size // 设置大小
     unsigned int nSize = ssSend.size() - CMessageHeader::HEADER_SIZE; // 消息总大小 - 消息头大小（24 bytes）
     WriteLE32((uint8_t*)&ssSend[CMessageHeader::MESSAGE_SIZE_OFFSET], nSize);
 
-    // Set the checksum
+    // Set the checksum // 设置校验和
     uint256 hash = Hash(ssSend.begin() + CMessageHeader::HEADER_SIZE, ssSend.end()); // 消息体（数据）哈希
     unsigned int nChecksum = 0;
     memcpy(&nChecksum, &hash, sizeof(nChecksum)); // 取上步哈希的前 4 bytes 作为校验和
@@ -2496,8 +2496,8 @@ void CNode::EndMessage() UNLOCK_FUNCTION(cs_vSend)
     ssSend.GetAndClear(*it); // 把消息插入发送消息队列 vSendMsg 并清空消息
     nSendSize += (*it).size();
 
-    // If write queue empty, attempt "optimistic write"
-    if (it == vSendMsg.begin())
+    // If write queue empty, attempt "optimistic write" // 如果写入队列为空，尝试“乐观写入”
+    if (it == vSendMsg.begin()) // 若刚好指向的是发送消息队列的队头
         SocketSendData(this); // 遍历发送消息队列 vSendMsg 发送数据
 
     LEAVE_CRITICAL_SECTION(cs_vSend);
@@ -2606,7 +2606,7 @@ bool CBanDB::Read(banmap_t& banSet)
 
 void DumpBanlist()
 {
-    int64_t nStart = GetTimeMillis();
+    int64_t nStart = GetTimeMillis(); // 获取当前时间，毫秒
 
     CNode::SweepBanned(); //clean unused entries (if bantime has expired)
 
@@ -2619,6 +2619,6 @@ void DumpBanlist()
              banmap.size(), GetTimeMillis() - nStart); // 记录大小及用时
 }
 
-int64_t PoissonNextSend(int64_t nNow, int average_interval_seconds) {
+int64_t PoissonNextSend(int64_t nNow, int average_interval_seconds) { // pending
     return nNow + (int64_t)(log1p(GetRand(1ULL << 48) * -0.0000000000000035527136788 /* -1/2^48 */) * average_interval_seconds * -1000000.0 + 0.5);
 }

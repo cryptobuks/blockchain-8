@@ -1521,7 +1521,7 @@ std::vector<uint256> CWallet::ResendWalletTransactionsBefore(int64_t nTime)
 void CWallet::ResendWalletTransactions(int64_t nBestBlockTime)
 {
     // Do this infrequently and randomly to avoid giving away
-    // that these are our transactions.
+    // that these are our transactions. // 不常和随机做这个，避免放弃我们的交易。
     if (GetTime() < nNextResend || !fBroadcastTransactions)
         return;
     bool fFirst = (nNextResend == 0);
@@ -1529,15 +1529,15 @@ void CWallet::ResendWalletTransactions(int64_t nBestBlockTime)
     if (fFirst)
         return;
 
-    // Only do it if there's been a new block since last time
+    // Only do it if there's been a new block since last time // 若有一个新区块才执行这里
     if (nBestBlockTime < nLastResend)
         return;
     nLastResend = GetTime();
 
     // Rebroadcast unconfirmed txes older than 5 minutes before the last
-    // block was found:
+    // block was found: // 在找到最后一个块前的 5 分钟前广播未确认的交易集
     std::vector<uint256> relayed = ResendWalletTransactionsBefore(nBestBlockTime-5*60);
-    if (!relayed.empty())
+    if (!relayed.empty()) // 若中继数据（交易）非空，记录再广播的交易数
         LogPrintf("%s: rebroadcast %u unconfirmed transactions\n", __func__, relayed.size());
 }
 

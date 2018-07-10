@@ -66,7 +66,7 @@ public:
 };
 
 /** Compute the 256-bit hash of an object. */
-template<typename T1>
+template<typename T1> // 计算对象的 256 位哈希值。
 inline uint256 Hash(const T1 pbegin, const T1 pend)
 {
     static const unsigned char pblank[1] = {};

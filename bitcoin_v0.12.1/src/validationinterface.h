@@ -57,7 +57,7 @@ struct CMainSignals { // 主信号类
     /** Notifies listeners about an inventory item being seen on the network. */
     boost::signals2::signal<void (const uint256 &)> Inventory; // 通知监听者关于网络上看到的库存项目
     /** Tells listeners to broadcast their data. */
-    boost::signals2::signal<void (int64_t nBestBlockTime)> Broadcast;
+    boost::signals2::signal<void (int64_t nBestBlockTime)> Broadcast; // 通知监听者广播它们的数据
     /** Notifies listeners of a block validation result */
     boost::signals2::signal<void (const CBlock&, const CValidationState&)> BlockChecked;
     /** Notifies listeners that a key for mining is required (coinbase) */

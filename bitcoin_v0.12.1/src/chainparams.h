@@ -52,7 +52,7 @@ public:
         MAX_BASE58_TYPES
     };
 
-    const Consensus::Params& GetConsensus() const { return consensus; }
+    const Consensus::Params& GetConsensus() const { return consensus; } // 获取共识
     const CMessageHeader::MessageStartChars& MessageStart() const { return pchMessageStart; } // 获取通讯协议消息头
     const std::vector<unsigned char>& AlertKey() const { return vAlertPubKey; }
     int GetDefaultPort() const { return nDefaultPort; } // 获取默认端口号
