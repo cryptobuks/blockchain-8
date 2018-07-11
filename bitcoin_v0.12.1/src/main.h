@@ -449,16 +449,16 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, CBlockIn
 bool TestBlockValidity(CValidationState& state, const CChainParams& chainparams, const CBlock& block, CBlockIndex* pindexPrev, bool fCheckPOW = true, bool fCheckMerkleRoot = true);
 
 
-class CBlockFileInfo
+class CBlockFileInfo // 区块文件信息类
 {
 public:
-    unsigned int nBlocks;      //! number of blocks stored in file
-    unsigned int nSize;        //! number of used bytes of block file
-    unsigned int nUndoSize;    //! number of used bytes in the undo file
-    unsigned int nHeightFirst; //! lowest height of block in file
-    unsigned int nHeightLast;  //! highest height of block in file
-    uint64_t nTimeFirst;         //! earliest time of block in file
-    uint64_t nTimeLast;          //! latest time of block in file
+    unsigned int nBlocks;      //! number of blocks stored in file // 存储在文件中的区块数
+    unsigned int nSize;        //! number of used bytes of block file // 区块文件使用的字节数
+    unsigned int nUndoSize;    //! number of used bytes in the undo file // 区块 undo 文件使用的字节数
+    unsigned int nHeightFirst; //! lowest height of block in file // 文件中区块的最低高度
+    unsigned int nHeightLast;  //! highest height of block in file // 文件中区块的最高高度
+    uint64_t nTimeFirst;         //! earliest time of block in file // 文件中区块的最早时间
+    uint64_t nTimeLast;          //! latest time of block in file // 文件中区块的最新时间
 
     ADD_SERIALIZE_METHODS;
 

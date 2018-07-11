@@ -1928,7 +1928,7 @@ void static Discover(boost::thread_group& threadGroup)
 void StartNode(boost::thread_group& threadGroup, CScheduler& scheduler)
 {
     uiInterface.InitMessage(_("Loading addresses..."));
-    // Load addresses for peers.dat
+    // Load addresses for peers.dat // 从 peers.dat 文件中加载地址
     int64_t nStart = GetTimeMillis();
     {
         CAddrDB adb;
@@ -1936,7 +1936,7 @@ void StartNode(boost::thread_group& threadGroup, CScheduler& scheduler)
             LogPrintf("Invalid or missing peers.dat; recreating\n");
     }
 
-    //try to read stored banlist
+    //try to read stored banlist // 尝试读取存储的黑名单
     CBanDB bandb;
     banmap_t banmap;
     if (!bandb.Read(banmap)) // 从 banlist.dat 中加载黑名单（禁用列表）
@@ -1951,7 +1951,7 @@ void StartNode(boost::thread_group& threadGroup, CScheduler& scheduler)
     fAddressesInitialized = true;
 
     if (semOutbound == NULL) {
-        // initialize semaphore
+        // initialize semaphore // 初始化信号量
         int nMaxOutbound = min(MAX_OUTBOUND_CONNECTIONS, nMaxConnections); // 初始化连接信号量，最多 8 个
         semOutbound = new CSemaphore(nMaxOutbound);
     }
@@ -1962,7 +1962,7 @@ void StartNode(boost::thread_group& threadGroup, CScheduler& scheduler)
     Discover(threadGroup); // 发现并保存本地 IP 地址
 
     //
-    // Start threads
+    // Start threads // 启动线程
     //
 
     if (!GetBoolArg("-dnsseed", true)) // dns 种子，默认打开

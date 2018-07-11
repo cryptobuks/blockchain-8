@@ -17,12 +17,12 @@ static const int32_t VERSIONBITS_TOP_MASK = 0xE0000000UL;
 /** Total bits available for versionbits */
 static const int32_t VERSIONBITS_NUM_BITS = 29;
 
-enum ThresholdState {
-    THRESHOLD_DEFINED,
-    THRESHOLD_STARTED,
-    THRESHOLD_LOCKED_IN,
-    THRESHOLD_ACTIVE,
-    THRESHOLD_FAILED,
+enum ThresholdState { // 阈值状态枚举
+    THRESHOLD_DEFINED, // 定义
+    THRESHOLD_STARTED, // 开始
+    THRESHOLD_LOCKED_IN, // 锁定
+    THRESHOLD_ACTIVE, // 激活
+    THRESHOLD_FAILED, // 失败
 };
 
 // A map that gives the state for blocks whose height is a multiple of Period().

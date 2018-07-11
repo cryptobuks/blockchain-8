@@ -18,7 +18,7 @@
 #include <stdint.h>
 #include <string>
 
-#define MESSAGE_START_SIZE 4
+#define MESSAGE_START_SIZE 4 // 消息魔数大小，4bytes
 
 /** Message header.
  * (4) message start. // 4 字节魔数
@@ -300,7 +300,7 @@ public:
 
     friend bool operator<(const CInv& a, const CInv& b);
 
-    bool IsKnownType() const;
+    bool IsKnownType() const; // 判断该库存条目是否为已知类型
     const char* GetCommand() const;
     std::string ToString() const;
 
@@ -313,9 +313,9 @@ public:
 enum {
     MSG_TX = 1, // 1 交易
     MSG_BLOCK, // 2 区块
-    // Nodes may always request a MSG_FILTERED_BLOCK in a getdata, however,
-    // MSG_FILTERED_BLOCK should not appear in any invs except as a part of getdata.
-    MSG_FILTERED_BLOCK,
+    // Nodes may always request a MSG_FILTERED_BLOCK in a getdata, however, // 在 getdata 中节点可能总会请求 MSG_FILTERED_BLOCK，但是，
+    // MSG_FILTERED_BLOCK should not appear in any invs except as a part of getdata. // MSG_FILTERED_BLOCK 不应该出现在任何 invs 中，除非是作为 getdata 一部分的 invs。
+    MSG_FILTERED_BLOCK, // 3 过滤的区块
 };
 
 #endif // BITCOIN_PROTOCOL_H

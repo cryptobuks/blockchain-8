@@ -161,9 +161,9 @@ extern int nMaxConnections;
 
 extern std::vector<CNode*> vNodes; // 已建立连接的节点列表
 extern CCriticalSection cs_vNodes; // 节点列表锁
-extern std::map<CInv, CDataStream> mapRelay;
-extern std::deque<std::pair<int64_t, CInv> > vRelayExpiration;
-extern CCriticalSection cs_mapRelay;
+extern std::map<CInv, CDataStream> mapRelay; // 中继映射列表
+extern std::deque<std::pair<int64_t, CInv> > vRelayExpiration; // 中继过期队列
+extern CCriticalSection cs_mapRelay; // 中继映射列表锁
 extern limitedmap<CInv, int64_t> mapAlreadyAskedFor;
 
 extern std::vector<std::string> vAddedNodes; // 添加的节点列表
@@ -214,17 +214,17 @@ class CNetMessage { // 网络消息类
 public:
     bool in_data;                   // parsing header (false) or data (true) // 表示当前解析的头或身体
 
-    CDataStream hdrbuf;             // partially received header
-    CMessageHeader hdr;             // complete header
+    CDataStream hdrbuf;             // partially received header // 接收的部分消息头
+    CMessageHeader hdr;             // complete header // 完整的消息头
     unsigned int nHdrPos; // 记录消息头当前数据的位置
 
-    CDataStream vRecv;              // received message data
+    CDataStream vRecv;              // received message data // 接收的消息数据
     unsigned int nDataPos; // 记录消息体当前数据的位置
 
-    int64_t nTime;                  // time (in microseconds) of message receipt.
+    int64_t nTime;                  // time (in microseconds) of message receipt. // 消息接收时间（以微秒为单位）
 
     CNetMessage(const CMessageHeader::MessageStartChars& pchMessageStartIn, int nTypeIn, int nVersionIn) : hdrbuf(nTypeIn, nVersionIn), hdr(pchMessageStartIn), vRecv(nTypeIn, nVersionIn) {
-        hdrbuf.resize(24);
+        hdrbuf.resize(24); // 预开辟 24 字节的消息头
         in_data = false;
         nHdrPos = 0;
         nDataPos = 0;
@@ -244,8 +244,8 @@ public:
         vRecv.SetVersion(nVersionIn);
     }
 
-    int readHeader(const char *pch, unsigned int nBytes);
-    int readData(const char *pch, unsigned int nBytes);
+    int readHeader(const char *pch, unsigned int nBytes); // 读消息头
+    int readData(const char *pch, unsigned int nBytes); // 读消息体（数据）
 };
 
 
@@ -324,7 +324,7 @@ public:
     std::deque<CSerializeData> vSendMsg;
     CCriticalSection cs_vSend;
 
-    std::deque<CInv> vRecvGetData; // inv 队列
+    std::deque<CInv> vRecvGetData; // 接收获取数据 inv 队列
     std::deque<CNetMessage> vRecvMsg; // 接收的网络消息队列
     CCriticalSection cs_vRecvMsg;
     uint64_t nRecvBytes;
@@ -383,7 +383,7 @@ public:
     // flood relay // 流中继
     std::vector<CAddress> vAddrToSend; // 待发送的地址列表
     CRollingBloomFilter addrKnown; // 已知的地址过滤器
-    bool fGetAddr;
+    bool fGetAddr; // 获取地址标志
     std::set<uint256> setKnown;
     int64_t nNextAddrSend;
     int64_t nNextLocalAddrSend;
@@ -392,8 +392,8 @@ public:
     CRollingBloomFilter filterInventoryKnown; // 布鲁姆过滤器
     std::vector<CInv> vInventoryToSend; // 待发送库存列表
     CCriticalSection cs_inventory;
-    std::set<uint256> setAskFor;
-    std::multimap<int64_t, CInv> mapAskFor;
+    std::set<uint256> setAskFor; // 待请求列表
+    std::multimap<int64_t, CInv> mapAskFor; // 待请求映射列表 <时间，库存条目>
     int64_t nNextInvSend;
     // Used for headers announcements - unfiltered blocks to relay // 用于区块头通告 - 用于中继的未过滤区块
     // Also protected by cs_inventory // 通过库存锁保护

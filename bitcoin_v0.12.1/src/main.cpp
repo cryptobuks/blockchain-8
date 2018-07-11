@@ -186,8 +186,8 @@ namespace {
      *
      * Memory used: 1.7MB
      */
-    boost::scoped_ptr<CRollingBloomFilter> recentRejects;
-    uint256 hashRecentRejectsChainTip;
+    boost::scoped_ptr<CRollingBloomFilter> recentRejects; // 最近拒绝的交易过滤器
+    uint256 hashRecentRejectsChainTip; // 最近拒绝的链尖哈希
 
     /** Blocks that are in flight, and that are in the queue to be downloaded. Protected by cs_main. */
     struct QueuedBlock { // 飞行中的区块，和处于下载队列中的区块。
@@ -4365,99 +4365,99 @@ std::string GetWarnings(const std::string& strFor)
 //
 
 
-bool static AlreadyHave(const CInv& inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
+bool static AlreadyHave(const CInv& inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main) // 检测是否有指定条目
 {
-    switch (inv.type)
+    switch (inv.type) // 根据库存条目类型进行选择
     {
-    case MSG_TX:
+    case MSG_TX: // 交易消息
         {
             assert(recentRejects);
-            if (chainActive.Tip()->GetBlockHash() != hashRecentRejectsChainTip)
+            if (chainActive.Tip()->GetBlockHash() != hashRecentRejectsChainTip) // 若激活的链尖哈希不是最近拒绝的链尖
             {
                 // If the chain tip has changed previously rejected transactions
                 // might be now valid, e.g. due to a nLockTime'd tx becoming valid,
                 // or a double-spend. Reset the rejects filter and give those
                 // txs a second chance.
-                hashRecentRejectsChainTip = chainActive.Tip()->GetBlockHash();
+                hashRecentRejectsChainTip = chainActive.Tip()->GetBlockHash(); // 拒绝当前最佳区块
                 recentRejects->reset();
             }
 
-            return recentRejects->contains(inv.hash) ||
-                   mempool.exists(inv.hash) ||
-                   mapOrphanTransactions.count(inv.hash) ||
-                   pcoinsTip->HaveCoins(inv.hash);
+            return recentRejects->contains(inv.hash) || // 最近拒绝列表中包含该库存条目
+                   mempool.exists(inv.hash) || // 或交易内存池中包含该交易
+                   mapOrphanTransactions.count(inv.hash) || // 或孤儿交易映射列表中包含该交易
+                   pcoinsTip->HaveCoins(inv.hash); // 或币视图缓存中包含该交易
         }
-    case MSG_BLOCK:
-        return mapBlockIndex.count(inv.hash);
+    case MSG_BLOCK: // 区块消息
+        return mapBlockIndex.count(inv.hash); // 根据条目哈希在区块索引映射列表中查询
     }
     // Don't know what it is, just say we already got one
     return true;
 }
 
-void static ProcessGetData(CNode* pfrom, const Consensus::Params& consensusParams)
+void static ProcessGetData(CNode* pfrom, const Consensus::Params& consensusParams) // 处理（推送）要获取的数据
 {
-    std::deque<CInv>::iterator it = pfrom->vRecvGetData.begin();
+    std::deque<CInv>::iterator it = pfrom->vRecvGetData.begin(); // 获取接收获取数据队列首个元素的迭代器
 
-    vector<CInv> vNotFound;
+    vector<CInv> vNotFound; // 未找到库存列表
 
-    LOCK(cs_main);
+    LOCK(cs_main); // 上锁
 
-    while (it != pfrom->vRecvGetData.end()) {
-        // Don't bother if send buffer is too full to respond anyway
-        if (pfrom->nSendSize >= SendBufferSize())
-            break;
+    while (it != pfrom->vRecvGetData.end()) { // 遍历接收获取数据列表
+        // Don't bother if send buffer is too full to respond anyway // 若发送缓冲区过满无法响应，不要打扰它。
+        if (pfrom->nSendSize >= SendBufferSize()) // 若发送缓冲区当前大小达到其阈值
+            break; // 直接跳出
 
-        const CInv &inv = *it;
+        const CInv &inv = *it; // 获取库存条目的引用
         {
-            boost::this_thread::interruption_point();
-            it++;
+            boost::this_thread::interruption_point(); // 打个断点
+            it++; // 迭代器后移
 
-            if (inv.type == MSG_BLOCK || inv.type == MSG_FILTERED_BLOCK)
+            if (inv.type == MSG_BLOCK || inv.type == MSG_FILTERED_BLOCK) // 库存消息类型为区块或过滤的区块
             {
-                bool send = false;
-                BlockMap::iterator mi = mapBlockIndex.find(inv.hash);
-                if (mi != mapBlockIndex.end())
+                bool send = false; // 发送标志初始化 false
+                BlockMap::iterator mi = mapBlockIndex.find(inv.hash); // 从区块索引映射列表中获取该区块索引
+                if (mi != mapBlockIndex.end()) // 若找到指定的区块索引
                 {
-                    if (chainActive.Contains(mi->second)) {
-                        send = true;
-                    } else {
-                        static const int nOneMonth = 30 * 24 * 60 * 60;
+                    if (chainActive.Contains(mi->second)) { // 若激活的链上包含该区块
+                        send = true; // 发送标志置为 true
+                    } else { // 否则
+                        static const int nOneMonth = 30 * 24 * 60 * 60; // 一个月的时间 30d
                         // To prevent fingerprinting attacks, only send blocks outside of the active
                         // chain if they are valid, and no more than a month older (both in time, and in
                         // best equivalent proof of work) than the best header chain we know about.
                         send = mi->second->IsValid(BLOCK_VALID_SCRIPTS) && (pindexBestHeader != NULL) &&
                             (pindexBestHeader->GetBlockTime() - mi->second->GetBlockTime() < nOneMonth) &&
                             (GetBlockProofEquivalentTime(*pindexBestHeader, *mi->second, *pindexBestHeader, consensusParams) < nOneMonth);
-                        if (!send) {
-                            LogPrintf("%s: ignoring request from peer=%i for old block that isn't in the main chain\n", __func__, pfrom->GetId());
+                        if (!send) { // 若发送标志为 false
+                            LogPrintf("%s: ignoring request from peer=%i for old block that isn't in the main chain\n", __func__, pfrom->GetId()); // 记录日志
                         }
                     }
                 }
                 // disconnect node in case we have reached the outbound limit for serving historical blocks
-                // never disconnect whitelisted nodes
-                static const int nOneWeek = 7 * 24 * 60 * 60; // assume > 1 week = historical
-                if (send && CNode::OutboundTargetReached(true) && ( ((pindexBestHeader != NULL) && (pindexBestHeader->GetBlockTime() - mi->second->GetBlockTime() > nOneWeek)) || inv.type == MSG_FILTERED_BLOCK) && !pfrom->fWhitelisted)
+                // never disconnect whitelisted nodes // 一旦我们达到服务历史区块的出战限制，断开节点的连接，但永远不会断开白名单中的节点
+                static const int nOneWeek = 7 * 24 * 60 * 60; // assume > 1 week = historical // 一周时间 7d
+                if (send && CNode::OutboundTargetReached(true) && ( ((pindexBestHeader != NULL) && (pindexBestHeader->GetBlockTime() - mi->second->GetBlockTime() > nOneWeek)) || inv.type == MSG_FILTERED_BLOCK) && !pfrom->fWhitelisted) // 最佳区块时间和当前区块时间差超过一周 或 库存条目类型为过滤的区块 且 该节点不在白名单中
                 {
                     LogPrint("net", "historical block serving limit reached, disconnect peer=%d\n", pfrom->GetId());
 
-                    //disconnect node
-                    pfrom->fDisconnect = true;
-                    send = false;
+                    //disconnect node // 断开节点连接
+                    pfrom->fDisconnect = true; // 该节点的断开连接标志置为 true
+                    send = false; // 发送标志置为 false
                 }
                 // Pruned nodes may have deleted the block, so check whether
-                // it's available before trying to send.
-                if (send && (mi->second->nStatus & BLOCK_HAVE_DATA))
+                // it's available before trying to send. // 修剪得节点可能删除了该区块，所以在尝试发送前检查它是否可用
+                if (send && (mi->second->nStatus & BLOCK_HAVE_DATA)) // 发送标志为 true 且该区块状态有数据
                 {
-                    // Send block from disk
-                    CBlock block;
-                    if (!ReadBlockFromDisk(block, (*mi).second, consensusParams))
+                    // Send block from disk // 从磁盘上发送区块
+                    CBlock block; // 区块对象
+                    if (!ReadBlockFromDisk(block, (*mi).second, consensusParams)) // 从磁盘上读取区块索引对应区块
                         assert(!"cannot load block from disk");
-                    if (inv.type == MSG_BLOCK)
-                        pfrom->PushMessage(NetMsgType::BLOCK, block);
-                    else // MSG_FILTERED_BLOCK)
+                    if (inv.type == MSG_BLOCK) // 若库存条目类型为区块
+                        pfrom->PushMessage(NetMsgType::BLOCK, block); // 发送该区块到对端
+                    else // MSG_FILTERED_BLOCK) // 否则为过滤得区块
                     {
-                        LOCK(pfrom->cs_filter);
-                        if (pfrom->pfilter)
+                        LOCK(pfrom->cs_filter); // 过滤器上锁
+                        if (pfrom->pfilter) // 若布鲁姆过滤器存在
                         {
                             CMerkleBlock merkleBlock(block, *pfrom->pfilter);
                             pfrom->PushMessage(NetMsgType::MERKLEBLOCK, merkleBlock);
@@ -4471,61 +4471,61 @@ void static ProcessGetData(CNode* pfrom, const Consensus::Params& consensusParam
                             BOOST_FOREACH(PairType& pair, merkleBlock.vMatchedTxn)
                                 pfrom->PushMessage(NetMsgType::TX, block.vtx[pair.first]);
                         }
-                        // else
-                            // no response
+                        // else // 否则
+                            // no response // 无响应
                     }
 
-                    // Trigger the peer node to send a getblocks request for the next batch of inventory
-                    if (inv.hash == pfrom->hashContinue)
+                    // Trigger the peer node to send a getblocks request for the next batch of inventory // 触发对端节点发送一个用于下一批库存的 getblocks 请求
+                    if (inv.hash == pfrom->hashContinue) // 若该库存条目为下一批的首个区块哈希
                     {
-                        // Bypass PushInventory, this must send even if redundant,
-                        // and we want it right after the last block so they don't
+                        // Bypass PushInventory, this must send even if redundant, // 绕过 PushInventory，尽管冗余但必须发送，
+                        // and we want it right after the last block so they don't // 我们希望它在最后一个块之后，所以它们不会先等待其它东西。
                         // wait for other stuff first.
-                        vector<CInv> vInv;
-                        vInv.push_back(CInv(MSG_BLOCK, chainActive.Tip()->GetBlockHash()));
-                        pfrom->PushMessage(NetMsgType::INV, vInv);
-                        pfrom->hashContinue.SetNull();
+                        vector<CInv> vInv; // 库存列表
+                        vInv.push_back(CInv(MSG_BLOCK, chainActive.Tip()->GetBlockHash())); // 加入最佳区块到库存列表中
+                        pfrom->PushMessage(NetMsgType::INV, vInv); // 推送库存列表到对端
+                        pfrom->hashContinue.SetNull(); // 置空下一批首个区块哈希
                     }
                 }
             }
-            else if (inv.IsKnownType())
+            else if (inv.IsKnownType()) // 若该库存条目为已知类型
             {
-                // Send stream from relay memory
-                bool pushed = false;
+                // Send stream from relay memory // 从中继内存中发送数据流
+                bool pushed = false; // 推送标志初始化为 false
                 {
-                    LOCK(cs_mapRelay);
-                    map<CInv, CDataStream>::iterator mi = mapRelay.find(inv);
-                    if (mi != mapRelay.end()) {
-                        pfrom->PushMessage(inv.GetCommand(), (*mi).second);
-                        pushed = true;
+                    LOCK(cs_mapRelay); // 中继映射列表上锁
+                    map<CInv, CDataStream>::iterator mi = mapRelay.find(inv); // 在中继映射列表中查找该库存条目
+                    if (mi != mapRelay.end()) { // 若找到
+                        pfrom->PushMessage(inv.GetCommand(), (*mi).second); // 推送对应数据到对端
+                        pushed = true; // 推送标志置 true
                     }
                 }
-                if (!pushed && inv.type == MSG_TX) {
-                    CTransaction tx;
-                    if (mempool.lookup(inv.hash, tx)) {
-                        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-                        ss.reserve(1000);
-                        ss << tx;
-                        pfrom->PushMessage(NetMsgType::TX, ss);
-                        pushed = true;
+                if (!pushed && inv.type == MSG_TX) { // 若未找到该库存 且 该条目类型为交易消息
+                    CTransaction tx; // 创建一个交易对象
+                    if (mempool.lookup(inv.hash, tx)) { // 在内存之中查找并获取该交易
+                        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION); // 创建数据流对象
+                        ss.reserve(1000); // 预开辟 1000 个字节
+                        ss << tx; // 把交易导入数据流
+                        pfrom->PushMessage(NetMsgType::TX, ss); // 把该交易的数据流推送给对端
+                        pushed = true; // 推送标志置为 true
                     }
                 }
-                if (!pushed) {
-                    vNotFound.push_back(inv);
+                if (!pushed) { // 若推送标志为 false
+                    vNotFound.push_back(inv); // 把该条目加入未找到的库存列表
                 }
             }
 
-            // Track requests for our stuff.
-            GetMainSignals().Inventory(inv.hash);
+            // Track requests for our stuff. // 跟踪我们东西的请求
+            GetMainSignals().Inventory(inv.hash); // 增加库存请求的次数
 
-            if (inv.type == MSG_BLOCK || inv.type == MSG_FILTERED_BLOCK)
-                break;
+            if (inv.type == MSG_BLOCK || inv.type == MSG_FILTERED_BLOCK) // 若条目类型为区块或过滤的区块
+                break; // 跳出
         }
     }
 
-    pfrom->vRecvGetData.erase(pfrom->vRecvGetData.begin(), it);
+    pfrom->vRecvGetData.erase(pfrom->vRecvGetData.begin(), it); // 从接收的获取数据队列中擦除已处理（推送）的数据
 
-    if (!vNotFound.empty()) {
+    if (!vNotFound.empty()) { // 若未找到库存列表非空
         // Let the peer know that we didn't find what it asked for, so it doesn't
         // have to wait around forever. Currently only SPV clients actually care
         // about this message: it's needed when they are recursively walking the
@@ -4533,40 +4533,40 @@ void static ProcessGetData(CNode* pfrom, const Consensus::Params& consensusParam
         // do that because they want to know about (and store and rebroadcast and
         // risk analyze) the dependencies of transactions relevant to them, without
         // having to download the entire memory pool.
-        pfrom->PushMessage(NetMsgType::NOTFOUND, vNotFound);
+        pfrom->PushMessage(NetMsgType::NOTFOUND, vNotFound); // 推送未找到列表到对端
     }
 }
 
-bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, int64_t nTimeReceived) // （节点，命令，数据，接收时间）
+bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, int64_t nTimeReceived) // 入参：节点，命令，数据，接收时间
 {
     const CChainParams& chainparams = Params(); // 获取链参数
     RandAddSeedPerfmon(); // 设置随机数种子
     LogPrint("net", "received: %s (%u bytes) peer=%d\n", SanitizeString(strCommand), vRecv.size(), pfrom->id); // 日志记录命令（序列化字符串，防止字符串格式攻击）、接收数据大小、对方 id
-    if (mapArgs.count("-dropmessagestest") && GetRand(atoi(mapArgs["-dropmessagestest"])) == 0) // 丢弃消息测试标志，随机丢弃每 n 个网络消息中的一个
+    if (mapArgs.count("-dropmessagestest") && GetRand(atoi(mapArgs["-dropmessagestest"])) == 0) // 若开启了丢弃消息测试选项，则获取一个随机数若为 0，则丢弃该命令
     {
-        LogPrintf("dropmessagestest DROPPING RECV MESSAGE\n");
-        return true;
+        LogPrintf("dropmessagestest DROPPING RECV MESSAGE\n"); // 记录日志，不处理该命令
+        return true; // 直接返回 true
     }
 
 
     if (!(nLocalServices & NODE_BLOOM) &&
-              (strCommand == NetMsgType::FILTERLOAD ||
-               strCommand == NetMsgType::FILTERADD ||
-               strCommand == NetMsgType::FILTERCLEAR))
+              (strCommand == NetMsgType::FILTERLOAD || // 若为加载过滤器
+               strCommand == NetMsgType::FILTERADD || // 添加过滤器
+               strCommand == NetMsgType::FILTERCLEAR)) // 清除过滤器
     {
-        if (pfrom->nVersion >= NO_BLOOM_VERSION) {
-            Misbehaving(pfrom->GetId(), 100);
+        if (pfrom->nVersion >= NO_BLOOM_VERSION) { // 版本号满足 70011
+            Misbehaving(pfrom->GetId(), 100); // 处理行为不端的节点
             return false;
-        } else if (GetBoolArg("-enforcenodebloom", false)) {
-            pfrom->fDisconnect = true;
-            return false;
+        } else if (GetBoolArg("-enforcenodebloom", false)) { // 若强制节点布鲁姆选项开启
+            pfrom->fDisconnect = true; // 断开连接标志置为 true
+            return false; // 退出返回 false
         }
     }
 
 
-    if (strCommand == NetMsgType::VERSION) // 版本消息，每建立一条连接便会先（只）发送一条该消息
+    if (strCommand == NetMsgType::VERSION) // 版本消息
     {
-        // Each connection can only send one version message
+        // Each connection can only send one version message // 每建立一条连接便会先（只）发送一条该消息
         if (pfrom->nVersion != 0) // 若版本号不为 0，则说明第二次收到该版本信息
         {
             pfrom->PushMessage(NetMsgType::REJECT, strCommand, REJECT_DUPLICATE, string("Duplicate version message")); // 回复 REJECT 消息，表明重复发送版本消息
@@ -4581,11 +4581,11 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         vRecv >> pfrom->nVersion >> pfrom->nServices >> nTime >> addrMe; // 按序接收至接收者地址信息
         if (pfrom->nVersion < MIN_PEER_PROTO_VERSION) // 若协议版本比 MIN_PEER_PROTO_VERSION 低，则发送相应提示信息并断开连接
         {
-            // disconnect from peers older than this proto version
+            // disconnect from peers older than this proto version // 与低于该版本的对端断开连接
             LogPrintf("peer=%d using obsolete version %i; disconnecting\n", pfrom->id, pfrom->nVersion);
             pfrom->PushMessage(NetMsgType::REJECT, strCommand, REJECT_OBSOLETE,
                                strprintf("Version must be %d or greater", MIN_PEER_PROTO_VERSION)); // 协议版本号过低，回复 REJECT 消息
-            pfrom->fDisconnect = true;
+            pfrom->fDisconnect = true; // 断开连接标志置为 true
             return false;
         }
 
@@ -4604,11 +4604,11 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         else
             pfrom->fRelayTxes = true;
 
-        // Disconnect if we connected to ourself
+        // Disconnect if we connected to ourself // 如果我们连接到自己则断开连接
         if (nNonce == nLocalHostNonce && nNonce > 1) // 若连接到自身就断开
         {
             LogPrintf("connected to self at %s, disconnecting\n", pfrom->addr.ToString());
-            pfrom->fDisconnect = true;
+            pfrom->fDisconnect = true; // 断开连接标志置为 true
             return true;
         }
 
@@ -4618,62 +4618,62 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             SeenLocal(addrMe);
         }
 
-        // Be shy and don't send version until we hear
-        if (pfrom->fInbound)
+        // Be shy and don't send version until we hear // 害羞，我们不发送版本直到我们接收到
+        if (pfrom->fInbound) // 若连入标志为 true
             pfrom->PushVersion(); // 发送版本信息
 
         pfrom->fClient = !(pfrom->nServices & NODE_NETWORK);
 
-        // Potentially mark this peer as a preferred download peer.
+        // Potentially mark this peer as a preferred download peer. // 可能编辑该对端为最佳下载对端
         UpdatePreferredDownload(pfrom, State(pfrom->GetId()));
 
-        // Change version
+        // Change version // 改变版本
         pfrom->PushMessage(NetMsgType::VERACK); // 发送版本确认信息
         pfrom->ssSend.SetVersion(min(pfrom->nVersion, PROTOCOL_VERSION)); // 保证协议版本至少为 70012
 
-        if (!pfrom->fInbound)
+        if (!pfrom->fInbound) // 若连入标志为 false
         {
-            // Advertise our address
-            if (fListen && !IsInitialBlockDownload()) // 若自己时监听节点
+            // Advertise our address // 广告我们的地址
+            if (fListen && !IsInitialBlockDownload()) // 若为监听节点 且 为完成 IBD
             {
-                CAddress addr = GetLocalAddress(&pfrom->addr);
-                if (addr.IsRoutable())
+                CAddress addr = GetLocalAddress(&pfrom->addr); // 获取本地地址
+                if (addr.IsRoutable()) // 查路由表
                 {
                     LogPrintf("ProcessMessages: advertizing address %s\n", addr.ToString());
-                    pfrom->PushAddress(addr); // 回复 IP 地址信息和端口号
-                } else if (IsPeerAddrLocalGood(pfrom)) {
-                    addr.SetIP(pfrom->addrLocal);
+                    pfrom->PushAddress(addr); // 推送该地址到对端
+                } else if (IsPeerAddrLocalGood(pfrom)) { // 若是对端地址
+                    addr.SetIP(pfrom->addrLocal); // 设置本地 IP
                     LogPrintf("ProcessMessages: advertizing address %s\n", addr.ToString());
-                    pfrom->PushAddress(addr);
+                    pfrom->PushAddress(addr); // 推送该地址到对端
                 }
             }
 
-            // Get recent addresses
+            // Get recent addresses // 获取最近的地址集
             if (pfrom->fOneShot || pfrom->nVersion >= CADDR_TIME_VERSION || addrman.size() < 1000) // 若对方为 fOneShot，或协议版本大于 31402，或本地地址库存小于 1000
             {
                 pfrom->PushMessage(NetMsgType::GETADDR); // 回复 GETADDR 消息
-                pfrom->fGetAddr = true;
+                pfrom->fGetAddr = true; // 获取地址标志置为 true
             }
-            addrman.Good(pfrom->addr);
-        } else {
-            if (((CNetAddr)pfrom->addr) == (CNetAddr)addrFrom)
+            addrman.Good(pfrom->addr); // 标记该地址为可访问
+        } else { // 若连入标志为 true
+            if (((CNetAddr)pfrom->addr) == (CNetAddr)addrFrom) // 且 form 地址和本地地址相同
             {
-                addrman.Add(addrFrom, addrFrom);
-                addrman.Good(addrFrom);
+                addrman.Add(addrFrom, addrFrom); // 添加单个地址到地址管理器
+                addrman.Good(addrFrom); // 标记该地址为可访问
             }
         }
 
-        // Relay alerts
+        // Relay alerts // 中继报警
         {
             LOCK(cs_mapAlerts);
             BOOST_FOREACH(PAIRTYPE(const uint256, CAlert)& item, mapAlerts) // 若本地接收过告警消息，则转发 ALERT 消息
-                item.second.RelayTo(pfrom);
+                item.second.RelayTo(pfrom); // 中继到对端
         }
 
-        pfrom->fSuccessfullyConnected = true;
+        pfrom->fSuccessfullyConnected = true; // 成功连接标志置为 true
 
         string remoteAddr;
-        if (fLogIPs)
+        if (fLogIPs) // 若记录 IPs 到日志选项开启
             remoteAddr = ", peeraddr=" + pfrom->addr.ToString();
 
         LogPrintf("receive version message: %s: version %d, blocks=%d, us=%s, peer=%d%s\n",
@@ -5487,27 +5487,27 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 }
 
 // requires LOCK(cs_vRecvMsg)
-bool ProcessMessages(CNode* pfrom)
+bool ProcessMessages(CNode* pfrom) // 处理网络消息
 {
     const CChainParams& chainparams = Params(); // 获取链参数
     //if (fDebug)
     //    LogPrintf("%s(%u messages)\n", __func__, pfrom->vRecvMsg.size());
 
     //
-    // Message format // 24 + x bytes 对应消息头 + 消息体（数据）
-    //  (4) message start // 消息头，又称魔数，用于区分网络类型
-    //  (12) command // 消息类型，命令，不足后补'\0'
+    // Message format // 消息格式：消息头（24bytes） + 消息体（数据）
+    //  (4) message start // 魔数，用于区分网络消息类型
+    //  (12) command // 消息类型（命令）不足后补'\0'
     //  (4) size // 数据长度，限制 MAX_PROTOCOL_MESSAGE_LENGTH = 2MB
-    //  (4) checksum  // 校验和,SHA256(SHA256(data))的前 4 个字节，对于 VERACK、GETADDR 和 SEND-HEADERS 这种无 data 的消息，则固定为 0x5df6e0e2 (SHA256(SHA256(<empty string>)))
+    //  (4) checksum  // 校验和，SHA256(SHA256(data))结果的前 4 个字节，对于 VERACK、GETADDR 和 SEND-HEADERS 这种无 data 的消息，则固定为 0x5df6e0e2 (SHA256(SHA256(<empty string>)))
     //  (x) data // 数据，注：比特币消息报文中，大多数整数都是使用的小端编码，只有 IP 地址和端口号使用大端编码
     //
-    bool fOk = true;
+    bool fOk = true; // ok 标志，初始化为 true
 
-    if (!pfrom->vRecvGetData.empty()) // 若 inv 队列非空
-        ProcessGetData(pfrom, chainparams.GetConsensus()); // 处理获取的数据
+    if (!pfrom->vRecvGetData.empty()) // 若接收获取数据 inv 队列非空
+        ProcessGetData(pfrom, chainparams.GetConsensus()); // 处理获取数据
 
     // this maintains the order of responses // 该操作维持响应顺序
-    if (!pfrom->vRecvGetData.empty()) return fOk;
+    if (!pfrom->vRecvGetData.empty()) return fOk; // 若接收获取数据队列还非空，直接返回 true
 
     std::deque<CNetMessage>::iterator it = pfrom->vRecvMsg.begin();
     while (!pfrom->fDisconnect && it != pfrom->vRecvMsg.end()) { // 若未断开连接，则遍历接收消息队列
@@ -5516,7 +5516,7 @@ bool ProcessMessages(CNode* pfrom)
             break; // 跳出
 
         // get next message // 获取下一条消息
-        CNetMessage& msg = *it;
+        CNetMessage& msg = *it; // 获取当前的网络消息
 
         //if (fDebug)
         //    LogPrintf("%s(message %u msgsz, %u bytes, complete:%s)\n", __func__,
@@ -5531,7 +5531,7 @@ bool ProcessMessages(CNode* pfrom)
         it++; // 消息队列迭代器向后移动一位
 
         // Scan for message start // 扫描消息魔数
-        if (memcmp(msg.hdr.pchMessageStart, chainparams.MessageStart(), MESSAGE_START_SIZE) != 0) { // 检查消息魔数（4bytes）
+        if (memcmp(msg.hdr.pchMessageStart, chainparams.MessageStart(), MESSAGE_START_SIZE) != 0) { // 验证消息魔数
             LogPrintf("PROCESSMESSAGE: INVALID MESSAGESTART %s peer=%d\n", SanitizeString(msg.hdr.GetCommand()), pfrom->id);
             fOk = false; // 若消息魔数不匹配，状态置为 false
             break; // 跳出
@@ -5546,11 +5546,11 @@ bool ProcessMessages(CNode* pfrom)
         }
         string strCommand = hdr.GetCommand(); // 获取命令
 
-        // Message size
-        unsigned int nMessageSize = hdr.nMessageSize; // 消息体数据大小
+        // Message size // 消息大小
+        unsigned int nMessageSize = hdr.nMessageSize; // 获取数据大小
 
-        // Checksum
-        CDataStream& vRecv = msg.vRecv; // 消息体数据
+        // Checksum // 校验和
+        CDataStream& vRecv = msg.vRecv; // 获取消息体数据
         uint256 hash = Hash(vRecv.begin(), vRecv.begin() + nMessageSize); // 计算消息体哈希
         unsigned int nChecksum = ReadLE32((unsigned char*)&hash); // 计算校验和
         if (nChecksum != hdr.nChecksum) // 通过校验和进行数据的一致性检查
@@ -5597,14 +5597,14 @@ bool ProcessMessages(CNode* pfrom)
         if (!fRet)
             LogPrintf("%s(%s, %u bytes) FAILED peer=%d\n", __func__, SanitizeString(strCommand), nMessageSize, pfrom->id);
 
-        break;
+        break; // 跳出，调用该接口一次只处理一条网络消息
     }
 
     // In case the connection got shut down, its receive buffer was wiped // 一旦连接关闭，其接收缓冲区会被擦除
     if (!pfrom->fDisconnect) // 若未断开连接
         pfrom->vRecvMsg.erase(pfrom->vRecvMsg.begin(), it); // 从接收消息队列中擦除读取过的网络消息
 
-    return fOk;
+    return fOk; // 返回 ok 状态
 }
 
 
@@ -5925,35 +5925,35 @@ bool SendMessages(CNode* pto) // 发送消息
         }
 
         //
-        // Message: getdata (non-blocks)
+        // Message: getdata (non-blocks) // 消息：getdata（非区块）
         //
         while (!pto->fDisconnect && !pto->mapAskFor.empty() && (*pto->mapAskFor.begin()).first <= nNow)
-        {
-            const CInv& inv = (*pto->mapAskFor.begin()).second;
-            if (!AlreadyHave(inv))
+        { // 该节点未断开连接 且 请求映射列表非空 且 该列表中首个元素的时间小于等于当前时间
+            const CInv& inv = (*pto->mapAskFor.begin()).second; // 获取首个元素的库存条目
+            if (!AlreadyHave(inv)) // 若该条目不存在
             {
-                if (fDebug)
+                if (fDebug) // 若 debug 标志开启，记录相关信息
                     LogPrint("net", "Requesting %s peer=%d\n", inv.ToString(), pto->id);
-                vGetData.push_back(inv);
-                if (vGetData.size() >= 1000)
+                vGetData.push_back(inv); // 把该条目放入获取数据条目列表
+                if (vGetData.size() >= 1000) // 当该列表中的条目等于 1000 条时
                 {
-                    pto->PushMessage(NetMsgType::GETDATA, vGetData);
-                    vGetData.clear();
+                    pto->PushMessage(NetMsgType::GETDATA, vGetData); // 推送待获取数据条目列表到对端
+                    vGetData.clear(); // 清空该列表
                 }
-            } else {
-                //If we're not going to ask, don't expect a response.
-                pto->setAskFor.erase(inv.hash);
+            } else { // 若该条目已经存在
+                //If we're not going to ask, don't expect a response. // 如果我们不去请求，不要期望回复。
+                pto->setAskFor.erase(inv.hash); // 从待获取数据条目列表中擦除该条目
             }
-            pto->mapAskFor.erase(pto->mapAskFor.begin());
+            pto->mapAskFor.erase(pto->mapAskFor.begin()); // 从待请求列表中擦除第一项
         }
-        if (!vGetData.empty())
-            pto->PushMessage(NetMsgType::GETDATA, vGetData);
+        if (!vGetData.empty()) // 若带获取数据条目列表非空
+            pto->PushMessage(NetMsgType::GETDATA, vGetData); // 再次发送该列表到对端
 
     }
     return true;
 }
 
- std::string CBlockFileInfo::ToString() const {
+ std::string CBlockFileInfo::ToString() const { // 获取区块文件信息
      return strprintf("CBlockFileInfo(blocks=%u, size=%u, heights=%u...%u, time=%s...%s)", nBlocks, nSize, nHeightFirst, nHeightLast, DateTimeStrFormat("%Y-%m-%d", nTimeFirst), DateTimeStrFormat("%Y-%m-%d", nTimeLast));
  }
 
@@ -5963,19 +5963,19 @@ ThresholdState VersionBitsTipState(const Consensus::Params& params, Consensus::D
     return VersionBitsState(chainActive.Tip(), params, pos, versionbitscache);
 }
 
-class CMainCleanup
+class CMainCleanup // 主清理类
 {
 public:
     CMainCleanup() {}
     ~CMainCleanup() {
-        // block headers
+        // block headers // 清理区块头
         BlockMap::iterator it1 = mapBlockIndex.begin();
-        for (; it1 != mapBlockIndex.end(); it1++)
-            delete (*it1).second;
-        mapBlockIndex.clear();
+        for (; it1 != mapBlockIndex.end(); it1++) // 遍历区块索引映射列表
+            delete (*it1).second; // 删除区块索引
+        mapBlockIndex.clear(); // 清空区块索引映射列表
 
-        // orphan transactions
-        mapOrphanTransactions.clear();
+        // orphan transactions // 清理孤儿交易
+        mapOrphanTransactions.clear(); // 清空孤儿交易映射列表
         mapOrphanTransactionsByPrev.clear();
     }
-} instance_of_cmaincleanup;
+} instance_of_cmaincleanup; // 全局主清理对象

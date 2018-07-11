@@ -478,7 +478,7 @@ public:
 #endif
     }
 
-    //! Add a single address.
+    //! Add a single address. // 添加单个地址
     bool Add(const CAddress &addr, const CNetAddr& source, int64_t nTimePenalty = 0)
     {
         bool fRet = false;
@@ -509,7 +509,7 @@ public:
         return nAdd > 0;
     }
 
-    //! Mark an entry as accessible.
+    //! Mark an entry as accessible. // 标记一个条目为可访问
     void Good(const CService &addr, int64_t nTime = GetAdjustedTime())
     {
         {

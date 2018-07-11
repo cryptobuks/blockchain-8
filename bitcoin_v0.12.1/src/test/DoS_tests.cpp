@@ -30,8 +30,8 @@ struct COrphanTx {
     CTransaction tx;
     NodeId fromPeer;
 };
-extern std::map<uint256, COrphanTx> mapOrphanTransactions;
-extern std::map<uint256, std::set<uint256> > mapOrphanTransactionsByPrev;
+extern std::map<uint256, COrphanTx> mapOrphanTransactions; // 孤儿交易映射列表
+extern std::map<uint256, std::set<uint256> > mapOrphanTransactionsByPrev; // 前一笔交易的孤儿交易映射列表
 
 CService ip(uint32_t i)
 {
