@@ -32,7 +32,8 @@
 * [比特币源码研读 - 菜菜子_forest](https://www.jianshu.com/u/30081a05cf95) 0.14
 * [比特币源码剖析 - mistydew](https://mistydew.github.io) v0.12.1
 #### 基础知识
-* [C++ reference - cppreference.com](https://en.cppreference.com/w/cpp)
+* [cppreference.com](https://en.cppreference.com/w)
+* [Reference - C++ Reference](http://www.cplusplus.com/reference)
 * [Boost C++ Libraries](https://www.boost.org)
 * [Fast portable non-blocking network programming with Libevent](http://www.wangafu.net/~nickm/libevent-book)
 * [JSON](http://www.json.org)
