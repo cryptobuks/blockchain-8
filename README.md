@@ -30,11 +30,12 @@
 * [比特币源码解析 - 呼，是出一口气；吸，是争一口气!](https://blog.csdn.net/pure_lady/article/category/7131199/2)
 * [比特币源码解读 - ttblack](https://www.jianshu.com/u/ef215107c407) v0.9.5rc2
 * [比特币源码研读 - 菜菜子_forest](https://www.jianshu.com/u/30081a05cf95) 0.14
-* [比特币源码剖析 - mistydew](https://mistydew.github.io) v0.12.1
+* [比特币源码剖析 - mistydew](https://mistydew.github.io/2018/05/19/bitcoin-source-anatomy-00) v0.12.1
 #### 基础知识
 * [cppreference.com](https://en.cppreference.com/w)
 * [Reference - C++ Reference](http://www.cplusplus.com/reference)
 * [Boost C++ Libraries](https://www.boost.org)
+* [The Boost C++ Libraries](https://theboostcpplibraries.com)
 * [Fast portable non-blocking network programming with Libevent](http://www.wangafu.net/~nickm/libevent-book)
 * [JSON](http://www.json.org)
 * [Remote procedure call - Wikipedia](https://en.wikipedia.org/wiki/Remote_procedure_call)
