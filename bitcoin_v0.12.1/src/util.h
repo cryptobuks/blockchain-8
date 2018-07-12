@@ -30,7 +30,7 @@
 
 static const bool DEFAULT_LOGTIMEMICROS = false;
 static const bool DEFAULT_LOGIPS        = false;
-static const bool DEFAULT_LOGTIMESTAMPS = true;
+static const bool DEFAULT_LOGTIMESTAMPS = true; // 记录时间戳，默认为 true
 
 /** Signals for translation. */
 class CTranslationInterface
@@ -66,20 +66,20 @@ inline std::string _(const char* psz)
     return rv ? (*rv) : psz;
 }
 
-void SetupEnvironment(); // 根据地理位置设置编码格式
+void SetupEnvironment(); // 设置运行环境
 bool SetupNetworking(); // 初始化 windows 下的 socket
 
-/** Return true if log accepts specified category */
-bool LogAcceptCategory(const char* category);
-/** Send a string to the log output */
+/** Return true if log accepts specified category */ // 如果日志接受特殊的类别返回 true
+bool LogAcceptCategory(const char* category); // category 类似于 printf 中的格式控制
+/** Send a string to the log output */ // 发送一个字符串到日志输出
 int LogPrintStr(const std::string &str);
 
-#define LogPrintf(...) LogPrint(NULL, __VA_ARGS__)
+#define LogPrintf(...) LogPrint(NULL, __VA_ARGS__) // 日志输出（标准输出或调试日志）
 
 /**
  * When we switch to C++11, this can be switched to variadic templates instead
  * of this macro-based construction (see tinyformat.h).
- */
+ */ // 当我们切换到 C++11 时，可以切换到可变参数模板代替这种基于宏的构造（见 tinyformat.h）。
 #define MAKE_ERROR_AND_LOG_FUNC(n)                                        \
     /**   Print to debug.log if -debug=category switch is given OR category is NULL. */ \
     template<TINYFORMAT_ARGTYPES(n)>                                          \
@@ -101,11 +101,11 @@ TINYFORMAT_FOREACH_ARGNUM(MAKE_ERROR_AND_LOG_FUNC)
 /**
  * Zero-arg versions of logging and error, these are not covered by
  * TINYFORMAT_FOREACH_ARGNUM
- */
+ */ // TINYFORMAT_FOREACH_ARGNUM 不涵盖零参数版本的日志记录和错误
 static inline int LogPrint(const char* category, const char* format)
 {
-    if(!LogAcceptCategory(category)) return 0;
-    return LogPrintStr(format);
+    if(!LogAcceptCategory(category)) return 0; // 检验类别，这里类型为空直接返回 true
+    return LogPrintStr(format); // 日志输出字符串
 }
 static inline bool error(const char* format)
 {

@@ -110,10 +110,10 @@ bool fPrintToDebugLog = true;
 bool fDaemon = false;
 bool fServer = false;
 string strMiscWarning;
-bool fLogTimestamps = DEFAULT_LOGTIMESTAMPS;
+bool fLogTimestamps = DEFAULT_LOGTIMESTAMPS; // 默认为 true
 bool fLogTimeMicros = DEFAULT_LOGTIMEMICROS;
 bool fLogIPs = DEFAULT_LOGIPS;
-volatile bool fReopenDebugLog = false;
+volatile bool fReopenDebugLog = false; // 再次打开日志文件标志，默认关闭
 CTranslationInterface translationInterface;
 
 /** Init OpenSSL library multithreading support */
@@ -189,20 +189,20 @@ static boost::once_flag debugPrintInitFlag = BOOST_ONCE_INIT;
  * the OS/libc. When the shutdown sequence is fully audited and
  * tested, explicit destruction of these objects can be implemented.
  */
-static FILE* fileout = NULL;
-static boost::mutex* mutexDebugLog = NULL;
-static list<string> *vMsgsBeforeOpenLog;
+static FILE* fileout = NULL; // 日志文件指针
+static boost::mutex* mutexDebugLog = NULL; // 日志文件锁
+static list<string> *vMsgsBeforeOpenLog; // 打开日志文件前的消息链表
 
 static int FileWriteStr(const std::string &str, FILE *fp)
 {
-    return fwrite(str.data(), 1, str.size(), fp);
+    return fwrite(str.data(), 1, str.size(), fp); // 写入字符串到文件指针关联的文件
 }
 
 static void DebugPrintInit()
 {
-    assert(mutexDebugLog == NULL);
-    mutexDebugLog = new boost::mutex();
-    vMsgsBeforeOpenLog = new list<string>;
+    assert(mutexDebugLog == NULL); // 若调试日志锁为空
+    mutexDebugLog = new boost::mutex(); // 新建一个互斥锁
+    vMsgsBeforeOpenLog = new list<string>; // 新建一个字符串类型的链表
 }
 
 void OpenDebugLog()
@@ -228,100 +228,100 @@ void OpenDebugLog()
 
 bool LogAcceptCategory(const char* category)
 {
-    if (category != NULL)
+    if (category != NULL) // 若类型非空
     {
-        if (!fDebug)
-            return false;
+        if (!fDebug) // 若调试选项未开启
+            return false; // 直接返回 false
 
-        // Give each thread quick access to -debug settings.
-        // This helps prevent issues debugging global destructors,
-        // where mapMultiArgs might be deleted before another
-        // global destructor calls LogPrint()
-        static boost::thread_specific_ptr<set<string> > ptrCategory;
-        if (ptrCategory.get() == NULL)
+        // Give each thread quick access to -debug settings. // 让每个线程快速访问 -debug 选项设置。
+        // This helps prevent issues debugging global destructors, // 这有助于防止调试全局析构函数的问题，
+        // where mapMultiArgs might be deleted before another // mapMultiArgs 可能在另一个全局析构函数
+        // global destructor calls LogPrint() // 调用 LogPrint() 之前被删除
+        static boost::thread_specific_ptr<set<string> > ptrCategory; // 线程局部存储（TLS）为每个线程独有
+        if (ptrCategory.get() == NULL) // 初始为空
         {
-            const vector<string>& categories = mapMultiArgs["-debug"];
-            ptrCategory.reset(new set<string>(categories.begin(), categories.end()));
+            const vector<string>& categories = mapMultiArgs["-debug"]; // 获取调试选项指定的值（调试内容）存入类型列表
+            ptrCategory.reset(new set<string>(categories.begin(), categories.end())); // 获取类型列表每个元素的地址存入 TLS 中
             // thread_specific_ptr automatically deletes the set when the thread ends.
-        }
-        const set<string>& setCategories = *ptrCategory.get();
+        } // thread_specific_ptr 在线程结束时自动删除该集合。RAII 技术。
+        const set<string>& setCategories = *ptrCategory.get(); // 获取类别字符串集合的引用
 
-        // if not debugging everything and not debugging specific category, LogPrint does nothing.
-        if (setCategories.count(string("")) == 0 &&
-            setCategories.count(string("1")) == 0 &&
-            setCategories.count(string(category)) == 0)
-            return false;
+        // if not debugging everything and not debugging specific category, LogPrint does nothing. // 如果不调试全部内容而调试特定类别，LogPrint 什么也不做。
+        if (setCategories.count(string("")) == 0 && // 若类别集中含有空串
+            setCategories.count(string("1")) == 0 && // 且含有字符串 “1”
+            setCategories.count(string(category)) == 0) // 且含有指定类别
+            return false; // 直接返回 false
     }
-    return true;
+    return true; // 返回 true
 }
 
 /**
  * fStartedNewLine is a state variable held by the calling context that will
  * suppress printing of the timestamp when multiple calls are made that don't
  * end in a newline. Initialize it to true, and hold it, in the calling context.
- */
+ */ // fStartedNewLine 是一个调用上下文保存的状态变量，它将在多次调用不以换行符结束时禁止打印时间戳。初始化为 true，并在调用上下文中保存该值。
 static std::string LogTimestampStr(const std::string &str, bool *fStartedNewLine)
 {
-    string strStamped;
+    string strStamped; // 保存打上时间戳的字符串
 
-    if (!fLogTimestamps)
-        return str;
+    if (!fLogTimestamps) // 记录时间戳标志若为 false
+        return str; // 直接返回该字符串
 
-    if (*fStartedNewLine) {
-        int64_t nTimeMicros = GetLogTimeMicros();
-        strStamped = DateTimeStrFormat("%Y-%m-%d %H:%M:%S", nTimeMicros/1000000);
-        if (fLogTimeMicros)
-            strStamped += strprintf(".%06d", nTimeMicros%1000000);
-        strStamped += ' ' + str;
-    } else
-        strStamped = str;
+    if (*fStartedNewLine) { // 换行标志，默认为 true
+        int64_t nTimeMicros = GetLogTimeMicros(); // 获取当前时间，微秒
+        strStamped = DateTimeStrFormat("%Y-%m-%d %H:%M:%S", nTimeMicros/1000000); // 转换为秒，并格式化日期时间字符串
+        if (fLogTimeMicros) // 若记录微秒时间
+            strStamped += strprintf(".%06d", nTimeMicros%1000000); // 追加微秒到时间戳
+        strStamped += ' ' + str; // 空格隔开拼接字符串
+    } else // 否则
+        strStamped = str; // 不打时间戳
 
-    if (!str.empty() && str[str.size()-1] == '\n')
-        *fStartedNewLine = true;
-    else
-        *fStartedNewLine = false;
+    if (!str.empty() && str[str.size()-1] == '\n') // 若字符串非空 且 最后一个字符为换行符
+        *fStartedNewLine = true; // 换行标志置为 true
+    else // 若字符串为空
+        *fStartedNewLine = false; // 换行标志置为 false
 
-    return strStamped;
+    return strStamped; // 返回打上时间戳的字符串
 }
 
 int LogPrintStr(const std::string &str)
 {
-    int ret = 0; // Returns total number of characters written
-    static bool fStartedNewLine = true;
+    int ret = 0; // Returns total number of characters written // 返回写入字符的总数
+    static bool fStartedNewLine = true; // 开始新的一行标志，初始化为 true
 
-    string strTimestamped = LogTimestampStr(str, &fStartedNewLine);
+    string strTimestamped = LogTimestampStr(str, &fStartedNewLine); // 把字符串加上时间戳
 
-    if (fPrintToConsole)
+    if (fPrintToConsole) // 若输出到控制台选项开启
     {
-        // print to console
-        ret = fwrite(strTimestamped.data(), 1, strTimestamped.size(), stdout);
-        fflush(stdout);
+        // print to console // 输出到控制台
+        ret = fwrite(strTimestamped.data(), 1, strTimestamped.size(), stdout); // 把数据写入标准输出
+        fflush(stdout); // 刷新标准输出
     }
-    else if (fPrintToDebugLog)
+    else if (fPrintToDebugLog) // 若输出到调试日志选项开启
     {
-        boost::call_once(&DebugPrintInit, debugPrintInitFlag);
-        boost::mutex::scoped_lock scoped_lock(*mutexDebugLog);
+        boost::call_once(&DebugPrintInit, debugPrintInitFlag); // 注册只调用一次调试打印初始化
+        boost::mutex::scoped_lock scoped_lock(*mutexDebugLog); // 区域锁
 
-        // buffer if we haven't opened the log yet
-        if (fileout == NULL) {
-            assert(vMsgsBeforeOpenLog);
-            ret = strTimestamped.length();
-            vMsgsBeforeOpenLog->push_back(strTimestamped);
+        // buffer if we haven't opened the log yet // 如果我们还未打开日志，进行缓冲
+        if (fileout == NULL) { // 若文件指针为空
+            assert(vMsgsBeforeOpenLog); // 检查消息链表已创建完毕
+            ret = strTimestamped.length(); // 获取打上时间戳的字符串长度
+            vMsgsBeforeOpenLog->push_back(strTimestamped); // 加入该消息链表
         }
-        else
+        else // 若已经打开
         {
-            // reopen the log file, if requested
-            if (fReopenDebugLog) {
-                fReopenDebugLog = false;
-                boost::filesystem::path pathDebug = GetDataDir() / "debug.log";
-                if (freopen(pathDebug.string().c_str(),"a",fileout) != NULL)
-                    setbuf(fileout, NULL); // unbuffered
+            // reopen the log file, if requested // 若有需求，再次打开日志文件
+            if (fReopenDebugLog) { // 若指定在再次打开日志文件
+                fReopenDebugLog = false; // 该标志先置为 false
+                boost::filesystem::path pathDebug = GetDataDir() / "debug.log"; // 获取日志文件的路径
+                if (freopen(pathDebug.string().c_str(),"a",fileout) != NULL) // 再次打开日志文件，以追加的方式打开
+                    setbuf(fileout, NULL); // unbuffered // 关闭该文件指针的缓冲机制
             }
 
-            ret = FileWriteStr(strTimestamped, fileout);
+            ret = FileWriteStr(strTimestamped, fileout); // 把打上时间戳的字符串写入日志文件
         }
     }
-    return ret;
+    return ret; // 返回写入调试日志文件的字符总数
 }
 
 /** Interpret string as boolean, for argument parsing */
@@ -785,21 +785,21 @@ void RenameThread(const char* name)
 
 void SetupEnvironment()
 {
-    // On most POSIX systems (e.g. Linux, but not BSD) the environment's locale
-    // may be invalid, in which case the "C" locale is used as fallback.
-#if !defined(WIN32) && !defined(MAC_OSX) && !defined(__FreeBSD__) && !defined(__OpenBSD__)
-    try {
-        std::locale(""); // Raises a runtime error if current locale is invalid
+    // On most POSIX systems (e.g. Linux, but not BSD) the environment's locale // 在多数系统（例如：Linux，而非 BSD）上，环境的区域设置（场所或地点）可能无效，
+    // may be invalid, in which case the "C" locale is used as fallback. // “C” 区域设置用于后备。
+#if !defined(WIN32) && !defined(MAC_OSX) && !defined(__FreeBSD__) && !defined(__OpenBSD__) // 若非（为定义） WIN32、MAC_OSX、__FreeBSD__、__OpenBSD__
+    try { // 1.尝试进行本地区域设置
+        std::locale(""); // Raises a runtime error if current locale is invalid // 若当前区域设置无效，则导致运行时错误
     } catch (const std::runtime_error&) {
-        setenv("LC_ALL", "C", 1);
+        setenv("LC_ALL", "C", 1); // POSIX 接口，回退到 “C” 环境变量
     }
 #endif
-    // The path locale is lazy initialized and to avoid deinitialization errors
-    // in multithreading environments, it is set explicitly by the main thread.
-    // A dummy locale is used to extract the internal default locale, used by
-    // boost::filesystem::path, which is then used to explicitly imbue the path.
-    std::locale loc = boost::filesystem::path::imbue(std::locale::classic());
-    boost::filesystem::path::imbue(loc);
+    // The path locale is lazy initialized and to avoid deinitialization errors // 路径区域设置是懒加载的，且为了避免在多线程环境中的反初始化错误，
+    // in multithreading environments, it is set explicitly by the main thread. // 它通过主线程显示设置。
+    // A dummy locale is used to extract the internal default locale, used by // 虚拟区域设置通过使用 boost::filesystem::path 用于提取内部默认的区域设置，
+    // boost::filesystem::path, which is then used to explicitly imbue the path. // 然后用于显示填充路径。
+    std::locale loc = boost::filesystem::path::imbue(std::locale::classic()); // 2.先设置一个虚假的用于提取出原有设置
+    boost::filesystem::path::imbue(loc); // 2.再填充
 }
 
 bool SetupNetworking()

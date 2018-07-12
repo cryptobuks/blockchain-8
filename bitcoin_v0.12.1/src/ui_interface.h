@@ -25,12 +25,12 @@ enum ChangeType // 一般改变类型（添加，更新，移除）枚举
     CT_DELETED // 2 移除
 };
 
-/** Signals for UI communication. */
-class CClientUIInterface
+/** Signals for UI communication. */ // UI 通讯信号
+class CClientUIInterface // 客户端 UI 接口类
 {
 public:
-    /** Flags for CClientUIInterface::ThreadSafeMessageBox */
-    enum MessageBoxFlags
+    /** Flags for CClientUIInterface::ThreadSafeMessageBox */ // CClientUIInterface::ThreadSafeMessageBox 的标志
+    enum MessageBoxFlags // 消息框标志枚举
     {
         ICON_INFORMATION    = 0,
         ICON_WARNING        = (1U << 0),
@@ -64,7 +64,7 @@ public:
         /** Force blocking, modal message box dialog (not just OS notification) */
         MODAL               = 0x10000000U,
 
-        /** Do not print contents of message to debug log */
+        /** Do not print contents of message to debug log */ // 不打印消息内容到调试日志
         SECURE              = 0x40000000U,
 
         /** Predefined combinations for certain default usage cases */
@@ -73,10 +73,10 @@ public:
         MSG_ERROR = (ICON_ERROR | BTN_OK | MODAL)
     };
 
-    /** Show message box. */
+    /** Show message box. */ // 显示消息框
     boost::signals2::signal<bool (const std::string& message, const std::string& caption, unsigned int style), boost::signals2::last_value<bool> > ThreadSafeMessageBox;
 
-    /** Progress message during initialization. */
+    /** Progress message during initialization. */ // 初始化期间的进度消息
     boost::signals2::signal<void (const std::string &message)> InitMessage;
 
     /** Number of network connections changed. */
