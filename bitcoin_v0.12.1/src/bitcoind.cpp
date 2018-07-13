@@ -56,39 +56,39 @@ void WaitForShutdown(boost::thread_group* threadGroup)
 
 //////////////////////////////////////////////////////////////////////////////
 //
-// Start // [C]:completed,[F]:finished,[P]:pending
+// Start // 启动 // [C]:completed,[F]:finished,[P]:pending
 //
 bool AppInit(int argc, char* argv[]) // [P]3.0.应用程序初始化
 {
     boost::thread_group threadGroup; // 空线程组对象，管理多线程，不可复制和移动
-    CScheduler scheduler;
+    CScheduler scheduler; // 调度器对象
 
-    bool fRet = false; // 启动标志：用于判断应用程序启动状态
+    bool fRet = false; // 启动标志：用于判断应用程序启动状态，初始化为 false，表示未启动
 
     //
-    // Parameters
+    // Parameters // 参数
     //
-    // If Qt is used, parameters/bitcoin.conf are parsed in qt/bitcoin.cpp's main()
+    // If Qt is used, parameters/bitcoin.conf are parsed in qt/bitcoin.cpp's main() // 如果使用 Qt，则在 qt/bitcoin.cpp 文件的 main 函数中解析参数/配置文件
     ParseParameters(argc, argv); // [F]3.1.解析命令行（控制台传入）参数
 
-    // Process help and version before taking care about datadir
-    if (mapArgs.count("-?") || mapArgs.count("-h") ||  mapArgs.count("-help") || mapArgs.count("-version")) // [P]3.2.版本和帮助信息（dirty 未解决）
+    // Process help and version before taking care about datadir // 在关注数据目录前，处理帮助和版本
+    if (mapArgs.count("-?") || mapArgs.count("-h") ||  mapArgs.count("-help") || mapArgs.count("-version")) // [P]3.2.0.版本和帮助信息（dirty 未解决）
     {
-        std::string strUsage = _("Bitcoin Core Daemon") + " " + _("version") + " " + FormatFullVersion() + "\n";
+        std::string strUsage = _("Bitcoin Core Daemon") + " " + _("version") + " " + FormatFullVersion() + "\n"; // 1.获取版本信息
 
-        if (mapArgs.count("-version"))
+        if (mapArgs.count("-version")) // 2.版本许可和帮助信息的选择
         {
-            strUsage += LicenseInfo(); // 版本许可证信息
+            strUsage += LicenseInfo(); // 2.1.获取许可证信息
         }
         else
         {
             strUsage += "\n" + _("Usage:") + "\n" +
                   "  bitcoind [options]                     " + _("Start Bitcoin Core Daemon") + "\n";
 
-            strUsage += "\n" + HelpMessage(HMM_BITCOIND); // 帮助信息
+            strUsage += "\n" + HelpMessage(HMM_BITCOIND); // 2.2.获取帮助信息
         }
 
-        fprintf(stdout, "%s", strUsage.c_str());
+        fprintf(stdout, "%s", strUsage.c_str()); // 3.把信息输出到标准输出并退出
         return false;
     }
 
@@ -106,7 +106,7 @@ bool AppInit(int argc, char* argv[]) // [P]3.0.应用程序初始化
             fprintf(stderr,"Error reading configuration file: %s\n", e.what());
             return false;
         }
-        // Check for -testnet or -regtest parameter (Params() calls are only valid after this clause)
+        // Check for -testnet or -regtest parameter (Params() calls are only valid after this clause) // 检查 -testnet 或 -regtest 参数（Params() 调用尽在这句之后有效）
         try {
             SelectParams(ChainNameFromCommandLine()); // [F]3.5.选择区块链（网络）参数，创世区块程序启动时便生成
         } catch (const std::exception& e) {
@@ -114,42 +114,42 @@ bool AppInit(int argc, char* argv[]) // [P]3.0.应用程序初始化
             return false;
         }
 
-        // Command-line RPC
-        bool fCommandLine = false;
-        for (int i = 1; i < argc; i++) // [F]3.6.检测每个命令行参数是否以'-'或'/'开头
-            if (!IsSwitchChar(argv[i][0]) && !boost::algorithm::istarts_with(argv[i], "bitcoin:"))
-                fCommandLine = true;
+        // Command-line RPC // [F]3.6.0.检测命令行参数完整性
+        bool fCommandLine = false; // 命令行错误标志，初始化为 false
+        for (int i = 1; i < argc; i++) // 1.遍历指定的命令行参数
+            if (!IsSwitchChar(argv[i][0]) && !boost::algorithm::istarts_with(argv[i], "bitcoin:")) // 若有一个命令行参数是以'-'或'/'开头
+                fCommandLine = true; // 命令行错误标志置为 true
 
-        if (fCommandLine)
+        if (fCommandLine) // 2.若命令行参数存在错误
         {
-            fprintf(stderr, "Error: There is no RPC client functionality in bitcoind anymore. Use the bitcoin-cli utility instead.\n");
-            exit(1);
+            fprintf(stderr, "Error: There is no RPC client functionality in bitcoind anymore. Use the bitcoin-cli utility instead.\n"); // 打印错误原因
+            exit(1); // 退出程序
         }
-#ifndef WIN32
-        fDaemon = GetBoolArg("-daemon", false); // [F]3.7.Linux 下根据配置后台化，默认关闭
-        if (fDaemon)
+#ifndef WIN32 // [F]3.7.0.Uinx/Linux 下守护进程后台化
+        fDaemon = GetBoolArg("-daemon", false); // 1.后台化标志，默认为 false
+        if (fDaemon) // 2.若开启了后台化选项，进行程序的后台化
         {
-            fprintf(stdout, "Bitcoin server starting\n");
+            fprintf(stdout, "Bitcoin server starting\n"); // 输出比特币正在启动的信息到标准输出
 
-            // Daemonize
-            pid_t pid = fork();
-            if (pid < 0)
+            // Daemonize // 守护进程后台化
+            pid_t pid = fork(); // 2.1.派生子进程，并获取进程 id
+            if (pid < 0) // 出错
             {
                 fprintf(stderr, "Error: fork() returned %d errno %d\n", pid, errno);
-                return false;
+                return false; // 退出
             }
-            if (pid > 0) // Parent process, pid is child process id
+            if (pid > 0) // Parent process, pid is child process id // 2.2.父进程返回子进程号
             {
-                return true;
+                return true; // 直接退出
             }
-            // Child process falls through to rest of initialization
+            // Child process falls through to rest of initialization  // 子进程，返回 0，进入初始化的剩余部分
 
-            pid_t sid = setsid();
-            if (sid < 0)
+            pid_t sid = setsid(); // 2.3.设置新会话
+            if (sid < 0) // 会话 id 必须大于等于 0
                 fprintf(stderr, "Error: setsid() returned %d errno %d\n", sid, errno);
         }
 #endif
-        SoftSetBoolArg("-server", true); // [F]3.8.服务设置，默认开启，后面启动
+        SoftSetBoolArg("-server", true); // [F]3.8.软服务设置选项，默认开启，服务在后面启动
 
         // Set this early so that parameter interactions go to console
         InitLogging(); // [F]3.9.初始化日志记录，默认输出至 debug.log

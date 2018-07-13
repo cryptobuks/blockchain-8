@@ -102,8 +102,8 @@ using namespace std;
 const char * const BITCOIN_CONF_FILENAME = "bitcoin.conf";
 const char * const BITCOIN_PID_FILENAME = "bitcoind.pid";
 
-map<string, string> mapArgs; // 命令行参数（启动选项）映射列表
-map<string, vector<string> > mapMultiArgs;
+map<string, string> mapArgs; // 启动选项（命令行参数，配置文件）单值映射列表，map<选项名，选项值>
+map<string, vector<string> > mapMultiArgs; // 启动选项多值映射列表，map<选项名，vector<选项值> >
 bool fDebug = false;
 bool fPrintToConsole = false;
 bool fPrintToDebugLog = true;
@@ -327,54 +327,54 @@ int LogPrintStr(const std::string &str)
 /** Interpret string as boolean, for argument parsing */
 static bool InterpretBool(const std::string& strValue) // 把字符串转换为布尔型，用于参数解析
 {
-    if (strValue.empty()) // 若字符串为空
+    if (strValue.empty()) // 若为空串
         return true; // 返回 true，表示指定的选项未指定值时，该值默认为 true
     return (atoi(strValue) != 0); // 否则，在返回时转换为对应布尔型
 }
 
-/** Turn -noX into -X=0 */
+/** Turn -noX into -X=0 */ // 转换 -noX 为 -X=0
 static void InterpretNegativeSetting(std::string& strKey, std::string& strValue)
 {
-    if (strKey.length()>3 && strKey[0]=='-' && strKey[1]=='n' && strKey[2]=='o')
+    if (strKey.length()>3 && strKey[0]=='-' && strKey[1]=='n' && strKey[2]=='o') // 若选项名长度大于 3，且满足所示条件
     {
-        strKey = "-" + strKey.substr(3);
-        strValue = InterpretBool(strValue) ? "0" : "1";
+        strKey = "-" + strKey.substr(3); // 重构选项名
+        strValue = InterpretBool(strValue) ? "0" : "1"; // 设置选项值
     }
 }
 
-void ParseParameters(int argc, const char* const argv[])
+void ParseParameters(int argc, const char* const argv[]) // 3.1.0.解析命令行参数
 {
-    mapArgs.clear(); // 清空 2 个保存参数（命令行和配置文件）的容器
-    mapMultiArgs.clear();
+    mapArgs.clear(); // 1.清空启动选项单值映射列表
+    mapMultiArgs.clear(); // 清空启动选项多值映射列表
 
-    for (int i = 1; i < argc; i++)
+    for (int i = 1; i < argc; i++) // 2.从第一个命令行参数开始，遍历命令行参数指针数组
     {
-        std::string str(argv[i]);
-        std::string strValue;
-        size_t is_index = str.find('=');
-        if (is_index != std::string::npos)
+        std::string str(argv[i]); // 2.1.获取一个命令参数：选项名=选项值
+        std::string strValue; // 用于保存选项值
+        size_t is_index = str.find('='); // 找到等号的位置
+        if (is_index != std::string::npos) // 若存在等号
         {
-            strValue = str.substr(is_index+1);
-            str = str.substr(0, is_index);
+            strValue = str.substr(is_index+1); // 截取选项值子串
+            str = str.substr(0, is_index); // 截取选项名子串
         }
-#ifdef WIN32
-        boost::to_lower(str);
-        if (boost::algorithm::starts_with(str, "/"))
-            str = "-" + str.substr(1);
+#ifdef WIN32 // 2.2.windows 平台
+        boost::to_lower(str); // 选项名转换为小写
+        if (boost::algorithm::starts_with(str, "/")) // 若选项名以字符 "/" 开头
+            str = "-" + str.substr(1); // 替换开头为字符 "-"
 #endif
 
-        if (str[0] != '-')
-            break;
+        if (str[0] != '-') // 2.3.若选项名不以字符 '-' 开头
+            break; // 跳出，丢弃该选项
 
-        // Interpret --foo as -foo.
-        // If both --foo and -foo are set, the last takes effect.
-        if (str.length() > 1 && str[1] == '-')
-            str = str.substr(1);
-        InterpretNegativeSetting(str, strValue);
+        // Interpret --foo as -foo. // 转换 --foo 为 -foo。
+        // If both --foo and -foo are set, the last takes effect. // 若同时设置了 --foo 和 -foo，则后者生效。
+        if (str.length() > 1 && str[1] == '-') // 若选项名长度大于 1 且 第二个字符为 '-'
+            str = str.substr(1); // 则丢弃第一个字符 '-'
+        InterpretNegativeSetting(str, strValue); // 2.4.转换 -no 选项名设置
 
-        mapArgs[str] = strValue;
-        mapMultiArgs[str].push_back(strValue);
-    }
+        mapArgs[str] = strValue; // 2.5.加入启动选项单值映射列表
+        mapMultiArgs[str].push_back(strValue); // 加入启动选项多值映射列表
+    } // 循环，直到所有命令行参数解析完毕
 }
 
 std::string GetArg(const std::string& strArg, const std::string& strDefault)
@@ -400,10 +400,10 @@ bool GetBoolArg(const std::string& strArg, bool fDefault)
 
 bool SoftSetArg(const std::string& strArg, const std::string& strValue)
 {
-    if (mapArgs.count(strArg))
-        return false;
-    mapArgs[strArg] = strValue;
-    return true;
+    if (mapArgs.count(strArg)) // 若该选项已经存在（设置）
+        return false; // 直接返回 false
+    mapArgs[strArg] = strValue; // 否则设置为指定的值
+    return true; // 返回 true，表示设置成功
 }
 
 bool SoftSetBoolArg(const std::string& strArg, bool fValue)
@@ -462,7 +462,7 @@ boost::filesystem::path GetDefaultDataDir()
 #ifdef WIN32
     // Windows
     return GetSpecialFolderPath(CSIDL_APPDATA) / "Bitcoin";
-#else
+#else // Unix/Linux
     fs::path pathRet;
     char* pszHome = getenv("HOME");
     if (pszHome == NULL || strlen(pszHome) == 0)
@@ -481,77 +481,77 @@ boost::filesystem::path GetDefaultDataDir()
 #endif
 }
 
-static boost::filesystem::path pathCached;
-static boost::filesystem::path pathCachedNetSpecific;
-static CCriticalSection csPathCached;
+static boost::filesystem::path pathCached; // 路径缓存
+static boost::filesystem::path pathCachedNetSpecific; // 指定网络的路径缓存
+static CCriticalSection csPathCached; // 路径缓存锁
 
 const boost::filesystem::path &GetDataDir(bool fNetSpecific)
 {
     namespace fs = boost::filesystem;
 
-    LOCK(csPathCached);
+    LOCK(csPathCached); // 1.路径缓存上锁
 
-    fs::path &path = fNetSpecific ? pathCachedNetSpecific : pathCached;
+    fs::path &path = fNetSpecific ? pathCachedNetSpecific : pathCached; // 2.false
 
-    // This can be called during exceptions by LogPrintf(), so we cache the
-    // value so we don't have to do memory allocations after that.
-    if (!path.empty())
-        return path;
+    // This can be called during exceptions by LogPrintf(), so we cache the // 这可以在异常期间通过 LogPrintf() 调用，
+    // value so we don't have to do memory allocations after that. // 所以我们缓存该值，以至于我们不用在之后进行内存分配。
+    if (!path.empty()) // 3.若路径非空
+        return path; // 直接返回数据目录的路径
 
-    if (mapArgs.count("-datadir")) {
-        path = fs::system_complete(mapArgs["-datadir"]);
-        if (!fs::is_directory(path)) {
-            path = "";
-            return path;
+    if (mapArgs.count("-datadir")) { // 4.否则，若指定了数据目录的位置
+        path = fs::system_complete(mapArgs["-datadir"]); // 获取指定的路径
+        if (!fs::is_directory(path)) { // 若该路径不是目录
+            path = ""; // 置空
+            return path; // 返回
         }
-    } else {
-        path = GetDefaultDataDir(); // 获取在不同操作系统下的默认数据目录的路径
+    } else { // 若未指定数据目录位置
+        path = GetDefaultDataDir(); // 获取默认的数据目录路径
     }
-    if (fNetSpecific)
-        path /= BaseParams().DataDir();
+    if (fNetSpecific) // false // 5.若指定了特定网络
+        path /= BaseParams().DataDir(); // 路径拼接，获取不同网络的数据目录
 
-    fs::create_directories(path);
+    fs::create_directories(path); // 6.创建该目录
 
-    return path;
+    return path; // 7.返回数据目录的路径
 }
 
 void ClearDatadirCache()
 {
-    pathCached = boost::filesystem::path();
-    pathCachedNetSpecific = boost::filesystem::path();
+    pathCached = boost::filesystem::path(); // 路径缓存置空
+    pathCachedNetSpecific = boost::filesystem::path(); // 指定网络的路径缓存置空
 }
 
 boost::filesystem::path GetConfigFile()
 {
-    boost::filesystem::path pathConfigFile(GetArg("-conf", BITCOIN_CONF_FILENAME));
-    if (!pathConfigFile.is_complete())
-        pathConfigFile = GetDataDir(false) / pathConfigFile;
+    boost::filesystem::path pathConfigFile(GetArg("-conf", BITCOIN_CONF_FILENAME)); // 获取配置文件（指定/默认）名
+    if (!pathConfigFile.is_complete()) // 检查该文件名是否完整
+        pathConfigFile = GetDataDir(false) / pathConfigFile; // 路径拼接，获取配置文件路径
 
-    return pathConfigFile;
+    return pathConfigFile; // 返回配置文件路径
 }
 
 void ReadConfigFile(map<string, string>& mapSettingsRet,
                     map<string, vector<string> >& mapMultiSettingsRet)
 {
-    boost::filesystem::ifstream streamConfig(GetConfigFile()); // 打开配置文件
+    boost::filesystem::ifstream streamConfig(GetConfigFile()); // 1.获取配置文件路径并创建文件输入流对象
     if (!streamConfig.good()) // 允许初次运行没有配置文件
         return; // No bitcoin.conf file is OK
 
-    set<string> setOptions;
-    setOptions.insert("*");
+    set<string> setOptions; // 2.选择集
+    setOptions.insert("*"); // 插入 "*"，用于过滤配置文件中带有 '*' 的行
 
-    for (boost::program_options::detail::config_file_iterator it(streamConfig, setOptions), end; it != end; ++it)
+    for (boost::program_options::detail::config_file_iterator it(streamConfig, setOptions), end; it != end; ++it) // 3.遍历配置文件输入流
     {
-        // Don't overwrite existing settings so command line settings override bitcoin.conf
-        string strKey = string("-") + it->string_key;
-        string strValue = it->value[0];
-        InterpretNegativeSetting(strKey, strValue);
-        if (mapSettingsRet.count(strKey) == 0)
-            mapSettingsRet[strKey] = strValue;
-        mapMultiSettingsRet[strKey].push_back(strValue);
+        // Don't overwrite existing settings so command line settings override bitcoin.conf // 不覆盖已存在的设置，因此命令行设置会覆盖配置文件设置
+        string strKey = string("-") + it->string_key; // 3.1.选项名
+        string strValue = it->value[0]; // 选项值
+        InterpretNegativeSetting(strKey, strValue); // 把 -noX 转换为 -X=0
+        if (mapSettingsRet.count(strKey) == 0) // 3.2.若启动选项单值映射列表中不含该选项
+            mapSettingsRet[strKey] = strValue; // 插入列表
+        mapMultiSettingsRet[strKey].push_back(strValue); // 插入多值映射列表
     }
-    // If datadir is changed in .conf file:
-    ClearDatadirCache();
+    // If datadir is changed in .conf file: // 如果数据目录在配置文件中改变
+    ClearDatadirCache(); // 4.清理数据目录缓存
 }
 
 #ifndef WIN32

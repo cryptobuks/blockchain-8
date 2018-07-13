@@ -30,14 +30,14 @@ void InitParameterInteraction();
 bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler);
 
 /** The help message mode determines what help message to show */ // 确定显示什么帮助信息的帮助信息模式
-enum HelpMessageMode {
-    HMM_BITCOIND,
-    HMM_BITCOIN_QT
+enum HelpMessageMode { // 帮助信息模式枚举
+    HMM_BITCOIND, // 0
+    HMM_BITCOIN_QT // 1
 };
 
-/** Help for options shared between UI and daemon (for -help) */ // 用于 UI 和后台共享的帮助信息（对于 -help 选项）
+/** Help for options shared between UI and daemon (for -help) */ // 用于 UI 和守护进程间共享的帮助选项（用于 -help）
 std::string HelpMessage(HelpMessageMode mode);
-/** Returns licensing information (for -version) */ // 返回许可证信息（对于 -version）
+/** Returns licensing information (for -version) */ // 返回许可证信息（用于 -version）
 std::string LicenseInfo();
 
 #endif // BITCOIN_INIT_H

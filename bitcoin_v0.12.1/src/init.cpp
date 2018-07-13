@@ -309,10 +309,10 @@ void OnRPCPreCommand(const CRPCCommand& cmd)
 
 std::string HelpMessage(HelpMessageMode mode)
 {
-    const bool showDebug = GetBoolArg("-help-debug", false);
+    const bool showDebug = GetBoolArg("-help-debug", false); // 调试选项，默认关闭
 
-    // When adding new options to the categories, please keep and ensure alphabetical ordering.
-    // Do not translate _(...) -help-debug options, Many technical terms, and only a very small audience, so is unnecessary stress to translators.
+    // When adding new options to the categories, please keep and ensure alphabetical ordering. // 当添加新选项到类别时，请确保按字母顺序排序。
+    // Do not translate _(...) -help-debug options, Many technical terms, and only a very small audience, so is unnecessary stress to translators. // 不要翻译  _(...) -help-debug 选项，许多技术术语，只有非常小的受众，所以对译者来说是不必要的压力。
     string strUsage = HelpMessageGroup(_("Options:"));
     strUsage += HelpMessageOpt("-?", _("This help message"));
     strUsage += HelpMessageOpt("-version", _("Print version and exit"));
@@ -514,12 +514,12 @@ std::string HelpMessage(HelpMessageMode mode)
         strUsage += HelpMessageOpt("-rpcservertimeout=<n>", strprintf("Timeout during HTTP requests (default: %d)", DEFAULT_HTTP_SERVER_TIMEOUT));
     }
 
-    return strUsage;
+    return strUsage; // 返回用法字符串
 }
 
-std::string LicenseInfo()
+std::string LicenseInfo() // 许可证信息
 {
-    // todo: remove urls from translations on next change
+    // todo: remove urls from translations on next change // todo：在下次更改时从翻译中移除 urls
     return FormatParagraph(strprintf(_("Copyright (C) 2009-%i The Bitcoin Core Developers"), COPYRIGHT_YEAR)) + "\n" +
            "\n" +
            FormatParagraph(_("This is experimental software.")) + "\n" +
@@ -527,7 +527,7 @@ std::string LicenseInfo()
            FormatParagraph(_("Distributed under the MIT software license, see the accompanying file COPYING or <http://www.opensource.org/licenses/mit-license.php>.")) + "\n" +
            "\n" +
            FormatParagraph(_("This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit <https://www.openssl.org/> and cryptographic software written by Eric Young and UPnP software written by Thomas Bernard.")) +
-           "\n";
+           "\n"; // 返回格式化的文本信息
 }
 
 static void BlockNotifyCallback(bool initialSync, const CBlockIndex *pBlockIndex)

@@ -31,9 +31,9 @@
 // t->join();
 // delete t;
 // delete s; // Must be done after thread is interrupted/joined.
-//
+// // 用于定期运行或在“一段时间后”运行后台任务的简单类。
 
-class CScheduler
+class CScheduler // 调度器类
 {
 public:
     CScheduler();

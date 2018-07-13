@@ -10,14 +10,14 @@
 #else
 
 /**
- * client versioning and copyright year
+ * client versioning and copyright year // 客户端版本和版权年份
  */
 
 //! These need to be macros, as clientversion.cpp's and bitcoin*-res.rc's voodoo requires it
-#define CLIENT_VERSION_MAJOR 0
-#define CLIENT_VERSION_MINOR 12
-#define CLIENT_VERSION_REVISION 1
-#define CLIENT_VERSION_BUILD 0
+#define CLIENT_VERSION_MAJOR 0 // 主版本号
+#define CLIENT_VERSION_MINOR 12 // 次版本号
+#define CLIENT_VERSION_REVISION 1 // 修订版本号
+#define CLIENT_VERSION_BUILD 0 // 构建版本号
 
 //! Set to true for release, false for prerelease or test build
 #define CLIENT_VERSION_IS_RELEASE true
@@ -33,7 +33,7 @@
 /**
  * Converts the parameter X to a string after macro replacement on X has been performed.
  * Don't merge these into one macro!
- */
+ */ // 在执行 X 宏替换后把参数 X 转换为字符串。不要把这些合并为一个宏
 #define STRINGIZE(X) DO_STRINGIZE(X)
 #define DO_STRINGIZE(X) #X
 
@@ -62,7 +62,7 @@ extern const std::string CLIENT_BUILD;
 extern const std::string CLIENT_DATE;
 
 
-std::string FormatFullVersion();
+std::string FormatFullVersion(); // 格式化全版本信息
 std::string FormatSubVersion(const std::string& name, int nClientVersion, const std::vector<std::string>& comments);
 
 #endif // WINDRES_PREPROC

@@ -105,7 +105,7 @@ inline std::string HexStr(const T& vch, bool fSpaces=false)
 /**
  * Format a paragraph of text to a fixed width, adding spaces for
  * indentation to any added line.
- */
+ */ // 格式化文本段落为固定宽度，为全部添加的行添加缩进空格。
 std::string FormatParagraph(const std::string& in, size_t width = 79, size_t indent = 0);
 
 /**

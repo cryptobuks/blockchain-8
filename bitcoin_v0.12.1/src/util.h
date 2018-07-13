@@ -121,8 +121,8 @@ int RaiseFileDescriptorLimit(int nMinFD);
 void AllocateFileRange(FILE *file, unsigned int offset, unsigned int length);
 bool RenameOver(boost::filesystem::path src, boost::filesystem::path dest);
 bool TryCreateDirectory(const boost::filesystem::path& p);
-boost::filesystem::path GetDefaultDataDir();
-const boost::filesystem::path &GetDataDir(bool fNetSpecific = true);
+boost::filesystem::path GetDefaultDataDir(); // 获取默认数据目录路径
+const boost::filesystem::path &GetDataDir(bool fNetSpecific = true); // 获取数据目录路径
 void ClearDatadirCache();
 boost::filesystem::path GetConfigFile();
 #ifndef WIN32
@@ -142,7 +142,7 @@ inline bool IsSwitchChar(char c)
 {
 #ifdef WIN32
     return c == '-' || c == '/';
-#else
+#else // Unix/Linux
     return c == '-';
 #endif
 }
@@ -171,7 +171,7 @@ int64_t GetArg(const std::string& strArg, int64_t nDefault);
  * @param strArg Argument to get (e.g. "-foo")
  * @param default (true or false)
  * @return command-line argument or default value
- */ // 返回布尔型参数或默认值
+ */ // 返回命令行参数的值或设置的默认值。
 bool GetBoolArg(const std::string& strArg, bool fDefault); // 获取指定选项的值
 
 /**
@@ -189,7 +189,7 @@ bool SoftSetArg(const std::string& strArg, const std::string& strValue);
  * @param strArg Argument to set (e.g. "-foo")
  * @param fValue Value (e.g. false)
  * @return true if argument gets set, false if it already had a value
- */
+ */ // 若选项没有设置，就设置一个布尔型参数，并返回 true。否则，直接返回 false。
 bool SoftSetBoolArg(const std::string& strArg, bool fValue);
 
 /**

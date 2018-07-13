@@ -44,19 +44,19 @@ const CBaseChainParams& BaseParams();
 
 CBaseChainParams& BaseParams(const std::string& chain);
 
-/** Sets the params returned by Params() to those for the given network. */
+/** Sets the params returned by Params() to those for the given network. */ // 将 Params() 返回的参数设置到给定的网络。
 void SelectBaseParams(const std::string& chain);
 
 /**
  * Looks for -regtest, -testnet and returns the appropriate BIP70 chain name.
  * @return CBaseChainParams::MAX_NETWORK_TYPES if an invalid combination is given. CBaseChainParams::MAIN by default.
- */
+ */ // 查看 -regtest，-testnet 选项返回相应的 BIP70 链名。
 std::string ChainNameFromCommandLine();
 
 /**
  * Return true if SelectBaseParamsFromCommandLine() has been called to select
  * a network.
- */
+ */ // 如果调用 SelectBaseParamsFromCommandLine() 选择一个网络，则返回 true
 bool AreBaseParamsConfigured();
 
 #endif // BITCOIN_CHAINPARAMSBASE_H

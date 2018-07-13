@@ -171,7 +171,7 @@ public:
 		//};
     }
 };
-static CMainParams mainParams;
+static CMainParams mainParams; // 全局静态主网参数对象
 
 /**
  * Testnet (v3) // 公共测试（类似主网）
@@ -259,7 +259,7 @@ public:
 
     }
 };
-static CTestNetParams testNetParams;
+static CTestNetParams testNetParams; // 全局静态测试网参数对象
 
 /**
  * Regression test // 回归测试
@@ -337,29 +337,29 @@ public:
         base58Prefixes[EXT_SECRET_KEY] = boost::assign::list_of(0x04)(0x35)(0x83)(0x94).convert_to_container<std::vector<unsigned char> >();
     }
 };
-static CRegTestParams regTestParams;
+static CRegTestParams regTestParams; // 全局静态回归测试网参数对象
 
-static CChainParams *pCurrentParams = 0;
+static CChainParams *pCurrentParams = 0; // 当前选定的链参数对象全局静态指针
 
 const CChainParams &Params() { // 获取链参数，在 3.5.SelectParams() 初始化后，才能调用
     assert(pCurrentParams);
     return *pCurrentParams;
 }
 
-CChainParams& Params(const std::string& chain) // 根据网络名字返回相应的网络
+CChainParams& Params(const std::string& chain) // 根据网络名字返回相应的网络参数对象
 {
-    if (chain == CBaseChainParams::MAIN)
-            return mainParams; // 主网参数
-    else if (chain == CBaseChainParams::TESTNET)
-            return testNetParams; // 公测网参数
-    else if (chain == CBaseChainParams::REGTEST)
-            return regTestParams; // 内测网参数
+    if (chain == CBaseChainParams::MAIN) // 若选择的为主链
+            return mainParams; // 返回主网参数对象
+    else if (chain == CBaseChainParams::TESTNET) // 若选择的为测试链
+            return testNetParams; // 返回测试网参数对象
+    else if (chain == CBaseChainParams::REGTEST) // 若选择的为回归测试链
+            return regTestParams; // 返回回归测试网参数对象
     else
         throw std::runtime_error(strprintf("%s: Unknown chain %s.", __func__, chain));
 }
 
 void SelectParams(const std::string& network)
 {
-    SelectBaseParams(network); // 选择网络基础参数：RPC 端口 + 网络/目录 名（主网默认为空）
-    pCurrentParams = &Params(network); // 初始化网络参数
+    SelectBaseParams(network); // 1.选择网络基础参数
+    pCurrentParams = &Params(network); // 2.获取相应网络参数对象的地址
 }
