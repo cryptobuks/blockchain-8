@@ -151,9 +151,9 @@ bool AppInit(int argc, char* argv[]) // [P]3.0.应用程序初始化
 #endif
         SoftSetBoolArg("-server", true); // [F]3.8.软服务设置选项，默认开启，服务在后面启动
 
-        // Set this early so that parameter interactions go to console
-        InitLogging(); // [F]3.9.初始化日志记录，默认输出至 debug.log
-        InitParameterInteraction(); // [P]3.10.初始化参数交互，说明部分参数规则（用法）
+        // Set this early so that parameter interactions go to console // 尽早设置该项使参数交互到控制台
+        InitLogging(); // [F]3.9.初始化日志记录
+        InitParameterInteraction(); // [P]3.10.初始化参数交互
         fRet = AppInit2(threadGroup, scheduler); // [P]3.11.应用程序初始化 2（本物入口）
     }
     catch (const std::exception& e) {

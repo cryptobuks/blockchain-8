@@ -689,7 +689,7 @@ bool AppInitServers(boost::thread_group& threadGroup)
     return true;
 }
 
-// Parameter interaction based on rules
+// Parameter interaction based on rules // 基于规则的参数交互
 void InitParameterInteraction()
 {
     // when specifying an explicit binding address, you want to listen on it
@@ -771,13 +771,13 @@ void InitParameterInteraction()
 
 void InitLogging()
 {
-    fPrintToConsole = GetBoolArg("-printtoconsole", false); // 打印到控制台，默认关闭
+    fPrintToConsole = GetBoolArg("-printtoconsole", false); // 1.打印到控制台，默认关闭
     fLogTimestamps = GetBoolArg("-logtimestamps", DEFAULT_LOGTIMESTAMPS); // 记录日志时间戳，默认打开
     fLogTimeMicros = GetBoolArg("-logtimemicros", DEFAULT_LOGTIMEMICROS); // 时间戳微秒，默认关闭
-    fLogIPs = GetBoolArg("-logips", DEFAULT_LOGIPS); // 效果不明 pending
+    fLogIPs = GetBoolArg("-logips", DEFAULT_LOGIPS); // 记录 IPs，默认关闭
 
-    LogPrintf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-    LogPrintf("Bitcoin version %s (%s)\n", FormatFullVersion(), CLIENT_DATE);
+    LogPrintf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"); // 2.n 个空行
+    LogPrintf("Bitcoin version %s (%s)\n", FormatFullVersion(), CLIENT_DATE); // 记录比特币客户端版本号和构建时间
 }
 
 /** Initialize bitcoin.

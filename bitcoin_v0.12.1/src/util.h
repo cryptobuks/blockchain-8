@@ -28,8 +28,8 @@
 #include <boost/signals2/signal.hpp>
 #include <boost/thread/exceptions.hpp>
 
-static const bool DEFAULT_LOGTIMEMICROS = false;
-static const bool DEFAULT_LOGIPS        = false;
+static const bool DEFAULT_LOGTIMEMICROS = false; // 时间戳微秒，默认为 false
+static const bool DEFAULT_LOGIPS        = false; // 记录 IPs，默认关闭
 static const bool DEFAULT_LOGTIMESTAMPS = true; // 记录时间戳，默认为 true
 
 /** Signals for translation. */

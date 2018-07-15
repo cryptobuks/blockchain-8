@@ -25,7 +25,7 @@ void Interrupt(boost::thread_group& threadGroup);
 void Shutdown();
 //!Initialize the logging infrastructure // 初始化日志记录基础结构
 void InitLogging();
-//!Parameter interaction: change current parameters depending on various rules // 参数交互：基于各种规则改变当前参数
+//!Parameter interaction: change current parameters depending on various rules // 参数交互：基于多种规则改变当前参数
 void InitParameterInteraction();
 bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler);
 

@@ -69,14 +69,14 @@ const std::string CLIENT_NAME("Satoshi");
 
 #ifndef BUILD_DATE
 #ifdef GIT_COMMIT_DATE
-#define BUILD_DATE GIT_COMMIT_DATE
+#define BUILD_DATE GIT_COMMIT_DATE // git 提交日期
 #else
-#define BUILD_DATE __DATE__ ", " __TIME__
+#define BUILD_DATE __DATE__ ", " __TIME__ // __DATE__ 为编译日期，__TIME__ 为编译时间
 #endif
 #endif
 
 const std::string CLIENT_BUILD(BUILD_DESC CLIENT_VERSION_SUFFIX);
-const std::string CLIENT_DATE(BUILD_DATE);
+const std::string CLIENT_DATE(BUILD_DATE); // 客户端日期即构建日期
 
 static std::string FormatVersion(int nVersion)
 {
