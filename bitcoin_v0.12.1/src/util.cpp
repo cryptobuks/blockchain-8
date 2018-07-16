@@ -805,13 +805,13 @@ void SetupEnvironment()
 bool SetupNetworking()
 {
 #ifdef WIN32
-    // Initialize Windows Sockets
+    // Initialize Windows Sockets // 初始化 Windows 套接字
     WSADATA wsadata;
     int ret = WSAStartup(MAKEWORD(2,2), &wsadata);
     if (ret != NO_ERROR || LOBYTE(wsadata.wVersion ) != 2 || HIBYTE(wsadata.wVersion) != 2)
         return false;
 #endif
-    return true;
+    return true; // 非 WIN32 系统直接返回 true
 }
 
 void SetThreadPriority(int nPriority)

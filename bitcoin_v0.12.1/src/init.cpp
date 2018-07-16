@@ -80,10 +80,10 @@ static CZMQNotificationInterface* pzmqNotificationInterface = NULL;
 #ifdef WIN32
 // Win32 LevelDB doesn't use filedescriptors, and the ones used for
 // accessing block files don't count towards the fd_set size limit
-// anyway.
-#define MIN_CORE_FILEDESCRIPTORS 0
+// anyway. // Win32 LevelDB 不使用文件描述符，用于访问块文件的不会计入 fd_set 大小限制。
+#define MIN_CORE_FILEDESCRIPTORS 0 // Windows
 #else
-#define MIN_CORE_FILEDESCRIPTORS 150
+#define MIN_CORE_FILEDESCRIPTORS 150 // Unix/Linux
 #endif
 
 /** Used to pass flags to the Bind() function */
@@ -785,23 +785,23 @@ void InitLogging()
  */ // 初始化比特币。前提：参数应该被解析，配置文件应该被读取。
 bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.11.程序初始化，共 12 步
 {
-    // ********************************************************* Step 1: setup // 安装网络环境，挂接事件处理器
-#ifdef _MSC_VER // 设置 log 的输出级别未 WARNING 和 log 的输出文件
-    // Turn off Microsoft heap dump noise
+    // ********************************************************* Step 1: setup // 初始化网络环境，挂接信号处理函数
+#ifdef _MSC_VER // 1.设置 log 的输出级别为 WARNING 和 log 的输出文件
+    // Turn off Microsoft heap dump noise // 关闭微软堆转储提示音
     _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
     _CrtSetReportFile(_CRT_WARN, CreateFileA("NUL", GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, 0));
 #endif
-#if _MSC_VER >= 1400 // 处理中断消息
-    // Disable confusing "helpful" text message on abort, Ctrl-C
+#if _MSC_VER >= 1400 // 2.处理中断消息
+    // Disable confusing "helpful" text message on abort, Ctrl-C // 禁用 Ctrl-C 崩溃时烦人的“帮助”文本消息
     _set_abort_behavior(0, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);
 #endif
-#ifdef WIN32 // 设置 socket 连接
-    // Enable Data Execution Prevention (DEP)
+#ifdef WIN32
+    // Enable Data Execution Prevention (DEP) // 3.启用数据执行保护（DEP）
     // Minimum supported OS versions: WinXP SP3, WinVista >= SP1, Win Server 2008
-    // A failure is non-critical and needs no further attention!
+    // A failure is non-critical and needs no further attention! // 失败不重要，不需要在意！
 #ifndef PROCESS_DEP_ENABLE
-    // We define this here, because GCCs winbase.h limits this to _WIN32_WINNT >= 0x0601 (Windows 7),
-    // which is not correct. Can be removed, when GCCs winbase.h is fixed!
+    // We define this here, because GCCs winbase.h limits this to _WIN32_WINNT >= 0x0601 (Windows 7), // 我们在这里定义它，因为 GCCs winbase.h 将此限制到 _WIN32_WINNT >= 0x0601 (Windows 7)，
+    // which is not correct. Can be removed, when GCCs winbase.h is fixed! // 这是错误的。GCCs winbase.h 修复时可以删除
 #define PROCESS_DEP_ENABLE 0x00000001
 #endif
     typedef BOOL (WINAPI *PSETPROCDEPPOL)(DWORD);
@@ -809,20 +809,20 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
     if (setProcDEPPol != NULL) setProcDEPPol(PROCESS_DEP_ENABLE);
 #endif
 
-    if (!SetupNetworking()) // 设置 windows socket
+    if (!SetupNetworking()) // 4.设置 Windows 套接字
         return InitError("Initializing networking failed");
 
-#ifndef WIN32 // 处理信号
-    if (GetBoolArg("-sysperms", false)) {
-#ifdef ENABLE_WALLET
-        if (!GetBoolArg("-disablewallet", false))
+#ifndef WIN32 // 5.非 WIN32 平台，处理文件权限和相关信号
+    if (GetBoolArg("-sysperms", false)) { // 若设置了系统文件权限
+#ifdef ENABLE_WALLET // 若启用了钱包
+        if (!GetBoolArg("-disablewallet", false)) // 且未关闭钱包功能
             return InitError("-sysperms is not allowed in combination with enabled wallet functionality");
 #endif
     } else {
-        umask(077);
+        umask(077); // 设置掩码
     }
 
-    // Clean shutdown on SIGTERM
+    // Clean shutdown on SIGTERM // 在 SIGTERM 信号下清空关闭
     struct sigaction sa;
     sa.sa_handler = HandleSIGTERM;
     sigemptyset(&sa.sa_mask);
@@ -830,7 +830,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
     sigaction(SIGTERM, &sa, NULL);
     sigaction(SIGINT, &sa, NULL);
 
-    // Reopen debug.log on SIGHUP
+    // Reopen debug.log on SIGHUP // 在 SIGHUP 信号下重新打开 debug.log 文件
     struct sigaction sa_hup;
     sa_hup.sa_handler = HandleSIGHUP;
     sigemptyset(&sa_hup.sa_mask);
@@ -838,32 +838,32 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
     sigaction(SIGHUP, &sa_hup, NULL);
 
     // Ignore SIGPIPE, otherwise it will bring the daemon down if the client closes unexpectedly
-    signal(SIGPIPE, SIG_IGN);
+    signal(SIGPIPE, SIG_IGN); // 忽略 SIGPIPE 信号，否则如果客户端异常关闭它会使守护进程关闭
 #endif
 
-    // ********************************************************* Step 2: parameter interactions // 参数交互设置，如区块裁剪 prune 与交易索引 txindex 的冲突检测、文件描述符限制的检查
-    const CChainParams& chainparams = Params(); // 获取当前的链参数
+    // ********************************************************* Step 2: parameter interactions // 参数交互设置，如：区块裁剪 prune 与交易索引 txindex 的冲突检测、文件描述符限制的检查
+    const CChainParams& chainparams = Params(); // 1.获取当前的链参数
 
     // also see: InitParameterInteraction()
 
-    // if using block pruning, then disable txindex
+    // if using block pruning, then disable txindex // 2.如果使用区块修剪，需要禁止交易索引
     if (GetArg("-prune", 0)) { // 修剪模式（禁用交易索引），默认关闭
         if (GetBoolArg("-txindex", DEFAULT_TXINDEX)) // 交易索引（与修剪模式不兼容），默认关闭
             return InitError(_("Prune mode is incompatible with -txindex.")); // 不兼容的原因：修剪模式只保留区块头，而区块体包含的是交易索引 txid
-#ifdef ENABLE_WALLET
+#ifdef ENABLE_WALLET // 若开启了钱包
         if (GetBoolArg("-rescan", false)) { // 再扫描（修剪模式下不能使用，你可以使用 -reindex 再次下载整个区块链），默认关闭
             return InitError(_("Rescans are not possible in pruned mode. You will need to use -reindex which will download the whole blockchain again."));
         }
 #endif
     }
 
-    // Make sure enough file descriptors are available
+    // Make sure enough file descriptors are available // 3.确保足够的文件描述符可用
     int nBind = std::max((int)mapArgs.count("-bind") + (int)mapArgs.count("-whitebind"), 1); // bind 占用的文件描述符数量
     int nUserMaxConnections = GetArg("-maxconnections", DEFAULT_MAX_PEER_CONNECTIONS); // 最大连入数，默认 125
     nMaxConnections = std::max(nUserMaxConnections, 0); // 记录最大连接数，默认为 125
 
-    // Trim requested connection counts, to fit into system limitations
-    nMaxConnections = std::max(std::min(nMaxConnections, (int)(FD_SETSIZE - nBind - MIN_CORE_FILEDESCRIPTORS)), 0); // 整理请求连入的数量，来适应系统限制（Linux 下一个进程同时打开的文件描述的数量为 1024，使用 ulimit -a/-n 查看）
+    // Trim requested connection counts, to fit into system limitations // 修剪请求的连接数，以适应系统限制
+    nMaxConnections = std::max(std::min(nMaxConnections, (int)(FD_SETSIZE - nBind - MIN_CORE_FILEDESCRIPTORS)), 0); // Linux 下一个进程同时打开的文件描述的数量为 1024，使用 ulimit -a/-n 查看
     int nFD = RaiseFileDescriptorLimit(nMaxConnections + MIN_CORE_FILEDESCRIPTORS); // windows 下直接返回 2048，linux 下返回成功提升后的值 nMaxConnections + MIN_CORE_FILEDESCRIPTORS
     if (nFD < MIN_CORE_FILEDESCRIPTORS) // 可用描述符数量不能低于 0
         return InitError(_("Not enough file descriptors available."));
@@ -874,19 +874,19 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
 
     // ********************************************************* Step 3: parameter-to-internal-flags // 参数转换为内部变量，把外部参数的设置转化为程序内部的状态（bool 型参数，开关类选项）
 
-    fDebug = !mapMultiArgs["-debug"].empty(); // 调试开关，默认关闭
-    // Special-case: if -debug=0/-nodebug is set, turn off debugging messages
-    const vector<string>& categories = mapMultiArgs["-debug"];
-    if (GetBoolArg("-nodebug", false) || find(categories.begin(), categories.end(), string("0")) != categories.end())
-        fDebug = false;
+    fDebug = !mapMultiArgs["-debug"].empty(); // 1.调试开关，默认关闭
+    // Special-case: if -debug=0/-nodebug is set, turn off debugging messages // 特殊情况：如果设置了 -debug=0/-nodebug，关闭调试信息
+    const vector<string>& categories = mapMultiArgs["-debug"]; // 获取调试类别列表
+    if (GetBoolArg("-nodebug", false) || find(categories.begin(), categories.end(), string("0")) != categories.end()) // 若未设置 -nodebug 选项 或 在类别列表中找到 "0" 值
+        fDebug = false; // 调试标志置为 false
 
-    // Check for -debugnet
+    // Check for -debugnet // 2.检查 -debugnet 选项
     if (GetBoolArg("-debugnet", false)) // -debugnet 参数，默认关闭，限制不支持改参数，使用 -debug=net
         InitWarning(_("Unsupported argument -debugnet ignored, use -debug=net."));
-    // Check for -socks - as this is a privacy risk to continue, exit here
+    // Check for -socks - as this is a privacy risk to continue, exit here // 检查 -socks 选项作为一个要继续下去的隐秘风险，在这里退出
     if (mapArgs.count("-socks")) // -socks 已不被支持，现只支持 SOCKS5 proxies
         return InitError(_("Unsupported argument -socks found. Setting SOCKS version isn't possible anymore, only SOCKS5 proxies are supported."));
-    // Check for -tor - as this is a privacy risk to continue, exit here
+    // Check for -tor - as this is a privacy risk to continue, exit here // 检查 -tor 选项作为一个要继续下去的隐秘风险，在这里退出
     if (GetBoolArg("-tor", false)) // -tor 参数是一个隐藏风险，现使用 -onion 参数
         return InitError(_("Unsupported argument -tor found, use -onion."));
 
@@ -896,7 +896,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
     if (GetBoolArg("-whitelistalwaysrelay", false)) // -whitelistalwaysrelay 参数不再支持，使用 -whitelistrelay 或 -whitelistforcerelay
         InitWarning(_("Unsupported argument -whitelistalwaysrelay ignored, use -whitelistrelay and/or -whitelistforcerelay."));
 
-    // Checkmempool and checkblockindex default to true in regtest mode
+    // Checkmempool and checkblockindex default to true in regtest mode // 3.检查内存池和检查区块索引选项在回归测试模式下默认为 true
     int ratio = std::min<int>(std::max<int>(GetArg("-checkmempool", chainparams.DefaultConsistencyChecks() ? 1 : 0), 0), 1000000); // 1 or 0 对应 true or false，主网默认关闭
     if (ratio != 0) { // true
         mempool.setSanityCheck(1.0 / ratio); // 交易内存池设置完整性检查频率
@@ -904,13 +904,13 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
     fCheckBlockIndex = GetBoolArg("-checkblockindex", chainparams.DefaultConsistencyChecks()); // 检查区块索引标志，默认：主网、测试网关闭，回归测试网打开
     fCheckpointsEnabled = GetBoolArg("-checkpoints", DEFAULT_CHECKPOINTS_ENABLED); // 检测点可用，默认打开
 
-    // mempool limits
+    // mempool limits // 交易内存池限制选项
     int64_t nMempoolSizeMax = GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000; // 内存池大小限制，默认接近 300M
     int64_t nMempoolSizeMin = GetArg("-limitdescendantsize", DEFAULT_DESCENDANT_SIZE_LIMIT) * 1000 * 40;
     if (nMempoolSizeMax < 0 || nMempoolSizeMax < nMempoolSizeMin)
         return InitError(strprintf(_("-maxmempool must be at least %d MB"), std::ceil(nMempoolSizeMin / 1000000.0)));
 
-    // -par=0 means autodetect, but nScriptCheckThreads==0 means no concurrency
+    // -par=0 means autodetect, but nScriptCheckThreads==0 means no concurrency // 4.-par=0 意味着自动检测，但 nScriptCheckThreads==0 意味这没有并发
     nScriptCheckThreads = GetArg("-par", DEFAULT_SCRIPTCHECK_THREADS); // 脚本检测线程数，默认为 0
     if (nScriptCheckThreads <= 0)
         nScriptCheckThreads += GetNumCores(); // 每个核一个脚本检测线程，默认
@@ -919,9 +919,9 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
     else if (nScriptCheckThreads > MAX_SCRIPTCHECK_THREADS)
         nScriptCheckThreads = MAX_SCRIPTCHECK_THREADS; // 最大线程数为 16
 
-    fServer = GetBoolArg("-server", false); // 服务选项，3.8.已设置为 true
+    fServer = GetBoolArg("-server", false); // 5.服务选项，3.8.已设置为 true
 
-    // block pruning; get the amount of disk space (in MiB) to allot for block & undo files
+    // block pruning; get the amount of disk space (in MiB) to allot for block & undo files // 6.区块修剪；获取磁盘空间量（以 MiB 为单位）以分配区块和撤销文件（用于恢复链状态的反向补丁）
     int64_t nSignedPruneTarget = GetArg("-prune", 0) * 1024 * 1024; // 0 表示禁止修剪区块
     if (nSignedPruneTarget < 0) {
         return InitError(_("Prune cannot be configured with a negative value."));
@@ -936,14 +936,14 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
     }
 
 #ifdef ENABLE_WALLET
-    bool fDisableWallet = GetBoolArg("-disablewallet", false); // 禁用钱包选项，默认关闭
+    bool fDisableWallet = GetBoolArg("-disablewallet", false); // 7.禁用钱包选项，默认关闭
 #endif
 
-    nConnectTimeout = GetArg("-timeout", DEFAULT_CONNECT_TIMEOUT); // 连接超时，默认 5000
+    nConnectTimeout = GetArg("-timeout", DEFAULT_CONNECT_TIMEOUT); // 8.连接超时，默认 5000
     if (nConnectTimeout <= 0)
         nConnectTimeout = DEFAULT_CONNECT_TIMEOUT;
 
-    // Fee-per-kilobyte amount considered the same as "free" // 每千字节的交易费被视为与“免费”相同
+    // Fee-per-kilobyte amount considered the same as "free" // 9.每千字节的交易费被视为与“免费”相同
     // If you are mining, be careful setting this: // 如果你正在挖矿，小心设置该选项：
     // if you set it to zero then // 如果你设置该值为 0
     // a transaction spammer can cheaply fill blocks using // 一个粉尘交易发送者可以轻松使用 1 satoshi 交易费的交易来填充块。
@@ -1022,16 +1022,16 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
 
     fAlerts = GetBoolArg("-alerts", DEFAULT_ALERTS); // 转发选项，默认关闭
 
-    // Option to startup with mocktime set (used for regression testing):
-    SetMockTime(GetArg("-mocktime", 0)); // SetMockTime(0) is a no-op
+    // Option to startup with mocktime set (used for regression testing): // 选择使用 mocktime 设置启动（用于回归测试）：
+    SetMockTime(GetArg("-mocktime", 0)); // SetMockTime(0) is a no-op // SetMockTime(0) 表示无操作
 
     if (GetBoolArg("-peerbloomfilters", true))
         nLocalServices |= NODE_BLOOM;
 
     fEnableReplacement = GetBoolArg("-mempoolreplacement", DEFAULT_ENABLE_REPLACEMENT);
     if ((!fEnableReplacement) && mapArgs.count("-mempoolreplacement")) {
-        // Minimal effort at forwards compatibility
-        std::string strReplacementModeList = GetArg("-mempoolreplacement", "");  // default is impossible
+        // Minimal effort at forwards compatibility // 向前兼容性的最小努力
+        std::string strReplacementModeList = GetArg("-mempoolreplacement", "");  // default is impossible // 默认是不可能
         std::vector<std::string> vstrReplacementModes;
         boost::split(vstrReplacementModes, strReplacementModeList, boost::is_any_of(","));
         fEnableReplacement = (std::find(vstrReplacementModes.begin(), vstrReplacementModes.end(), "fee") != vstrReplacementModes.end());
@@ -1039,15 +1039,15 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
 
     // ********************************************************* Step 4: application initialization: dir lock, daemonize, pidfile, debug log // 初始化 ECC，目录锁检查（保证只有一个 bitcoind 运行），pid 文件，debug 日志
 
-    // Initialize elliptic curve code // 初始化椭圆曲线代码
+    // Initialize elliptic curve code // 1.初始化椭圆曲线代码
     ECC_Start(); // 椭圆曲线编码启动
     globalVerifyHandle.reset(new ECCVerifyHandle()); // pending
 
-    // Sanity check // 完整性检查
+    // Sanity check // 2.完整性检查
     if (!InitSanityCheck()) // 初始化完整性检查 pending
         return InitError(_("Initialization sanity check failed. Bitcoin Core is shutting down."));
 
-    std::string strDataDir = GetDataDir().string();
+    std::string strDataDir = GetDataDir().string(); // 3.获取数据目录路径
 #ifdef ENABLE_WALLET // 若开启钱包功能
     // Wallet file must be a plain filename without a directory // 钱包文件必须是没有目录的文件名
     if (strWalletFile != boost::filesystem::basename(strWalletFile) + boost::filesystem::extension(strWalletFile)) // 验证钱包文件名的完整性，basename 获取文件基础名 "wallet"，extension 获取文件扩展名 ".dat"
@@ -1067,16 +1067,16 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
     }
 
 #ifndef WIN32
-    CreatePidFile(GetPidFile(), getpid()); // 非 win32 环境下，创建 pid 文件（记录当前 bitcoind 的进程号）
+    CreatePidFile(GetPidFile(), getpid()); // 4.非 win32 环境下，创建 pid 文件（记录当前 bitcoind 的进程号）
 #endif
-    if (GetBoolArg("-shrinkdebugfile", !fDebug)) // 收缩调试日志文件
+    if (GetBoolArg("-shrinkdebugfile", !fDebug)) // 5.收缩调试日志文件
         ShrinkDebugFile(); // pending
 
     if (fPrintToDebugLog) // 打印到调试日志标志，默认打开
         OpenDebugLog(); // pending
 
 #ifdef ENABLE_WALLET
-    LogPrintf("Using BerkeleyDB version %s\n", DbEnv::version(0, 0, 0)); // 钱包使用 BerkeleyDB
+    LogPrintf("Using BerkeleyDB version %s\n", DbEnv::version(0, 0, 0)); // 6.钱包使用 BerkeleyDB
 #endif
     if (!fLogTimestamps) // 时间戳标志，默认开启
         LogPrintf("Startup time: %s\n", DateTimeStrFormat("%Y-%m-%d %H:%M:%S", GetTime())); // 记录启动时间
@@ -1087,12 +1087,12 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
     std::ostringstream strErrors; // 错误信息的字符串输出流
 
     LogPrintf("Using %u threads for script verification\n", nScriptCheckThreads); // 记录脚本验证线程数（默认为 CPU 核数）
-    if (nScriptCheckThreads) { // 创建相应数量的脚本验证线程
+    if (nScriptCheckThreads) { // 7.创建相应数量的脚本验证线程
         for (int i=0; i<nScriptCheckThreads-1; i++)
             threadGroup.create_thread(&ThreadScriptCheck); // CCheckQueue 类中的 loop 成员函数 pending
     }
 
-    // Start the lightweight task scheduler thread
+    // Start the lightweight task scheduler thread // 8.启动轻量级任务调度线程
     CScheduler::Function serviceLoop = boost::bind(&CScheduler::serviceQueue, &scheduler); // Function/bind 绑定类成员函数 serviceQueue 到函数对象 serviceLoop
     threadGroup.create_thread(boost::bind(&TraceThread<CScheduler::Function>, "scheduler", serviceLoop)); // 线程组 threadGroup 创建一个轻量级任务调度线程
 
@@ -1100,7 +1100,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
      * and not really process calls already (but it will signify connections
      * that the server is there and will be ready later).  Warmup mode will
      * be disabled when initialisation is finished.
-     */ // 已经启动 RPC 服务。将以“预热”模式启动，而非真正地处理调用（但它表示服务器的连接并在之后准备好）。初始化完成后预热模式将被关闭。
+     */ // 9.已经启动 RPC 服务。将以“预热”模式启动，而非真正地处理调用（但它表示服务器的连接并在之后准备好）。初始化完成后预热模式将被关闭。
     if (fServer) // 服务标志，默认打开
     {
         uiInterface.InitMessage.connect(SetRPCWarmupStatus); // 注册 设置 RPC 预热状态函数

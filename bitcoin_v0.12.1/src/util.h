@@ -67,7 +67,7 @@ inline std::string _(const char* psz)
 }
 
 void SetupEnvironment(); // 设置运行环境
-bool SetupNetworking(); // 初始化 windows 下的 socket
+bool SetupNetworking(); // 初始化 Windows 套接字
 
 /** Return true if log accepts specified category */ // 如果日志接受特殊的类别返回 true
 bool LogAcceptCategory(const char* category); // category 类似于 printf 中的格式控制

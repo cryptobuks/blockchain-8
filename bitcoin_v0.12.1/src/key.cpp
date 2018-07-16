@@ -308,7 +308,7 @@ void ECC_Start() {
     assert(ctx != NULL);
 
     {
-        // Pass in a random blinding seed to the secp256k1 context.
+        // Pass in a random blinding seed to the secp256k1 context. // 把随机致盲种子传递给 secp256k1 上下文。
         unsigned char seed[32];
         LockObject(seed);
         GetRandBytes(seed, 32);

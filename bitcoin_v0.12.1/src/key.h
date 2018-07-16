@@ -172,12 +172,12 @@ struct CExtKey {
 };
 
 /** Initialize the elliptic curve support. May not be called twice without calling ECC_Stop first. */
-void ECC_Start(void);
+void ECC_Start(void); // 初始化椭圆曲线支持。如果不先调用 ECC_Stop，可能不会调用 2 次。
 
 /** Deinitialize the elliptic curve support. No-op if ECC_Start wasn't called first. */
-void ECC_Stop(void);
+void ECC_Stop(void); // 取消初始化椭圆曲线支持。若果没有先调用 ECC_Start，则无操作。
 
 /** Check that required EC support is available at runtime. */
-bool ECC_InitSanityCheck(void);
+bool ECC_InitSanityCheck(void); // 检查运行时所需的 EC 支持是否可用。
 
 #endif // BITCOIN_KEY_H
