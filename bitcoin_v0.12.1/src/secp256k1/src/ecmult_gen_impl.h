@@ -155,7 +155,7 @@ static void secp256k1_ecmult_gen(const secp256k1_ecmult_gen_context *ctx, secp25
     secp256k1_scalar_clear(&gnb);
 }
 
-/* Setup blinding values for secp256k1_ecmult_gen. */
+/* Setup blinding values for secp256k1_ecmult_gen. */ // …Ë÷√ secp256k1_ecmult_gen µƒ√§÷µ°£
 static void secp256k1_ecmult_gen_blind(secp256k1_ecmult_gen_context *ctx, const unsigned char *seed32) {
     secp256k1_scalar b;
     secp256k1_gej gb;

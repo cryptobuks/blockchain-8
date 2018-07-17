@@ -85,7 +85,7 @@ void RandAddSeedPerfmon()
 
 void GetRandBytes(unsigned char* buf, int num)
 {
-    if (RAND_bytes(buf, num) != 1) { // 通过加密算法生成随机数，实际还是伪随机数，若提前设定种子，则该随机数无法被预先计算
+    if (RAND_bytes(buf, num) != 1) { // 通过加密算法生成 num 位随机数，实际还是伪随机数，若提前设定种子，则该随机数无法被预先计算
         LogPrintf("%s: OpenSSL RAND_bytes() failed with error: %s\n", __func__, ERR_error_string(ERR_get_error(), NULL));
         assert(false);
     }

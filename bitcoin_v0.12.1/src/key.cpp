@@ -304,17 +304,17 @@ bool ECC_InitSanityCheck() {
 void ECC_Start() {
     assert(secp256k1_context_sign == NULL);
 
-    secp256k1_context *ctx = secp256k1_context_create(SECP256K1_CONTEXT_SIGN);
-    assert(ctx != NULL);
+    secp256k1_context *ctx = secp256k1_context_create(SECP256K1_CONTEXT_SIGN); // 1.创建一个 secp256k1 上下文对象
+    assert(ctx != NULL); // 检验是否创建成功
 
     {
         // Pass in a random blinding seed to the secp256k1 context. // 把随机致盲种子传递给 secp256k1 上下文。
-        unsigned char seed[32];
-        LockObject(seed);
-        GetRandBytes(seed, 32);
-        bool ret = secp256k1_context_randomize(ctx, seed);
-        assert(ret);
-        UnlockObject(seed);
+        unsigned char seed[32]; // 32 字节的种子
+        LockObject(seed); // 2.锁定内存栈对象
+        GetRandBytes(seed, 32); // 3.获取 32 字节的随机数做为种子
+        bool ret = secp256k1_context_randomize(ctx, seed); // 4.使用种子随机化设置致盲值
+        assert(ret); // 检测随机化结果
+        UnlockObject(seed); // 5.解锁内存栈对象
     }
 
     secp256k1_context_sign = ctx;

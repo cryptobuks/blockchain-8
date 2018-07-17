@@ -9,5 +9,5 @@
 
 void memory_cleanse(void *ptr, size_t len)
 {
-    OPENSSL_cleanse(ptr, len);
+    OPENSSL_cleanse(ptr, len); // 使用 0 字符串填充从 ptr 指向位置开始 len 大小字节
 }

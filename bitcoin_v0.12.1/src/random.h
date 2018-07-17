@@ -19,7 +19,7 @@ void RandAddSeedPerfmon(); // Linux 下转调 RandAddSeed()
 /**
  * Functions to gather random data via the OpenSSL PRNG
  */ // 通过 OpenSSL 伪随机数生成器搜集随机数据的函数
-void GetRandBytes(unsigned char* buf, int num);
+void GetRandBytes(unsigned char* buf, int num); // 获取 num 字节的随机数
 uint64_t GetRand(uint64_t nMax); // 获取一个小于 nMax 的随机正数
 int GetRandInt(int nMax); // 转调上面的 GetRand
 uint256 GetRandHash();

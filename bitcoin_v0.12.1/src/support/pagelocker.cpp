@@ -28,8 +28,8 @@
 #include <unistd.h> // for sysconf
 #endif
 
-LockedPageManager* LockedPageManager::_instance = NULL;
-boost::once_flag LockedPageManager::init_flag = BOOST_ONCE_INIT;
+LockedPageManager* LockedPageManager::_instance = NULL; // 懒汉式，单独无法保证前程安全
+boost::once_flag LockedPageManager::init_flag = BOOST_ONCE_INIT; // 可保证线程安全
 
 /** Determine system page size in bytes */
 static inline size_t GetSystemPageSize()
@@ -51,8 +51,8 @@ bool MemoryPageLocker::Lock(const void* addr, size_t len)
 {
 #ifdef WIN32
     return VirtualLock(const_cast<void*>(addr), len) != 0;
-#else
-    return mlock(addr, len) == 0;
+#else // Unix/Linux
+    return mlock(addr, len) == 0; // 锁定内存页
 #endif
 }
 
@@ -60,8 +60,8 @@ bool MemoryPageLocker::Unlock(const void* addr, size_t len)
 {
 #ifdef WIN32
     return VirtualUnlock(const_cast<void*>(addr), len) != 0;
-#else
-    return munlock(addr, len) == 0;
+#else // Unix/Linux
+    return munlock(addr, len) == 0; // 解锁内存页
 #endif
 }
 
