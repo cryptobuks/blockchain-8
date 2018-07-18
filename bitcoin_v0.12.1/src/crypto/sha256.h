@@ -9,7 +9,7 @@
 #include <stdlib.h>
 
 /** A hasher class for SHA-256. */
-class CSHA256
+class CSHA256 // SHA256 µÄ¹þÏ£Àà¡£
 {
 private:
     uint32_t s[8];

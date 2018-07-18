@@ -5,7 +5,7 @@
 #ifndef BITCOIN_COMPAT_SANITY_H
 #define BITCOIN_COMPAT_SANITY_H
 
-bool glibc_sanity_test();
-bool glibcxx_sanity_test();
+bool glibc_sanity_test(); // glibc 完整性测试
+bool glibcxx_sanity_test(); // glibcxx 完整性测试
 
 #endif // BITCOIN_COMPAT_SANITY_H

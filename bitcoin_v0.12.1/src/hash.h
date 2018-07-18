@@ -18,13 +18,13 @@
 typedef uint256 ChainCode;
 
 /** A hasher class for Bitcoin's 256-bit hash (double SHA-256). */
-class CHash256 {
+class CHash256 { // 比特币 256 位散列（双 SHA256）的哈希类。
 private:
     CSHA256 sha;
 public:
     static const size_t OUTPUT_SIZE = CSHA256::OUTPUT_SIZE;
 
-    void Finalize(unsigned char hash[OUTPUT_SIZE]) {
+    void Finalize(unsigned char hash[OUTPUT_SIZE]) { // DSHA256
         unsigned char buf[sha.OUTPUT_SIZE];
         sha.Finalize(buf);
         sha.Reset().Write(buf, sha.OUTPUT_SIZE).Finalize(hash);

@@ -178,6 +178,6 @@ void ECC_Start(void); // 初始化椭圆曲线支持。如果不先调用 ECC_Stop，可能不会调用
 void ECC_Stop(void); // 取消初始化椭圆曲线支持。若果没有先调用 ECC_Start，则无操作。
 
 /** Check that required EC support is available at runtime. */
-bool ECC_InitSanityCheck(void); // 检查运行时所需的 EC 支持是否可用。
+bool ECC_InitSanityCheck(void); // 检查运行时所需的 EC 支持是否可用。生成私钥->计算公钥->匹配验证
 
 #endif // BITCOIN_KEY_H

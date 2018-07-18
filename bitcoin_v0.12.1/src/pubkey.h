@@ -212,9 +212,9 @@ struct CExtPubKey {
 
 /** Users of this module must hold an ECCVerifyHandle. The constructor and
  *  destructor of these are not allowed to run in parallel, though. */
-class ECCVerifyHandle
+class ECCVerifyHandle // 该模块的用户必须持有 ECCVerifyHandle。但不允许构造函数和析构函数并行执行。
 {
-    static int refcount;
+    static int refcount; // 引用计数
 
 public:
     ECCVerifyHandle();

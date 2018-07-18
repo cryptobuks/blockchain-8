@@ -160,7 +160,7 @@ public:
 
 static CCoinsViewDB *pcoinsdbview = NULL;
 static CCoinsViewErrorCatcher *pcoinscatcher = NULL;
-static boost::scoped_ptr<ECCVerifyHandle> globalVerifyHandle;
+static boost::scoped_ptr<ECCVerifyHandle> globalVerifyHandle; // 该智能指针与 STL 的 std::unique_ptr 类似
 
 void Interrupt(boost::thread_group& threadGroup)
 {
@@ -659,17 +659,17 @@ void ThreadImport(std::vector<boost::filesystem::path> vImportFiles) // 导入区块
 /** Sanity checks
  *  Ensure that Bitcoin is running in a usable environment with all
  *  necessary library support.
- */
+ */ // 完整性检查。确保比特币在具有全部必备库支持的可用环境里运行。
 bool InitSanityCheck(void)
 {
-    if(!ECC_InitSanityCheck()) {
+    if(!ECC_InitSanityCheck()) { // 1.椭圆曲线密码学初始化完整性检查
         InitError("Elliptic curve cryptography sanity check failure. Aborting.");
         return false;
     }
-    if (!glibc_sanity_test() || !glibcxx_sanity_test())
+    if (!glibc_sanity_test() || !glibcxx_sanity_test()) // 2.glibc 和 glibcxx 完整性测试
         return false;
 
-    return true;
+    return true; // 检查通过返回 true
 }
 
 bool AppInitServers(boost::thread_group& threadGroup)
@@ -1041,7 +1041,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
 
     // Initialize elliptic curve code // 1.初始化椭圆曲线代码
     ECC_Start(); // 椭圆曲线编码启动
-    globalVerifyHandle.reset(new ECCVerifyHandle()); // pending
+    globalVerifyHandle.reset(new ECCVerifyHandle()); // 创建椭圆曲线验证对象
 
     // Sanity check // 2.完整性检查
     if (!InitSanityCheck()) // 初始化完整性检查 pending

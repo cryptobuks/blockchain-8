@@ -120,7 +120,7 @@ static int ec_privkey_export_der(const secp256k1_context *ctx, unsigned char *pr
 }
 
 bool CKey::Check(const unsigned char *vch) {
-    return secp256k1_ec_seckey_verify(secp256k1_context_sign, vch);
+    return secp256k1_ec_seckey_verify(secp256k1_context_sign, vch); // 椭圆曲线私钥验证
 }
 
 void CKey::MakeNewKey(bool fCompressedIn) {
@@ -128,8 +128,8 @@ void CKey::MakeNewKey(bool fCompressedIn) {
     do {
         GetRandBytes(vch, sizeof(vch)); // 获取一个随机数，由于设定了种子，该随机数无法被预先计算
     } while (!Check(vch)); // 椭圆曲线验证该随机数（密钥）是否满足要求
-    fValid = true;
-    fCompressed = fCompressedIn;
+    fValid = true; // 私钥状态
+    fCompressed = fCompressedIn; // 压缩标志
 }
 
 bool CKey::SetPrivKey(const CPrivKey &privkey, bool fCompressedIn) {
@@ -154,16 +154,16 @@ CPrivKey CKey::GetPrivKey() const {
 }
 
 CPubKey CKey::GetPubKey() const {
-    assert(fValid);
+    assert(fValid); // 检查私钥状态标志
     secp256k1_pubkey pubkey; // 64 bytes
     size_t clen = 65;
     CPubKey result; // 65 bytes
     int ret = secp256k1_ec_pubkey_create(secp256k1_context_sign, &pubkey, begin()); // 椭圆曲线加密，计算私钥对应的公钥
     assert(ret);
     secp256k1_ec_pubkey_serialize(secp256k1_context_sign, (unsigned char*)result.begin(), &clen, &pubkey, fCompressed ? SECP256K1_EC_COMPRESSED : SECP256K1_EC_UNCOMPRESSED); // 椭圆曲线公钥序列化
-    assert(result.size() == clen);
-    assert(result.IsValid());
-    return result;
+    assert(result.size() == clen); // 验证序列化后的公钥长度
+    assert(result.IsValid()); // 验证公钥状态
+    return result; // 返回对应公钥
 }
 
 bool CKey::Sign(const uint256 &hash, std::vector<unsigned char>& vchSig, uint32_t test_case) const {
@@ -182,17 +182,17 @@ bool CKey::Sign(const uint256 &hash, std::vector<unsigned char>& vchSig, uint32_
 }
 
 bool CKey::VerifyPubKey(const CPubKey& pubkey) const {
-    if (pubkey.IsCompressed() != fCompressed) {
+    if (pubkey.IsCompressed() != fCompressed) { // 检查公钥的压缩标志
         return false;
     }
     unsigned char rnd[8];
     std::string str = "Bitcoin key verification\n";
-    GetRandBytes(rnd, sizeof(rnd));
+    GetRandBytes(rnd, sizeof(rnd)); // 获取 8bytes 的随机数
     uint256 hash;
-    CHash256().Write((unsigned char*)str.data(), str.size()).Write(rnd, sizeof(rnd)).Finalize(hash.begin());
-    std::vector<unsigned char> vchSig;
-    Sign(hash, vchSig);
-    return pubkey.Verify(hash, vchSig);
+    CHash256().Write((unsigned char*)str.data(), str.size()).Write(rnd, sizeof(rnd)).Finalize(hash.begin()); // 双 SHA256 字符串+随机数后获取哈希
+    std::vector<unsigned char> vchSig; // 签名
+    Sign(hash, vchSig); // 使用 DSHA256 的结果哈希进行签名
+    return pubkey.Verify(hash, vchSig); // 公钥验证哈希和签名
 }
 
 bool CKey::SignCompact(const uint256 &hash, std::vector<unsigned char>& vchSig) const {
@@ -295,10 +295,10 @@ void CExtKey::Decode(const unsigned char code[74]) {
 }
 
 bool ECC_InitSanityCheck() {
-    CKey key;
-    key.MakeNewKey(true);
-    CPubKey pubkey = key.GetPubKey();
-    return key.VerifyPubKey(pubkey);
+    CKey key; // 私钥对象
+    key.MakeNewKey(true); // 生成新的私钥
+    CPubKey pubkey = key.GetPubKey(); // 通过私钥获取公钥
+    return key.VerifyPubKey(pubkey); // 验证私钥公钥是否匹配
 }
 
 void ECC_Start() {
