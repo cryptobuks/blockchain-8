@@ -48,11 +48,11 @@ inline T* NCONST_PTR(const T* val)
  * Get begin pointer of vector (non-const version).
  * @note These functions avoid the undefined case of indexing into an empty
  * vector, as well as that of indexing after the end of the vector.
- */
+ */ // 获取容器 vector 的首部指针（非常量版）。注：这些函数用于避免索引到空 vector 的未定义情况，和 vector 尾部后的情况。
 template <typename V>
 inline typename V::value_type* begin_ptr(V& v)
 {
-    return v.empty() ? NULL : &v[0];
+    return v.empty() ? NULL : &v[0]; // 若 vector 为空，返回空，否则返回首部元素的地址
 }
 /** Get begin pointer of vector (const version) */
 template <typename V>

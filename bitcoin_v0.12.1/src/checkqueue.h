@@ -66,7 +66,7 @@ private:
     unsigned int nBatchSize;
 
     /** Internal function that does bulk of the verification work. */
-    bool Loop(bool fMaster = false)
+    bool Loop(bool fMaster = false) // 做大量验证工作的内部函数。
     {
         boost::condition_variable& cond = fMaster ? condMaster : condWorker;
         std::vector<T> vChecks;
@@ -130,10 +130,10 @@ public:
     //! Create a new check queue
     CCheckQueue(unsigned int nBatchSizeIn) : nIdle(0), nTotal(0), fAllOk(true), nTodo(0), fQuit(false), nBatchSize(nBatchSizeIn) {}
 
-    //! Worker thread
+    //! Worker thread // 工作线程
     void Thread()
     {
-        Loop();
+        Loop(); // 调用 Loop 进行循环
     }
 
     //! Wait until execution finishes, and return whether all evaluations were successful.

@@ -2090,11 +2090,11 @@ void static FlushBlockFile(bool fFinalize = false)
 
 bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos, unsigned int nAddSize);
 
-static CCheckQueue<CScriptCheck> scriptcheckqueue(128);
+static CCheckQueue<CScriptCheck> scriptcheckqueue(128); // 脚本检查队列
 
 void ThreadScriptCheck() {
-    RenameThread("bitcoin-scriptch");
-    scriptcheckqueue.Thread();
+    RenameThread("bitcoin-scriptch"); // 1.重命名线程
+    scriptcheckqueue.Thread(); // 2.执行线程工作函数
 }
 
 //

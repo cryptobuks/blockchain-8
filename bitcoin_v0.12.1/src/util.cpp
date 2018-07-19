@@ -99,8 +99,8 @@ namespace boost {
 
 using namespace std;
 
-const char * const BITCOIN_CONF_FILENAME = "bitcoin.conf";
-const char * const BITCOIN_PID_FILENAME = "bitcoind.pid";
+const char * const BITCOIN_CONF_FILENAME = "bitcoin.conf"; // 比特币默认配置文件名
+const char * const BITCOIN_PID_FILENAME = "bitcoind.pid"; // 比特币默认 pid 文件名
 
 map<string, string> mapArgs; // 启动选项（命令行参数，配置文件）单值映射列表，map<选项名，选项值>
 map<string, vector<string> > mapMultiArgs; // 启动选项多值映射列表，map<选项名，vector<选项值> >
@@ -188,7 +188,7 @@ static boost::once_flag debugPrintInitFlag = BOOST_ONCE_INIT;
  * are leaked on exit. This is ugly, but will be cleaned up by
  * the OS/libc. When the shutdown sequence is fully audited and
  * tested, explicit destruction of these objects can be implemented.
- */
+ */ // 我们使用 boost::call_once() 确保 mutexDebugLog 和 vMsgsBeforeOpenLog 以线程安全的方式初始化。
 static FILE* fileout = NULL; // 日志文件指针
 static boost::mutex* mutexDebugLog = NULL; // 日志文件锁
 static list<string> *vMsgsBeforeOpenLog; // 打开日志文件前的消息链表
@@ -198,7 +198,7 @@ static int FileWriteStr(const std::string &str, FILE *fp)
     return fwrite(str.data(), 1, str.size(), fp); // 写入字符串到文件指针关联的文件
 }
 
-static void DebugPrintInit()
+static void DebugPrintInit() // 初始化调试日志文件锁
 {
     assert(mutexDebugLog == NULL); // 若调试日志锁为空
     mutexDebugLog = new boost::mutex(); // 新建一个互斥锁
@@ -207,23 +207,23 @@ static void DebugPrintInit()
 
 void OpenDebugLog()
 {
-    boost::call_once(&DebugPrintInit, debugPrintInitFlag);
-    boost::mutex::scoped_lock scoped_lock(*mutexDebugLog);
+    boost::call_once(&DebugPrintInit, debugPrintInitFlag); // 确保只执行 DebugPrintInit() 一次
+    boost::mutex::scoped_lock scoped_lock(*mutexDebugLog); // 上锁
 
-    assert(fileout == NULL);
-    assert(vMsgsBeforeOpenLog);
-    boost::filesystem::path pathDebug = GetDataDir() / "debug.log";
-    fileout = fopen(pathDebug.string().c_str(), "a");
-    if (fileout) setbuf(fileout, NULL); // unbuffered
+    assert(fileout == NULL); // 文件指针检测，确保未初始化
+    assert(vMsgsBeforeOpenLog); // 确保打开日志文件前的消息链表存在
+    boost::filesystem::path pathDebug = GetDataDir() / "debug.log"; // 获取调试文件位置
+    fileout = fopen(pathDebug.string().c_str(), "a"); // 以追加只写的方式打开，若文件不存在则创建
+    if (fileout) setbuf(fileout, NULL); // unbuffered // 设置无缓冲
 
-    // dump buffered messages from before we opened the log
-    while (!vMsgsBeforeOpenLog->empty()) {
-        FileWriteStr(vMsgsBeforeOpenLog->front(), fileout);
-        vMsgsBeforeOpenLog->pop_front();
+    // dump buffered messages from before we opened the log // 导出在我们打开日志前缓冲的消息
+    while (!vMsgsBeforeOpenLog->empty()) { // 若消息链表非空，遍历该链表
+        FileWriteStr(vMsgsBeforeOpenLog->front(), fileout); // 把一个消息字符串写入日志文件
+        vMsgsBeforeOpenLog->pop_front(); // 链表头出链
     }
 
-    delete vMsgsBeforeOpenLog;
-    vMsgsBeforeOpenLog = NULL;
+    delete vMsgsBeforeOpenLog; // 删除该链表
+    vMsgsBeforeOpenLog = NULL; // 指针置空，防止出现野指针
 }
 
 bool LogAcceptCategory(const char* category)
@@ -557,18 +557,18 @@ void ReadConfigFile(map<string, string>& mapSettingsRet,
 #ifndef WIN32
 boost::filesystem::path GetPidFile()
 {
-    boost::filesystem::path pathPidFile(GetArg("-pid", BITCOIN_PID_FILENAME));
-    if (!pathPidFile.is_complete()) pathPidFile = GetDataDir() / pathPidFile;
-    return pathPidFile;
+    boost::filesystem::path pathPidFile(GetArg("-pid", BITCOIN_PID_FILENAME)); // 获取 pid 文件名
+    if (!pathPidFile.is_complete()) pathPidFile = GetDataDir() / pathPidFile; // pid 文件路径拼接
+    return pathPidFile; // 返回 pid 文件路径名
 }
 
 void CreatePidFile(const boost::filesystem::path &path, pid_t pid)
 {
-    FILE* file = fopen(path.string().c_str(), "w");
-    if (file)
+    FILE* file = fopen(path.string().c_str(), "w"); // 以只写方式打开文件，若不存在则新建
+    if (file) // 创建成功
     {
-        fprintf(file, "%d\n", pid);
-        fclose(file);
+        fprintf(file, "%d\n", pid); // 输出 pid 到该文件
+        fclose(file); // 关闭文件
     }
 }
 #endif
@@ -699,26 +699,26 @@ void AllocateFileRange(FILE *file, unsigned int offset, unsigned int length) {
 
 void ShrinkDebugFile()
 {
-    // Scroll debug.log if it's getting too big
-    boost::filesystem::path pathLog = GetDataDir() / "debug.log";
-    FILE* file = fopen(pathLog.string().c_str(), "r");
-    if (file && boost::filesystem::file_size(pathLog) > 10 * 1000000)
+    // Scroll debug.log if it's getting too big // 若它变得太大，回滚 debug.log
+    boost::filesystem::path pathLog = GetDataDir() / "debug.log"; // 获取日志位置
+    FILE* file = fopen(pathLog.string().c_str(), "r"); // 以只读方式打开日志
+    if (file && boost::filesystem::file_size(pathLog) > 10 * 1000000) // 若日志文件大小超过约 10MiB
     {
-        // Restart the file with some of the end
-        std::vector <char> vch(200000,0);
-        fseek(file, -((long)vch.size()), SEEK_END);
-        int nBytes = fread(begin_ptr(vch), 1, vch.size(), file);
-        fclose(file);
+        // Restart the file with some of the end // 使用结尾信息重写文件
+        std::vector <char> vch(200000,0); // 开辟 200KB 容器并初始化为 0
+        fseek(file, -((long)vch.size()), SEEK_END); // 文件指针从文件尾部向前偏移 200,000 个字节
+        int nBytes = fread(begin_ptr(vch), 1, vch.size(), file); // 读取最新的 200KB 调试日志到内存
+        fclose(file); // 关闭文件
 
-        file = fopen(pathLog.string().c_str(), "w");
-        if (file)
+        file = fopen(pathLog.string().c_str(), "w"); // 以只写方式重新打开文件，文件存在长度清零
+        if (file) // 若打开成功
         {
-            fwrite(begin_ptr(vch), 1, nBytes, file);
-            fclose(file);
+            fwrite(begin_ptr(vch), 1, nBytes, file); // 把最新的 200KB 调试日志写入文件
+            fclose(file); // 关闭文件
         }
     }
-    else if (file != NULL)
-        fclose(file);
+    else if (file != NULL) // 若打开成功
+        fclose(file); // 直接关闭文件
 }
 
 #ifdef WIN32
@@ -769,17 +769,17 @@ void runCommand(const std::string& strCommand)
 
 void RenameThread(const char* name)
 {
-#if defined(PR_SET_NAME)
-    // Only the first 15 characters are used (16 - NUL terminator)
-    ::prctl(PR_SET_NAME, name, 0, 0, 0);
-#elif (defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__DragonFly__))
+#if defined(PR_SET_NAME) // Linux
+    // Only the first 15 characters are used (16 - NUL terminator) // 仅用前 15 个字符（16 - NULL 终止符）
+    ::prctl(PR_SET_NAME, name, 0, 0, 0); // 设置线程名为 name，命名超出 15 个字符的部分会被静默截断
+#elif (defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)) // UNIX
     pthread_set_name_np(pthread_self(), name);
 
-#elif defined(MAC_OSX)
+#elif defined(MAC_OSX) // Apple
     pthread_setname_np(name);
 #else
-    // Prevent warnings for unused parameters...
-    (void)name;
+    // Prevent warnings for unused parameters... // 防止对未使用的参数的警告
+    (void)name; // 转为空
 #endif
 }
 

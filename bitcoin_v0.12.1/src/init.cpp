@@ -1047,13 +1047,13 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
     if (!InitSanityCheck()) // 初始化完整性检查 pending
         return InitError(_("Initialization sanity check failed. Bitcoin Core is shutting down."));
 
-    std::string strDataDir = GetDataDir().string(); // 3.获取数据目录路径
+    std::string strDataDir = GetDataDir().string(); // 3.1.获取数据目录路径
 #ifdef ENABLE_WALLET // 若开启钱包功能
-    // Wallet file must be a plain filename without a directory // 钱包文件必须是没有目录的文件名
+    // Wallet file must be a plain filename without a directory // 3.2.钱包文件必须是不带目录的文件名
     if (strWalletFile != boost::filesystem::basename(strWalletFile) + boost::filesystem::extension(strWalletFile)) // 验证钱包文件名的完整性，basename 获取文件基础名 "wallet"，extension 获取文件扩展名 ".dat"
         return InitError(strprintf(_("Wallet %s resides outside data directory %s"), strWalletFile, strDataDir));
 #endif // 钱包名校验结束
-    // Make sure only a single Bitcoin process is using the data directory. // 确保只有一个比特币进程使用该数据目录。
+    // Make sure only a single Bitcoin process is using the data directory. // 3.3.确保只有一个比特币进程使用该数据目录。
     boost::filesystem::path pathLockFile = GetDataDir() / ".lock"; // 空的 lock 隐藏文件，作用：作为临界资源，保证当前只有一个 Bitcoin 进程使用数据目录
     FILE* file = fopen(pathLockFile.string().c_str(), "a"); // empty lock file; created if it doesn't exist.
     if (file) fclose(file); // 若文件正常打开则关闭该空文件
@@ -1069,11 +1069,11 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
 #ifndef WIN32
     CreatePidFile(GetPidFile(), getpid()); // 4.非 win32 环境下，创建 pid 文件（记录当前 bitcoind 的进程号）
 #endif
-    if (GetBoolArg("-shrinkdebugfile", !fDebug)) // 5.收缩调试日志文件
-        ShrinkDebugFile(); // pending
+    if (GetBoolArg("-shrinkdebugfile", !fDebug)) // 5.若收缩调试文件选项开启
+        ShrinkDebugFile(); // 5.1.收缩调试日志文件
 
     if (fPrintToDebugLog) // 打印到调试日志标志，默认打开
-        OpenDebugLog(); // pending
+        OpenDebugLog(); // 5.2.打开调试日志文件
 
 #ifdef ENABLE_WALLET
     LogPrintf("Using BerkeleyDB version %s\n", DbEnv::version(0, 0, 0)); // 6.钱包使用 BerkeleyDB

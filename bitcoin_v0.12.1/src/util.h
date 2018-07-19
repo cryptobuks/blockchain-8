@@ -126,16 +126,16 @@ const boost::filesystem::path &GetDataDir(bool fNetSpecific = true); // 获取数据
 void ClearDatadirCache();
 boost::filesystem::path GetConfigFile();
 #ifndef WIN32
-boost::filesystem::path GetPidFile();
-void CreatePidFile(const boost::filesystem::path &path, pid_t pid);
+boost::filesystem::path GetPidFile(); // 获取 pid 路径名
+void CreatePidFile(const boost::filesystem::path &path, pid_t pid); // 创建 pid 文件
 #endif
 void ReadConfigFile(std::map<std::string, std::string>& mapSettingsRet, std::map<std::string, std::vector<std::string> >& mapMultiSettingsRet); // 读取配置文件，加载启动选项
 #ifdef WIN32
 boost::filesystem::path GetSpecialFolderPath(int nFolder, bool fCreate = true);
 #endif
 boost::filesystem::path GetTempPath();
-void OpenDebugLog();
-void ShrinkDebugFile();
+void OpenDebugLog(); // 打开调试日志文件
+void ShrinkDebugFile(); // 收缩调试文件 10 * 1,000,000B -> 200,000B
 void runCommand(const std::string& strCommand);
 
 inline bool IsSwitchChar(char c)
@@ -216,8 +216,8 @@ std::string HelpMessageOpt(const std::string& option, const std::string& message
  */
 int GetNumCores();
 
-void SetThreadPriority(int nPriority);
-void RenameThread(const char* name);
+void SetThreadPriority(int nPriority); // 设置线程优先级
+void RenameThread(const char* name); // 重命名线程函数
 
 /**
  * .. and a wrapper that just calls func once
