@@ -22,7 +22,7 @@
 static const unsigned int MAX_SCRIPT_ELEMENT_SIZE = 520; // 脚本最大字节数为 520bytes
 
 // Maximum number of non-push operations per script
-static const int MAX_OPS_PER_SCRIPT = 201;
+static const int MAX_OPS_PER_SCRIPT = 201; // 每个脚本非推送操作的最大数量
 
 // Maximum number of public keys per multisig
 static const int MAX_PUBKEYS_PER_MULTISIG = 20;
@@ -37,10 +37,10 @@ std::vector<unsigned char> ToByteVector(const T& in)
     return std::vector<unsigned char>(in.begin(), in.end());
 }
 
-/** Script opcodes */
-enum opcodetype
+/** Script opcodes */ // 脚本操作码
+enum opcodetype // 操作码类型
 {
-    // push value
+    // push value // 推送值
     OP_0 = 0x00, // 表示一个字节空串被推入栈
     OP_FALSE = OP_0, // 非 no-op 无操作
     OP_PUSHDATA1 = 0x4c,
@@ -66,7 +66,7 @@ enum opcodetype
     OP_15 = 0x5f,
     OP_16 = 0x60,
 
-    // control
+    // control // 控制
     OP_NOP = 0x61, // 无操作
     OP_VER = 0x62,
     OP_IF = 0x63,
@@ -78,7 +78,7 @@ enum opcodetype
     OP_VERIFY = 0x69,
     OP_RETURN = 0x6a,
 
-    // stack ops
+    // stack ops // 栈操作
     OP_TOALTSTACK = 0x6b,
     OP_FROMALTSTACK = 0x6c,
     OP_2DROP = 0x6d,
@@ -99,14 +99,14 @@ enum opcodetype
     OP_SWAP = 0x7c,
     OP_TUCK = 0x7d,
 
-    // splice ops
+    // splice ops // 拼接操作
     OP_CAT = 0x7e,
     OP_SUBSTR = 0x7f,
     OP_LEFT = 0x80,
     OP_RIGHT = 0x81,
     OP_SIZE = 0x82,
 
-    // bit logic
+    // bit logic // 位逻辑
     OP_INVERT = 0x83,
     OP_AND = 0x84,
     OP_OR = 0x85,
@@ -116,7 +116,7 @@ enum opcodetype
     OP_RESERVED1 = 0x89,
     OP_RESERVED2 = 0x8a,
 
-    // numeric
+    // numeric // 数字
     OP_1ADD = 0x8b,
     OP_1SUB = 0x8c,
     OP_2MUL = 0x8d,
@@ -148,7 +148,7 @@ enum opcodetype
 
     OP_WITHIN = 0xa5,
 
-    // crypto
+    // crypto // 加密
     OP_RIPEMD160 = 0xa6,
     OP_SHA1 = 0xa7,
     OP_SHA256 = 0xa8,
@@ -175,13 +175,13 @@ enum opcodetype
     OP_NOP10 = 0xb9,
 
 
-    // template matching params
+    // template matching params // 模板匹配参数
     OP_SMALLINTEGER = 0xfa,
     OP_PUBKEYS = 0xfb,
     OP_PUBKEYHASH = 0xfd,
     OP_PUBKEY = 0xfe,
 
-    OP_INVALIDOPCODE = 0xff,
+    OP_INVALIDOPCODE = 0xff, // 无效操作码
 };
 
 const char* GetOpName(opcodetype opcode);
@@ -192,8 +192,8 @@ public:
     explicit scriptnum_error(const std::string& str) : std::runtime_error(str) {}
 };
 
-class CScriptNum
-{
+class CScriptNum // 脚本数字类
+{ // 数字操作码（OP_1ADD 等）仅限于以 4 字节整数运行。语义时微秒的，操作数必须在 [-2^31 +1...2^31 -1] 范围内，但结果可能会溢出（只要它们不再后续数据运算中使用就有效）。
 /**
  * Numeric opcodes (OP_1ADD, etc) are restricted to operating on 4-byte integers.
  * The semantics are subtle, though: operands must be in the range [-2^31 +1...2^31 -1],
@@ -201,7 +201,7 @@ class CScriptNum
  * numeric operation). CScriptNum enforces those semantics by storing results as
  * an int64 and allowing out-of-range values to be returned as a vector of bytes but
  * throwing an exception if arithmetic is done or the result is interpreted as an integer.
- */
+ */ // CScriptNum 通过把结果存储为 int64 并允许超出范围的值作为字节向量返回来强制执行这些语义，但如果是算术完成或结果被解释为整数则抛出异常。
 public:
 
     explicit CScriptNum(const int64_t& n)
@@ -310,40 +310,40 @@ public:
 
     std::vector<unsigned char> getvch() const
     {
-        return serialize(m_value);
+        return serialize(m_value); // 序列化值
     }
 
     static std::vector<unsigned char> serialize(const int64_t& value)
     {
-        if(value == 0)
-            return std::vector<unsigned char>();
+        if(value == 0) // 若值为 0
+            return std::vector<unsigned char>(); // 直接返回临时空列表
 
-        std::vector<unsigned char> result;
-        const bool neg = value < 0;
-        uint64_t absvalue = neg ? -value : value;
+        std::vector<unsigned char> result; // 结果集
+        const bool neg = value < 0; // 正负号
+        uint64_t absvalue = neg ? -value : value; // 绝对值
 
-        while(absvalue)
+        while(absvalue) // 当该值得绝对值大于 0
         {
-            result.push_back(absvalue & 0xff);
-            absvalue >>= 8;
+            result.push_back(absvalue & 0xff); // 构建结果集
+            absvalue >>= 8; // 右移 8 位
         }
 
-//    - If the most significant byte is >= 0x80 and the value is positive, push a
-//    new zero-byte to make the significant byte < 0x80 again.
+//    - If the most significant byte is >= 0x80 and the value is positive, push a // 如果最高有效字节 >= 0x80 且为正，
+//    new zero-byte to make the significant byte < 0x80 again. // 则推入一个新的 0 字节使有效字节再次 < 0x80。
 
-//    - If the most significant byte is >= 0x80 and the value is negative, push a
-//    new 0x80 byte that will be popped off when converting to an integral.
+//    - If the most significant byte is >= 0x80 and the value is negative, push a // 如果最高有效字节 >= 0x80 且为负，
+//    new 0x80 byte that will be popped off when converting to an integral. // 则推入一个新的 0x80 字节，当转换为完整时再将其弹出。
 
-//    - If the most significant byte is < 0x80 and the value is negative, add
-//    0x80 to it, since it will be subtracted and interpreted as a negative when
-//    converting to an integral.
+//    - If the most significant byte is < 0x80 and the value is negative, add // 如果最高有效字节 < 0x80 且为负，
+//    0x80 to it, since it will be subtracted and interpreted as a negative when // 则添加 0x80 到它，
+//    converting to an integral. // 因为它再转换为完整时将被减去并被解释为负数。
 
-        if (result.back() & 0x80)
-            result.push_back(neg ? 0x80 : 0);
-        else if (neg)
-            result.back() |= 0x80;
+        if (result.back() & 0x80) // 若高 8 位为 0x80
+            result.push_back(neg ? 0x80 : 0); // 若为负数，推入 0x80，否则推入 0
+        else if (neg) // 若为负数
+            result.back() |= 0x80; // 高 8 位追加 0x80
 
-        return result;
+        return result; // 返回序列化后的结果
     }
 
 private:
@@ -472,7 +472,7 @@ public:
 
     bool GetOp(iterator& pc, opcodetype& opcodeRet, std::vector<unsigned char>& vchRet)
     {
-         // Wrapper so it can be called with either iterator or const_iterator
+         // Wrapper so it can be called with either iterator or const_iterator // 包装器，可以用 iterator 或 const_iterator 调用它
          const_iterator pc2 = pc;
          bool fRet = GetOp2(pc2, opcodeRet, &vchRet);
          pc = begin() + (pc2 - begin());
@@ -481,10 +481,10 @@ public:
 
     bool GetOp(iterator& pc, opcodetype& opcodeRet)
     {
-         const_iterator pc2 = pc;
-         bool fRet = GetOp2(pc2, opcodeRet, NULL);
-         pc = begin() + (pc2 - begin());
-         return fRet;
+         const_iterator pc2 = pc; // 指向脚本开头
+         bool fRet = GetOp2(pc2, opcodeRet, NULL); // 调用 GetOp2 获取脚本操作码
+         pc = begin() + (pc2 - begin()); // 迭代器后移，跳过操作码
+         return fRet; // 成功返回 true
     }
 
     bool GetOp(const_iterator& pc, opcodetype& opcodeRet, std::vector<unsigned char>& vchRet) const
@@ -499,54 +499,54 @@ public:
 
     bool GetOp2(const_iterator& pc, opcodetype& opcodeRet, std::vector<unsigned char>* pvchRet) const
     {
-        opcodeRet = OP_INVALIDOPCODE;
-        if (pvchRet)
-            pvchRet->clear();
-        if (pc >= end())
+        opcodeRet = OP_INVALIDOPCODE; // 初始化为无效操作码
+        if (pvchRet) // 若非空
+            pvchRet->clear(); // 清空
+        if (pc >= end()) // 脚本范围检测
             return false;
 
-        // Read instruction
-        if (end() - pc < 1)
+        // Read instruction // 读说明
+        if (end() - pc < 1) // 脚本长度检验
             return false;
-        unsigned int opcode = *pc++;
+        unsigned int opcode = *pc++; // 获取操作码，迭代器后移
 
-        // Immediate operand
-        if (opcode <= OP_PUSHDATA4)
+        // Immediate operand // 立即操作数
+        if (opcode <= OP_PUSHDATA4) // 若操作码属于 OP_PUSHDATA4 前
         {
             unsigned int nSize = 0;
-            if (opcode < OP_PUSHDATA1)
+            if (opcode < OP_PUSHDATA1) // 为空 或 无操作
             {
-                nSize = opcode;
+                nSize = opcode; // 数据大小为 4
             }
             else if (opcode == OP_PUSHDATA1)
             {
                 if (end() - pc < 1)
                     return false;
-                nSize = *pc++;
+                nSize = *pc++; // 获取 PUSHDATA 大小
             }
             else if (opcode == OP_PUSHDATA2)
             {
                 if (end() - pc < 2)
                     return false;
-                nSize = ReadLE16(&pc[0]);
-                pc += 2;
+                nSize = ReadLE16(&pc[0]); // 获取 PUSHDATA 大小，2 个字节，读取小端模式
+                pc += 2; // 迭代器偏移
             }
             else if (opcode == OP_PUSHDATA4)
             {
                 if (end() - pc < 4)
                     return false;
-                nSize = ReadLE32(&pc[0]);
-                pc += 4;
+                nSize = ReadLE32(&pc[0]); // 获取 PUSHDATA 大小，4 个字节，读取小端模式
+                pc += 4; // 迭代器偏移
             }
-            if (end() - pc < 0 || (unsigned int)(end() - pc) < nSize)
+            if (end() - pc < 0 || (unsigned int)(end() - pc) < nSize) // 验证数据大小
                 return false;
-            if (pvchRet)
+            if (pvchRet) // NULL
                 pvchRet->assign(pc, pc + nSize);
-            pc += nSize;
+            pc += nSize; // 迭代器偏移
         }
 
-        opcodeRet = (opcodetype)opcode;
-        return true;
+        opcodeRet = (opcodetype)opcode; // 获取该操作码
+        return true; // 成功返回 true
     }
 
     /** Encode/decode small integers: */

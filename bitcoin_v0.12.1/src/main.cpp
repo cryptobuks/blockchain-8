@@ -1771,8 +1771,8 @@ void UpdateCoins(const CTransaction& tx, CValidationState &state, CCoinsViewCach
 }
 
 bool CScriptCheck::operator()() {
-    const CScript &scriptSig = ptxTo->vin[nIn].scriptSig;
-    if (!VerifyScript(scriptSig, scriptPubKey, nFlags, CachingTransactionSignatureChecker(ptxTo, nIn, cacheStore), &error)) {
+    const CScript &scriptSig = ptxTo->vin[nIn].scriptSig; // 获取交易指定输入的脚本签名
+    if (!VerifyScript(scriptSig, scriptPubKey, nFlags, CachingTransactionSignatureChecker(ptxTo, nIn, cacheStore), &error)) { // 验证脚本
         return false;
     }
     return true;
@@ -2090,7 +2090,7 @@ void static FlushBlockFile(bool fFinalize = false)
 
 bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos, unsigned int nAddSize);
 
-static CCheckQueue<CScriptCheck> scriptcheckqueue(128); // 脚本检查队列
+static CCheckQueue<CScriptCheck> scriptcheckqueue(128); // 脚本检查队列，队列容量为 128
 
 void ThreadScriptCheck() {
     RenameThread("bitcoin-scriptch"); // 1.重命名线程

@@ -9,12 +9,12 @@
 typedef enum ScriptError_t // 脚本错误枚举
 {
     SCRIPT_ERR_OK = 0, // 无错
-    SCRIPT_ERR_UNKNOWN_ERROR,
+    SCRIPT_ERR_UNKNOWN_ERROR, // 未知类型
     SCRIPT_ERR_EVAL_FALSE,
     SCRIPT_ERR_OP_RETURN,
 
-    /* Max sizes */
-    SCRIPT_ERR_SCRIPT_SIZE,
+    /* Max sizes */ // 最大尺寸
+    SCRIPT_ERR_SCRIPT_SIZE, // 脚本尺寸
     SCRIPT_ERR_PUSH_SIZE,
     SCRIPT_ERR_OP_COUNT,
     SCRIPT_ERR_STACK_SIZE,

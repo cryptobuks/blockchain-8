@@ -212,19 +212,19 @@ bool CScript::IsPayToScriptHash() const
 
 bool CScript::IsPushOnly(const_iterator pc) const
 {
-    while (pc < end())
+    while (pc < end()) // 遍历脚本
     {
-        opcodetype opcode;
-        if (!GetOp(pc, opcode))
+        opcodetype opcode; // 操作码对象
+        if (!GetOp(pc, opcode)) // 从脚本获取操作码
             return false;
         // Note that IsPushOnly() *does* consider OP_RESERVED to be a
         // push-type opcode, however execution of OP_RESERVED fails, so
         // it's not relevant to P2SH/BIP62 as the scriptSig would fail prior to
         // the P2SH special validation code being executed.
-        if (opcode > OP_16)
-            return false;
+        if (opcode > OP_16) // 若大于 OP_16
+            return false; // 则非推送操作码，返回 false
     }
-    return true;
+    return true; // 否则返回 true
 }
 
 bool CScript::IsPushOnly() const

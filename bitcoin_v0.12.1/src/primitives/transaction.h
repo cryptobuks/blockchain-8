@@ -53,8 +53,8 @@ public:
 /** An input of a transaction.  It contains the location of the previous
  * transaction's output that it claims and a signature that matches the
  * output's public key.
- */
-class CTxIn // 一笔交易的输入
+ */ // 一笔交易的输入。它包含前一笔交易输出的位置和与输出公钥匹配的签名。
+class CTxIn
 {
 public:
     COutPoint prevout; // 前一笔交易的输出

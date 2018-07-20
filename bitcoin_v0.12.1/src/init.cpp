@@ -1087,9 +1087,9 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
     std::ostringstream strErrors; // 错误信息的字符串输出流
 
     LogPrintf("Using %u threads for script verification\n", nScriptCheckThreads); // 记录脚本验证线程数（默认为 CPU 核数）
-    if (nScriptCheckThreads) { // 7.创建相应数量的脚本验证线程
+    if (nScriptCheckThreads) { // 7.创建 N-1 个脚本验证线程
         for (int i=0; i<nScriptCheckThreads-1; i++)
-            threadGroup.create_thread(&ThreadScriptCheck); // CCheckQueue 类中的 loop 成员函数 pending
+            threadGroup.create_thread(&ThreadScriptCheck); // CCheckQueue 类中的 loop 成员函数
     }
 
     // Start the lightweight task scheduler thread // 8.启动轻量级任务调度线程

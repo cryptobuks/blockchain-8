@@ -33,7 +33,7 @@ enum // 脚本验证标志
     SCRIPT_VERIFY_NONE      = 0,
 
     // Evaluate P2SH subscripts (softfork safe, BIP16).
-    SCRIPT_VERIFY_P2SH      = (1U << 0),
+    SCRIPT_VERIFY_P2SH      = (1U << 0), // 评估 P2SH 子脚本（软分叉安全，BIP16）。
 
     // Passing a non-strict-DER signature or one with undefined hashtype to a checksig operation causes script failure.
     // Evaluating a pubkey that is not (0x04 + 64 bytes) or (0x02 or 0x03 + 32 bytes) by checksig causes script failure.
@@ -51,14 +51,14 @@ enum // 脚本验证标志
     SCRIPT_VERIFY_NULLDUMMY = (1U << 4),
 
     // Using a non-push operator in the scriptSig causes script failure (softfork safe, BIP62 rule 2).
-    SCRIPT_VERIFY_SIGPUSHONLY = (1U << 5),
+    SCRIPT_VERIFY_SIGPUSHONLY = (1U << 5), // 在脚本签名中使用非推送操作符导致脚本失败（软分叉 安全，BIP62 规则 2）
 
     // Require minimal encodings for all push operations (OP_0... OP_16, OP_1NEGATE where possible, direct
     // pushes up to 75 bytes, OP_PUSHDATA up to 255 bytes, OP_PUSHDATA2 for anything larger). Evaluating
     // any other push causes the script to fail (BIP62 rule 3).
     // In addition, whenever a stack element is interpreted as a number, it must be of minimal length (BIP62 rule 4).
-    // (softfork safe)
-    SCRIPT_VERIFY_MINIMALDATA = (1U << 6),
+    // (softfork safe) // 所有推送操作都需要最少的编码（OP_0... OP_16, OP_1NEGATE 尽可能，直接推送最多 75 字节，OP_PUSHDATA 最多 255 字节，OP_PUSHDATA2 最大）。评估任何其它虽送会导致脚本失败（BIP62 规则 3）。
+    SCRIPT_VERIFY_MINIMALDATA = (1U << 6), // 另外，当栈元素被解释为一个数字时，必须具有最小长度（BIP62 规则 4）。（软分叉安全）
 
     // Discourage use of NOPs reserved for upgrades (NOP1-10)
     //
@@ -138,7 +138,7 @@ public:
     MutableTransactionSignatureChecker(const CMutableTransaction* txToIn, unsigned int nInIn) : TransactionSignatureChecker(&txTo, nInIn), txTo(*txToIn) {}
 };
 
-bool EvalScript(std::vector<std::vector<unsigned char> >& stack, const CScript& script, unsigned int flags, const BaseSignatureChecker& checker, ScriptError* error = NULL);
-bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, unsigned int flags, const BaseSignatureChecker& checker, ScriptError* error = NULL);
+bool EvalScript(std::vector<std::vector<unsigned char> >& stack, const CScript& script, unsigned int flags, const BaseSignatureChecker& checker, ScriptError* error = NULL); // 评测脚本
+bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, unsigned int flags, const BaseSignatureChecker& checker, ScriptError* error = NULL); // 验证脚本
 
 #endif // BITCOIN_SCRIPT_INTERPRETER_H

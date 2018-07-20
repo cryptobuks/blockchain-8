@@ -15,7 +15,7 @@
 
 using namespace std;
 
-typedef vector<unsigned char> valtype;
+typedef vector<unsigned char> valtype; // 存放无符号字符串
 
 namespace {
 
@@ -37,14 +37,14 @@ inline bool set_error(ScriptError* ret, const ScriptError serror)
 
 bool CastToBool(const valtype& vch)
 {
-    for (unsigned int i = 0; i < vch.size(); i++)
+    for (unsigned int i = 0; i < vch.size(); i++) // 遍历列表
     {
-        if (vch[i] != 0)
+        if (vch[i] != 0) // 若一个字符不为 0
         {
-            // Can be negative zero
-            if (i == vch.size()-1 && vch[i] == 0x80)
-                return false;
-            return true;
+            // Can be negative zero // 可以是负零
+            if (i == vch.size()-1 && vch[i] == 0x80) // 若为最后一个元素 且 等于 0x80
+                return false; // 返回 false
+            return true; // 否则返回 true
         }
     }
     return false;
@@ -58,9 +58,9 @@ bool CastToBool(const valtype& vch)
 #define altstacktop(i)  (altstack.at(altstack.size()+(i)))
 static inline void popstack(vector<valtype>& stack)
 {
-    if (stack.empty())
+    if (stack.empty()) // 栈空判断
         throw runtime_error("popstack(): stack empty");
-    stack.pop_back();
+    stack.pop_back(); // 出栈
 }
 
 bool static IsCompressedOrUncompressedPubKey(const valtype &vchPubKey) {
@@ -207,26 +207,26 @@ bool static CheckPubKeyEncoding(const valtype &vchSig, unsigned int flags, Scrip
 }
 
 bool static CheckMinimalPush(const valtype& data, opcodetype opcode) {
-    if (data.size() == 0) {
-        // Could have used OP_0.
+    if (data.size() == 0) { // 若数据长度为 0
+        // Could have used OP_0. // 可能使用 OP_0。
         return opcode == OP_0;
-    } else if (data.size() == 1 && data[0] >= 1 && data[0] <= 16) {
-        // Could have used OP_1 .. OP_16.
+    } else if (data.size() == 1 && data[0] >= 1 && data[0] <= 16) { // 若数据长度为 1，且该数据为 1 - 16
+        // Could have used OP_1 .. OP_16. // 可能使用 OP_1 .. OP_16。
         return opcode == OP_1 + (data[0] - 1);
-    } else if (data.size() == 1 && data[0] == 0x81) {
-        // Could have used OP_1NEGATE.
+    } else if (data.size() == 1 && data[0] == 0x81) { // 若数据长度为 1，且该数据为 0x81
+        // Could have used OP_1NEGATE. // 可能使用 OP_1NEGATE。
         return opcode == OP_1NEGATE;
-    } else if (data.size() <= 75) {
-        // Could have used a direct push (opcode indicating number of bytes pushed + those bytes).
+    } else if (data.size() <= 75) { // 若数据长度为 2 - 75
+        // Could have used a direct push (opcode indicating number of bytes pushed + those bytes). // 可能使用直接推送（操作码表明推送的字节数+字节本身）。
         return opcode == data.size();
-    } else if (data.size() <= 255) {
-        // Could have used OP_PUSHDATA.
+    } else if (data.size() <= 255) { // 若数据长度为 76 - 255
+        // Could have used OP_PUSHDATA. // 可能使用 OP_PUSHDATA。
         return opcode == OP_PUSHDATA1;
-    } else if (data.size() <= 65535) {
-        // Could have used OP_PUSHDATA2.
+    } else if (data.size() <= 65535) { // 若数据长度为 256 - 65535
+        // Could have used OP_PUSHDATA2. // 可能使用 OP_PUSHDATA2。
         return opcode == OP_PUSHDATA2;
     }
-    return true;
+    return true; // 否则直接返回 true
 }
 
 bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, unsigned int flags, const BaseSignatureChecker& checker, ScriptError* serror)
@@ -242,61 +242,61 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
     CScript::const_iterator pc = script.begin();
     CScript::const_iterator pend = script.end();
     CScript::const_iterator pbegincodehash = script.begin();
-    opcodetype opcode;
-    valtype vchPushValue;
-    vector<bool> vfExec;
+    opcodetype opcode; // 操作码对象
+    valtype vchPushValue; // push 值
+    vector<bool> vfExec; // 执行标志
     vector<valtype> altstack;
-    set_error(serror, SCRIPT_ERR_UNKNOWN_ERROR);
-    if (script.size() > 10000)
+    set_error(serror, SCRIPT_ERR_UNKNOWN_ERROR); // 设置未知脚本错误
+    if (script.size() > 10000) // 若脚本大小超过 10,000 字节
         return set_error(serror, SCRIPT_ERR_SCRIPT_SIZE);
     int nOpCount = 0;
-    bool fRequireMinimal = (flags & SCRIPT_VERIFY_MINIMALDATA) != 0;
+    bool fRequireMinimal = (flags & SCRIPT_VERIFY_MINIMALDATA) != 0; // 获取验证脚本所需的最小数据标志
 
     try
     {
-        while (pc < pend)
+        while (pc < pend) // 遍历脚本
         {
-            bool fExec = !count(vfExec.begin(), vfExec.end(), false);
+            bool fExec = !count(vfExec.begin(), vfExec.end(), false); // 是否包含 false
 
             //
-            // Read instruction
+            // Read instruction // 读说明
             //
-            if (!script.GetOp(pc, opcode, vchPushValue))
+            if (!script.GetOp(pc, opcode, vchPushValue)) // 获取操作码和 push 值
                 return set_error(serror, SCRIPT_ERR_BAD_OPCODE);
-            if (vchPushValue.size() > MAX_SCRIPT_ELEMENT_SIZE)
-                return set_error(serror, SCRIPT_ERR_PUSH_SIZE);
+            if (vchPushValue.size() > MAX_SCRIPT_ELEMENT_SIZE) // 若 push 值长度超过阈值 520bytes
+                return set_error(serror, SCRIPT_ERR_PUSH_SIZE); // 设置相应错误信息
 
-            // Note how OP_RESERVED does not count towards the opcode limit.
-            if (opcode > OP_16 && ++nOpCount > MAX_OPS_PER_SCRIPT)
+            // Note how OP_RESERVED does not count towards the opcode limit. // 注意：OP_RESERVED 如何不计入操作码限制
+            if (opcode > OP_16 && ++nOpCount > MAX_OPS_PER_SCRIPT) // 若操作码非 push value 且操作计数大于 MAX_OPS_PER_SCRIPT
                 return set_error(serror, SCRIPT_ERR_OP_COUNT);
 
-            if (opcode == OP_CAT ||
+            if (opcode == OP_CAT || // 拼接操作
                 opcode == OP_SUBSTR ||
                 opcode == OP_LEFT ||
                 opcode == OP_RIGHT ||
-                opcode == OP_INVERT ||
+                opcode == OP_INVERT || // 位逻辑
                 opcode == OP_AND ||
                 opcode == OP_OR ||
                 opcode == OP_XOR ||
-                opcode == OP_2MUL ||
+                opcode == OP_2MUL || // 数字
                 opcode == OP_2DIV ||
                 opcode == OP_MUL ||
                 opcode == OP_DIV ||
                 opcode == OP_MOD ||
                 opcode == OP_LSHIFT ||
-                opcode == OP_RSHIFT)
+                opcode == OP_RSHIFT) // 以上均为禁用操作码
                 return set_error(serror, SCRIPT_ERR_DISABLED_OPCODE); // Disabled opcodes.
 
-            if (fExec && 0 <= opcode && opcode <= OP_PUSHDATA4) {
-                if (fRequireMinimal && !CheckMinimalPush(vchPushValue, opcode)) {
+            if (fExec && 0 <= opcode && opcode <= OP_PUSHDATA4) { // 执行标志列表全 true 且 操作码大于 0 且 操作码小于等于 OP_PUSHDATA4
+                if (fRequireMinimal && !CheckMinimalPush(vchPushValue, opcode)) { // 最小数据长度标志 且 满足最小推送数据检查
                     return set_error(serror, SCRIPT_ERR_MINIMALDATA);
                 }
-                stack.push_back(vchPushValue);
-            } else if (fExec || (OP_IF <= opcode && opcode <= OP_ENDIF))
+                stack.push_back(vchPushValue); // 把该推送值加入栈中
+            } else if (fExec || (OP_IF <= opcode && opcode <= OP_ENDIF)) // 若
             switch (opcode)
             {
                 //
-                // Push value
+                // Push value // 推送值
                 //
                 case OP_1NEGATE:
                 case OP_1:
@@ -317,19 +317,19 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
                 case OP_16:
                 {
                     // ( -- value)
-                    CScriptNum bn((int)opcode - (int)(OP_1 - 1));
-                    stack.push_back(bn.getvch());
+                    CScriptNum bn((int)opcode - (int)(OP_1 - 1)); // 构造一个脚本数字对象
+                    stack.push_back(bn.getvch()); // 序列化后加入栈
                     // The result of these opcodes should always be the minimal way to push the data
                     // they push, so no need for a CheckMinimalPush here.
-                }
+                } // 这些操作码的结果应该始终是推送它们推送数据的最小方式，因此这里不需要 CheckMinimalPush。
                 break;
 
 
                 //
-                // Control
+                // Control // 控制
                 //
-                case OP_NOP:
-                    break;
+                case OP_NOP: // 无操作
+                    break; // 直接跳出
 
                 case OP_CHECKLOCKTIMEVERIFY:
                 {
@@ -475,7 +475,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
 
 
                 //
-                // Stack ops
+                // Stack ops // 栈操作
                 //
                 case OP_TOALTSTACK:
                 {
@@ -685,7 +685,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
 
 
                 //
-                // Bitwise logic
+                // Bitwise logic // 按位逻辑
                 //
                 case OP_EQUAL:
                 case OP_EQUALVERIFY:
@@ -717,7 +717,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
 
 
                 //
-                // Numeric
+                // Numeric // 数字
                 //
                 case OP_1ADD:
                 case OP_1SUB:
@@ -820,7 +820,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
 
 
                 //
-                // Crypto
+                // Crypto // 加密
                 //
                 case OP_RIPEMD160:
                 case OP_SHA1:
@@ -991,7 +991,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
                     return set_error(serror, SCRIPT_ERR_BAD_OPCODE);
             }
 
-            // Size limits
+            // Size limits // 大小限制
             if (stack.size() + altstack.size() > 1000)
                 return set_error(serror, SCRIPT_ERR_STACK_SIZE);
         }
@@ -1001,10 +1001,10 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
         return set_error(serror, SCRIPT_ERR_UNKNOWN_ERROR);
     }
 
-    if (!vfExec.empty())
-        return set_error(serror, SCRIPT_ERR_UNBALANCED_CONDITIONAL);
+    if (!vfExec.empty()) // 若执行标志列表非空
+        return set_error(serror, SCRIPT_ERR_UNBALANCED_CONDITIONAL); // 设置错误信息
 
-    return set_success(serror);
+    return set_success(serror); // 返回设置错误信息成功
 }
 
 namespace {
@@ -1241,65 +1241,65 @@ bool TransactionSignatureChecker::CheckSequence(const CScriptNum& nSequence) con
 
 bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, unsigned int flags, const BaseSignatureChecker& checker, ScriptError* serror)
 {
-    set_error(serror, SCRIPT_ERR_UNKNOWN_ERROR);
+    set_error(serror, SCRIPT_ERR_UNKNOWN_ERROR); // 设置未知类型错误
 
-    if ((flags & SCRIPT_VERIFY_SIGPUSHONLY) != 0 && !scriptSig.IsPushOnly()) {
-        return set_error(serror, SCRIPT_ERR_SIG_PUSHONLY);
+    if ((flags & SCRIPT_VERIFY_SIGPUSHONLY) != 0 && !scriptSig.IsPushOnly()) { // 若脚本验证为 SCRIPT_VERIFY_SIGPUSHONLY 且 该脚本操作码并非 PushOnly
+        return set_error(serror, SCRIPT_ERR_SIG_PUSHONLY); // 设置错误信息
     }
 
-    vector<vector<unsigned char> > stack, stackCopy;
-    if (!EvalScript(stack, scriptSig, flags, checker, serror))
-        // serror is set
+    vector<vector<unsigned char> > stack, stackCopy; // 栈，栈副本
+    if (!EvalScript(stack, scriptSig, flags, checker, serror)) // 评估脚本，通过脚本签名
+        // serror is set // 错误已设置
         return false;
-    if (flags & SCRIPT_VERIFY_P2SH)
-        stackCopy = stack;
-    if (!EvalScript(stack, scriptPubKey, flags, checker, serror))
-        // serror is set
+    if (flags & SCRIPT_VERIFY_P2SH) // 若为 SCRIPT_VERIFY_P2SH
+        stackCopy = stack; // 复制栈副本
+    if (!EvalScript(stack, scriptPubKey, flags, checker, serror)) // 再次评估脚本，通过脚本公钥
+        // serror is set // 错误已设置
         return false;
-    if (stack.empty())
-        return set_error(serror, SCRIPT_ERR_EVAL_FALSE);
-    if (CastToBool(stack.back()) == false)
-        return set_error(serror, SCRIPT_ERR_EVAL_FALSE);
+    if (stack.empty()) // 若栈为空
+        return set_error(serror, SCRIPT_ERR_EVAL_FALSE); // 设置错误码并退出
+    if (CastToBool(stack.back()) == false) // 若栈顶元素转换为布尔型后为 false
+        return set_error(serror, SCRIPT_ERR_EVAL_FALSE); // 设置错误码为评估 false
 
-    // Additional validation for spend-to-script-hash transactions:
+    // Additional validation for spend-to-script-hash transactions: // 花费到脚本哈希交易的附加验证：
     if ((flags & SCRIPT_VERIFY_P2SH) && scriptPubKey.IsPayToScriptHash())
     {
-        // scriptSig must be literals-only or validation fails
+        // scriptSig must be literals-only or validation fails // 脚本签名必须是仅文字或验证失败
         if (!scriptSig.IsPushOnly())
             return set_error(serror, SCRIPT_ERR_SIG_PUSHONLY);
 
-        // Restore stack.
+        // Restore stack. // 存储栈。
         swap(stack, stackCopy);
 
-        // stack cannot be empty here, because if it was the
-        // P2SH  HASH <> EQUAL  scriptPubKey would be evaluated with
-        // an empty stack and the EvalScript above would return false.
-        assert(!stack.empty());
+        // stack cannot be empty here, because if it was the // 栈在这里不能为空，因为如果它是
+        // P2SH  HASH <> EQUAL  scriptPubKey would be evaluated with // P2SH  HASH <> EQUAL 脚本公钥
+        // an empty stack and the EvalScript above would return false. // 将使用空栈进行评估，且 EvalScript 将返回 false。
+        assert(!stack.empty()); // 验证栈非空
 
-        const valtype& pubKeySerialized = stack.back();
-        CScript pubKey2(pubKeySerialized.begin(), pubKeySerialized.end());
-        popstack(stack);
+        const valtype& pubKeySerialized = stack.back(); // 获取栈顶元素（序列化的公钥）
+        CScript pubKey2(pubKeySerialized.begin(), pubKeySerialized.end()); // 构建公钥脚本对象
+        popstack(stack); // 出栈
 
-        if (!EvalScript(stack, pubKey2, flags, checker, serror))
+        if (!EvalScript(stack, pubKey2, flags, checker, serror)) // 使用新的公钥脚本评估脚本
             // serror is set
             return false;
-        if (stack.empty())
+        if (stack.empty()) // 栈若为空
             return set_error(serror, SCRIPT_ERR_EVAL_FALSE);
-        if (!CastToBool(stack.back()))
+        if (!CastToBool(stack.back())) // 栈顶元素若为 false
             return set_error(serror, SCRIPT_ERR_EVAL_FALSE);
     }
 
-    // The CLEANSTACK check is only performed after potential P2SH evaluation,
-    // as the non-P2SH evaluation of a P2SH script will obviously not result in
-    // a clean stack (the P2SH inputs remain).
+    // The CLEANSTACK check is only performed after potential P2SH evaluation, // CLEANSTACK 检测仅在潜在的 P2SH 评估后执行，
+    // as the non-P2SH evaluation of a P2SH script will obviously not result in // 因为 P2SH 脚本的非 P2SH 评估
+    // a clean stack (the P2SH inputs remain). // 显然不会产生干净的堆栈（P2SH 输入仍然存在）。
     if ((flags & SCRIPT_VERIFY_CLEANSTACK) != 0) {
-        // Disallow CLEANSTACK without P2SH, as otherwise a switch CLEANSTACK->P2SH+CLEANSTACK
-        // would be possible, which is not a softfork (and P2SH should be one).
+        // Disallow CLEANSTACK without P2SH, as otherwise a switch CLEANSTACK->P2SH+CLEANSTACK // 禁止带 P2SH 的 CLEANSTACK，否则切换 CLEANSTACK->P2SH+CLEANSTACK 将是可能的，
+        // would be possible, which is not a softfork (and P2SH should be one). // 这不是一软分叉（P2SH 应该是一个）。
         assert((flags & SCRIPT_VERIFY_P2SH) != 0);
-        if (stack.size() != 1) {
+        if (stack.size() != 1) { // 栈的大小必须为 1，只有一个 P2SH
             return set_error(serror, SCRIPT_ERR_CLEANSTACK);
         }
     }
 
-    return set_success(serror);
+    return set_success(serror); // 返回设置错误信息成功
 }

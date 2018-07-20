@@ -389,16 +389,16 @@ bool CheckSequenceLocks(const CTransaction &tx, int flags, LockPoints* lp = NULL
 /**
  * Closure representing one script verification
  * Note that this stores references to the spending transaction 
- */
-class CScriptCheck
+ */ // 闭包代表一个脚本验证。注：这会存储对花费交易的引用。
+class CScriptCheck // 脚本验证类
 {
 private:
-    CScript scriptPubKey;
-    const CTransaction *ptxTo;
-    unsigned int nIn;
+    CScript scriptPubKey; // 脚本公钥
+    const CTransaction *ptxTo; // 交易
+    unsigned int nIn; // 交易输入序号
     unsigned int nFlags;
     bool cacheStore;
-    ScriptError error;
+    ScriptError error; // 脚本错误类型对象
 
 public:
     CScriptCheck(): ptxTo(0), nIn(0), nFlags(0), cacheStore(false), error(SCRIPT_ERR_UNKNOWN_ERROR) {}
@@ -406,9 +406,9 @@ public:
         scriptPubKey(txFromIn.vout[txToIn.vin[nInIn].prevout.n].scriptPubKey),
         ptxTo(&txToIn), nIn(nInIn), nFlags(nFlagsIn), cacheStore(cacheIn), error(SCRIPT_ERR_UNKNOWN_ERROR) { }
 
-    bool operator()();
+    bool operator()(); // 重载的函数调用运算符
 
-    void swap(CScriptCheck &check) {
+    void swap(CScriptCheck &check) { // 互换元素
         scriptPubKey.swap(check.scriptPubKey);
         std::swap(ptxTo, check.ptxTo);
         std::swap(nIn, check.nIn);
