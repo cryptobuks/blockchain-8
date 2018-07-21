@@ -54,10 +54,10 @@ public:
     // need more accurate scheduling, don't use this method.
     void scheduleEvery(Function f, int64_t deltaSeconds);
 
-    // To keep things as simple as possible, there is no unschedule.
+    // To keep things as simple as possible, there is no unschedule. // 为了使事情尽可能的简单，这里没有调度。
 
-    // Services the queue 'forever'. Should be run in a thread,
-    // and interrupted using boost::interrupt_thread
+    // Services the queue 'forever'. Should be run in a thread, // “永远”服务队列。应该运行一个线程，
+    // and interrupted using boost::interrupt_thread // 并使用 boost::interrupt_thread 打断。
     void serviceQueue(); // scheduler 调度器线程函数循环主体
 
     // Tell any threads running serviceQueue to stop as soon as they're

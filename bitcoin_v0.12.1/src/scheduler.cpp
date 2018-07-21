@@ -29,56 +29,56 @@ static boost::system_time toPosixTime(const boost::chrono::system_clock::time_po
 
 void CScheduler::serviceQueue()
 {
-    boost::unique_lock<boost::mutex> lock(newTaskMutex); // 上锁，保证函数线程安全
-    ++nThreadsServicingQueue; // 使用队列的线程数加 1
+    boost::unique_lock<boost::mutex> lock(newTaskMutex); // 1.上锁，保证函数线程安全
+    ++nThreadsServicingQueue; // 2.使用队列的线程数加 1
 
     // newTaskMutex is locked throughout this loop EXCEPT
     // when the thread is waiting or when the user's function
-    // is called.
-    while (!shouldStop()) { // loop
+    // is called. // 当线程正在等待或调用用户函数时，newTaskMutex 在整个循环中锁定。
+    while (!shouldStop()) { // 3.loop
         try {
-            while (!shouldStop() && taskQueue.empty()) { // 任务队列为空
+            while (!shouldStop() && taskQueue.empty()) { // 3.1.任务队列为空
                 // Wait until there is something to do.
                 newTaskScheduled.wait(lock); // 等待条件满足
             }
 
-            // Wait until either there is a new task, or until
-            // the time of the first item on the queue:
+            // Wait until either there is a new task, or until // 等待知道有一个新任务，
+            // the time of the first item on the queue: // 或直到队列中首个项目超时：
 
-// wait_until needs boost 1.50 or later; older versions have timed_wait:
+// wait_until needs boost 1.50 or later; older versions have timed_wait: // wait_until 需要 boost 1.50 或更新版本；旧版本有 timed_wait：
 #if BOOST_VERSION < 105000 // 任务队列非空
             while (!shouldStop() && !taskQueue.empty() &&
-                   newTaskScheduled.timed_wait(lock, toPosixTime(taskQueue.begin()->first))) { // 获取新任务的 key（时间），进行等待
-                // Keep waiting until timeout
+                   newTaskScheduled.timed_wait(lock, toPosixTime(taskQueue.begin()->first))) { // 3.2.获取新任务的 key（时间），进行等待
+                // Keep waiting until timeout // 等待直到超时
             }
-#else
-            // Some boost versions have a conflicting overload of wait_until that returns void.
-            // Explicitly use a template here to avoid hitting that overload.
+#else // 高版本 boost 库
+            // Some boost versions have a conflicting overload of wait_until that returns void. // 一些 boost 版本有一个 wait_until 冲突的重载函数，返回 void。
+            // Explicitly use a template here to avoid hitting that overload. // 精确使用模板以避免方式发生重载。
             while (!shouldStop() && !taskQueue.empty() &&
                    newTaskScheduled.wait_until<>(lock, taskQueue.begin()->first) != boost::cv_status::timeout) { // 105000 之后的 boost 版本
-                // Keep waiting until timeout
+                // Keep waiting until timeout // 等待直到超时
             }
 #endif
-            // If there are multiple threads, the queue can empty while we're waiting (another
-            // thread may service the task we were waiting on).
-            if (shouldStop() || taskQueue.empty())
-                continue;
+            // If there are multiple threads, the queue can empty while we're waiting (another // 如果这里有多个线程，队列可在我们等待时清空
+            // thread may service the task we were waiting on). // （另一个线程可在我们等待时提供服务）。
+            if (shouldStop() || taskQueue.empty()) // 3.3.清空任务队列
+                continue; // 跳过本次循环
 
-            Function f = taskQueue.begin()->second; // 获取队列中第一个任务
+            Function f = taskQueue.begin()->second; // 3.4.获取队列中第一个任务
             taskQueue.erase(taskQueue.begin()); // 清除该任务
 
             {
                 // Unlock before calling f, so it can reschedule itself or another task
-                // without deadlocking:
-                reverse_lock<boost::unique_lock<boost::mutex> > rlock(lock); // 在调用 f 前解锁，防止死锁
+                // without deadlocking: // 在调用 f 之前解锁，以至于它能重新安排自己或其他任务而不会死锁：
+                reverse_lock<boost::unique_lock<boost::mutex> > rlock(lock); // 3.5.在调用 f 前解锁，防止死锁
                 f(); // 执行任务
             }
         } catch (...) {
-            --nThreadsServicingQueue;
+            --nThreadsServicingQueue; // 使用任务队列的线程数减 1
             throw;
         }
     } // end of loop
-    --nThreadsServicingQueue; // 使用任务队列的线程数减 1
+    --nThreadsServicingQueue; // 4.使用任务队列的线程数减 1
 }
 
 void CScheduler::stop(bool drain)

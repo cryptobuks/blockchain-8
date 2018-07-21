@@ -27,7 +27,7 @@ void Shutdown();
 void InitLogging();
 //!Parameter interaction: change current parameters depending on various rules // 参数交互：基于多种规则改变当前参数
 void InitParameterInteraction();
-bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler);
+bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler); // 应用程序初始化（本物入口）
 
 /** The help message mode determines what help message to show */ // 确定显示什么帮助信息的帮助信息模式
 enum HelpMessageMode { // 帮助信息模式枚举

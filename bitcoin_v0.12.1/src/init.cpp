@@ -1093,8 +1093,8 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
     }
 
     // Start the lightweight task scheduler thread // 8.启动轻量级任务调度线程
-    CScheduler::Function serviceLoop = boost::bind(&CScheduler::serviceQueue, &scheduler); // Function/bind 绑定类成员函数 serviceQueue 到函数对象 serviceLoop
-    threadGroup.create_thread(boost::bind(&TraceThread<CScheduler::Function>, "scheduler", serviceLoop)); // 线程组 threadGroup 创建一个轻量级任务调度线程
+    CScheduler::Function serviceLoop = boost::bind(&CScheduler::serviceQueue, &scheduler); // 8.1.Function/bind 绑定类成员函数 serviceQueue 到函数对象 serviceLoop
+    threadGroup.create_thread(boost::bind(&TraceThread<CScheduler::Function>, "scheduler", serviceLoop)); // 8.2.线程组 threadGroup 创建一个轻量级任务调度线程
 
     /* Start the RPC server already.  It will be started in "warmup" mode
      * and not really process calls already (but it will signify connections
