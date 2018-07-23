@@ -21,7 +21,7 @@
 
 class CRPCCommand;
 
-namespace RPCServer
+namespace RPCServer // RPC 服务
 {
     void OnStarted(boost::function<void ()> slot);
     void OnStopped(boost::function<void ()> slot);
@@ -49,8 +49,8 @@ bool IsRPCRunning(); // 查询 RPC 服务是否运行
 /**
  * Set the RPC warmup status.  When this is done, all RPC calls will error out
  * immediately with RPC_IN_WARMUP.
- */
-void SetRPCWarmupStatus(const std::string& newStatus); // 设置 RPC 预热新状态
+ */ // 设置 RPC 预热新状态。当这步完成时，全部 RPC 调用将立刻使用 RPC_IN_WARMUP 错误输出。
+void SetRPCWarmupStatus(const std::string& newStatus);
 /* Mark warmup as done.  RPC calls will be processed from now on.  */
 void SetRPCWarmupFinished(); // 标记预热完成，从现在开始处理 RPC 调用
 
@@ -119,7 +119,7 @@ public:
     std::string category; // 所属类别
     std::string name; // 名称
     rpcfn_type actor; // 对应的函数行为
-    bool okSafeMode; // 是否打开安全模式
+    bool okSafeMode; // 是否开启安全模式
 };
 
 /**

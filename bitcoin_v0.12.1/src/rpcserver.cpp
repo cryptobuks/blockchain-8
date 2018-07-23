@@ -30,8 +30,8 @@ using namespace std;
 
 static bool fRPCRunning = false; // RPC 运行状态，默认关闭
 static bool fRPCInWarmup = true;
-static std::string rpcWarmupStatus("RPC server started"); // 静态 string 类型全局变量
-static CCriticalSection cs_rpcWarmup;
+static std::string rpcWarmupStatus("RPC server started"); // 全局静态 rpc 预热状态字符串
+static CCriticalSection cs_rpcWarmup; // rpc 预热状态锁
 /* Timer-creating functions */
 static std::vector<RPCTimerInterface*> timerInterfaces; // RPC 定时器接口列表
 /* Map of name to timer.
@@ -425,7 +425,7 @@ bool IsRPCRunning()
 
 void SetRPCWarmupStatus(const std::string& newStatus)
 {
-    LOCK(cs_rpcWarmup);
+    LOCK(cs_rpcWarmup); // rpc 预热状态上锁
     rpcWarmupStatus = newStatus; // 设置新状态
 }
 

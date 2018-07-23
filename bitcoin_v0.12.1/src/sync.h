@@ -81,7 +81,7 @@ typedef AnnotatedMixin<boost::recursive_mutex> CCriticalSection;
 typedef AnnotatedMixin<boost::mutex> CWaitableCriticalSection;
 
 /** Just a typedef for boost::condition_variable, can be wrapped later if desired */
-typedef boost::condition_variable CConditionVariable;
+typedef boost::condition_variable CConditionVariable; // 只是一个定义类型的 boost 条件变量，如果需要可以在稍后包装
 
 #ifdef DEBUG_LOCKORDER
 void EnterCritical(const char* pszName, const char* pszFile, int nLine, void* cs, bool fTry = false);

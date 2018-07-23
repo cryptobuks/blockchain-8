@@ -20,7 +20,7 @@
 #define CLIENT_VERSION_BUILD 0 // 构建版本号
 
 //! Set to true for release, false for prerelease or test build
-#define CLIENT_VERSION_IS_RELEASE true
+#define CLIENT_VERSION_IS_RELEASE true // 发行版设置为 true，预发行版或测试版设置为 false
 
 /**
  * Copyright year (2009-this)

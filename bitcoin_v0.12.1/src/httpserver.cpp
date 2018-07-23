@@ -380,7 +380,7 @@ bool InitHTTPServer()
     struct evhttp* http = 0;
     struct event_base* base = 0;
 
-    if (!InitHTTPAllowList()) // 初始化 HTTP ACL 访问控制列表（白名单）
+    if (!InitHTTPAllowList()) // 1.初始化 HTTP ACL 访问控制列表（白名单）
         return false;
 
     if (GetBoolArg("-rpcssl", false)) { // rpcssl 默认关闭，当前版本不支持，如果设置了就报错
@@ -390,11 +390,11 @@ bool InitHTTPServer()
         return false;
     }
 
-    // Redirect libevent's logging to our own log
-    event_set_log_callback(&libevent_log_cb); // 重定向 libevent 日志到当前日志系统
+    // Redirect libevent's logging to our own log // 重定向 libevent 的日志到当前日志系统
+    event_set_log_callback(&libevent_log_cb);
 #if LIBEVENT_VERSION_NUMBER >= 0x02010100
-    // If -debug=libevent, set full libevent debugging.
-    // Otherwise, disable all libevent debugging.
+    // If -debug=libevent, set full libevent debugging. // 如果 -debug=libevent，设置完整的 libevent 调试信息。
+    // Otherwise, disable all libevent debugging. // 否则，禁止全部 libevent 调试信息。
     if (LogAcceptCategory("libevent"))
         event_enable_debug_logging(EVENT_DBG_ALL);
     else
@@ -403,7 +403,7 @@ bool InitHTTPServer()
 #ifdef WIN32 // 初始化 libevent 的 http 服务端协议
     evthread_use_windows_threads();
 #else
-    evthread_use_pthreads();
+    evthread_use_pthreads(); // 创建线程函数
 #endif
 
     base = event_base_new(); // XXX RAII // 1.创建 event_base 对象
@@ -412,7 +412,7 @@ bool InitHTTPServer()
         return false;
     }
 
-    /* Create a new evhttp object to handle requests. */
+    /* Create a new evhttp object to handle requests. */ // 创建一个新的 evhttp 对象来处理请求。
     http = evhttp_new(base); // XXX RAII 2.利用 base 创建 evhttp 对象
     if (!http) {
         LogPrintf("couldn't create evhttp. Exiting.\n");

@@ -61,7 +61,7 @@ CChain chainActive; // 当前连接的区块链（激活的链）
 CBlockIndex *pindexBestHeader = NULL;
 int64_t nTimeBestReceived = 0;
 CWaitableCriticalSection csBestBlock;
-CConditionVariable cvBlockChange;
+CConditionVariable cvBlockChange; // 区块改变的条件变量
 int nScriptCheckThreads = 0;
 bool fImporting = false;
 bool fReindex = false;
@@ -4290,64 +4290,64 @@ void static CheckBlockIndex(const Consensus::Params& consensusParams)
 
 //////////////////////////////////////////////////////////////////////////////
 //
-// CAlert
+// CAlert // 警报
 //
 
-std::string GetWarnings(const std::string& strFor)
+std::string GetWarnings(const std::string& strFor) // rpc
 {
-    int nPriority = 0;
-    string strStatusBar;
+    int nPriority = 0; // 优先级
+    string strStatusBar; // 状态条
     string strRPC;
     string strGUI;
 
-    if (!CLIENT_VERSION_IS_RELEASE) {
+    if (!CLIENT_VERSION_IS_RELEASE) { // 客户端版本非发行版
         strStatusBar = "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications";
         strGUI = _("This is a pre-release test build - use at your own risk - do not use for mining or merchant applications");
     }
 
-    if (GetBoolArg("-testsafemode", DEFAULT_TESTSAFEMODE))
-        strStatusBar = strRPC = strGUI = "testsafemode enabled";
+    if (GetBoolArg("-testsafemode", DEFAULT_TESTSAFEMODE)) // 测试安全模式，默认关闭，若开启
+        strStatusBar = strRPC = strGUI = "testsafemode enabled"; // 初始化信息
 
-    // Misc warnings like out of disk space and clock is wrong
-    if (strMiscWarning != "")
+    // Misc warnings like out of disk space and clock is wrong // 磁盘空间和时钟错误的杂项警告
+    if (strMiscWarning != "") // 若有杂项警告信息
     {
-        nPriority = 1000;
-        strStatusBar = strGUI = strMiscWarning;
+        nPriority = 1000; // 设置优先级
+        strStatusBar = strGUI = strMiscWarning; // 设置信息
     }
 
-    if (fLargeWorkForkFound)
+    if (fLargeWorkForkFound) // 若找到大工作量分叉
     {
         nPriority = 2000;
         strStatusBar = strRPC = "Warning: The network does not appear to fully agree! Some miners appear to be experiencing issues.";
         strGUI = _("Warning: The network does not appear to fully agree! Some miners appear to be experiencing issues.");
     }
-    else if (fLargeWorkInvalidChainFound)
+    else if (fLargeWorkInvalidChainFound) // 若找到大工作量无效链
     {
         nPriority = 2000;
         strStatusBar = strRPC = "Warning: We do not appear to fully agree with our peers! You may need to upgrade, or other nodes may need to upgrade.";
         strGUI = _("Warning: We do not appear to fully agree with our peers! You may need to upgrade, or other nodes may need to upgrade.");
     }
 
-    // Alerts
+    // Alerts // 警报
     {
-        LOCK(cs_mapAlerts);
-        BOOST_FOREACH(PAIRTYPE(const uint256, CAlert)& item, mapAlerts)
+        LOCK(cs_mapAlerts); // 警报列表上锁
+        BOOST_FOREACH(PAIRTYPE(const uint256, CAlert)& item, mapAlerts) // 遍历警报映射列表
         {
-            const CAlert& alert = item.second;
-            if (alert.AppliesToMe() && alert.nPriority > nPriority)
+            const CAlert& alert = item.second; // 获取警报
+            if (alert.AppliesToMe() && alert.nPriority > nPriority) // 应用到自己 且 该警告优先级高于当前
             {
-                nPriority = alert.nPriority;
-                strStatusBar = strGUI = alert.strStatusBar;
+                nPriority = alert.nPriority; // 设置高优先级
+                strStatusBar = strGUI = alert.strStatusBar; // 设置信息
             }
         }
     }
 
-    if (strFor == "gui")
+    if (strFor == "gui") // 选择 3 种情况
         return strGUI;
     else if (strFor == "statusbar")
         return strStatusBar;
     else if (strFor == "rpc")
-        return strRPC;
+        return strRPC; // 返回
     assert(!"GetWarnings(): invalid parameter");
     return "error";
 }

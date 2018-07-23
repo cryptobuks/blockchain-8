@@ -18,8 +18,8 @@ class CAlert;
 class CNode;
 class uint256;
 
-extern std::map<uint256, CAlert> mapAlerts;
-extern CCriticalSection cs_mapAlerts;
+extern std::map<uint256, CAlert> mapAlerts; // 警告信息映射列表
+extern CCriticalSection cs_mapAlerts; // 警告列表锁
 
 /** Alerts are for notifying old versions if they become too obsolete and
  * need to upgrade.  The message is displayed in the status bar.

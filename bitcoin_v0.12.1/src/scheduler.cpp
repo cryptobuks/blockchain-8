@@ -38,11 +38,11 @@ void CScheduler::serviceQueue()
     while (!shouldStop()) { // 3.loop
         try {
             while (!shouldStop() && taskQueue.empty()) { // 3.1.任务队列为空
-                // Wait until there is something to do.
+                // Wait until there is something to do. // 等待直到这里有事可做（任务队列非空）。
                 newTaskScheduled.wait(lock); // 等待条件满足
             }
 
-            // Wait until either there is a new task, or until // 等待知道有一个新任务，
+            // Wait until either there is a new task, or until // 等待直到有一个新任务，
             // the time of the first item on the queue: // 或直到队列中首个项目超时：
 
 // wait_until needs boost 1.50 or later; older versions have timed_wait: // wait_until 需要 boost 1.50 或更新版本；旧版本有 timed_wait：
@@ -60,8 +60,8 @@ void CScheduler::serviceQueue()
             }
 #endif
             // If there are multiple threads, the queue can empty while we're waiting (another // 如果这里有多个线程，队列可在我们等待时清空
-            // thread may service the task we were waiting on). // （另一个线程可在我们等待时提供服务）。
-            if (shouldStop() || taskQueue.empty()) // 3.3.清空任务队列
+            // thread may service the task we were waiting on). // （另一个线程可在我们等待时取任务）。
+            if (shouldStop() || taskQueue.empty()) // 3.3.任务队列被清空
                 continue; // 跳过本次循环
 
             Function f = taskQueue.begin()->second; // 3.4.获取队列中第一个任务

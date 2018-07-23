@@ -294,16 +294,16 @@ bool static Bind(const CService &addr, unsigned int flags) {
 
 void OnRPCStopped()
 {
-    cvBlockChange.notify_all();
-    LogPrint("rpc", "RPC stopped.\n");
+    cvBlockChange.notify_all(); // 通知所有等待条件 cvBlockChange 的线程
+    LogPrint("rpc", "RPC stopped.\n"); // 记录日志
 }
 
 void OnRPCPreCommand(const CRPCCommand& cmd)
 {
-    // Observe safe mode // 观察安全模式
-    string strWarning = GetWarnings("rpc");
+    // Observe safe mode // 监控安全模式
+    string strWarning = GetWarnings("rpc"); // 获取 rpc 警告信息
     if (strWarning != "" && !GetBoolArg("-disablesafemode", DEFAULT_DISABLE_SAFEMODE) &&
-        !cmd.okSafeMode) // 若有警告信息
+        !cmd.okSafeMode) // 若有警告信息 且 未禁用安全模式 且 RPC 命令非安全模式命令
         throw JSONRPCError(RPC_FORBIDDEN_BY_SAFE_MODE, string("Safe mode: ") + strWarning); // 抛出异常
 }
 
@@ -601,7 +601,7 @@ void ThreadImport(std::vector<boost::filesystem::path> vImportFiles) // 导入区块
 {
     const CChainParams& chainparams = Params();
     RenameThread("bitcoin-loadblk"); // 加载区块线程
-    // -reindex
+    // -reindex // 再索引选项
     if (fReindex) {
         CImportingNow imp;
         int nFile = 0;
@@ -638,7 +638,7 @@ void ThreadImport(std::vector<boost::filesystem::path> vImportFiles) // 导入区块
         }
     }
 
-    // -loadblock=
+    // -loadblock= // 导入区块选项
     BOOST_FOREACH(const boost::filesystem::path& path, vImportFiles) {
         FILE *file = fopen(path.string().c_str(), "rb");
         if (file) {
@@ -674,17 +674,17 @@ bool InitSanityCheck(void)
 
 bool AppInitServers(boost::thread_group& threadGroup)
 {
-    RPCServer::OnStopped(&OnRPCStopped); // 停止 RPC pending
-    RPCServer::OnPreCommand(&OnRPCPreCommand); // 检查在安全模式下是否有警告消息
-    if (!InitHTTPServer()) // 初始化 HTTP 服务
+    RPCServer::OnStopped(&OnRPCStopped); // 1.连接停止 RPC 信号函数
+    RPCServer::OnPreCommand(&OnRPCPreCommand); // 2.连接监控安全模式信号函数
+    if (!InitHTTPServer()) //3. 初始化 HTTP 服务
         return false;
-    if (!StartRPC()) // 启动 RPC 远程过程调用服务
+    if (!StartRPC()) // 4.启动 RPC 远程过程调用
         return false;
-    if (!StartHTTPRPC()) // 启动 HTTP RPC 服务（这里注册的 RPC 处理函数）
+    if (!StartHTTPRPC()) // 5.启动 HTTP RPC（这里注册的 RPC 处理函数）
         return false;
-    if (GetBoolArg("-rest", DEFAULT_REST_ENABLE) && !StartREST()) // 启动 REST 服务，默认关闭
+    if (GetBoolArg("-rest", DEFAULT_REST_ENABLE) && !StartREST()) // 6.启动 REST 服务，默认关闭
         return false;
-    if (!StartHTTPServer()) // 启动 HTTP 服务
+    if (!StartHTTPServer()) // 8.启动 HTTP 服务
         return false;
     return true;
 }
@@ -1100,11 +1100,11 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
      * and not really process calls already (but it will signify connections
      * that the server is there and will be ready later).  Warmup mode will
      * be disabled when initialisation is finished.
-     */ // 9.已经启动 RPC 服务。将以“预热”模式启动，而非真正地处理调用（但它表示服务器的连接并在之后准备好）。初始化完成后预热模式将被关闭。
-    if (fServer) // 服务标志，默认打开
+     */ // 9.已经启动 RPC 服务。将以“预热”模式启动，而非已经真正地开始处理调用（但它表示服务器的连接并在之后准备好）。初始化完成后预热模式将被关闭。
+    if (fServer) // 服务标志，默认打开，-server 选项，为 -cli 提供服务
     {
-        uiInterface.InitMessage.connect(SetRPCWarmupStatus); // 注册 设置 RPC 预热状态函数
-        if (!AppInitServers(threadGroup)) // 应用程序初始化服务（启动 HTTP、RPC 相关服务）
+        uiInterface.InitMessage.connect(SetRPCWarmupStatus); // 9.1.注册/连接 设置 RPC 预热状态函数
+        if (!AppInitServers(threadGroup)) // 9.2.应用程序初始化服务（启动 HTTP、RPC 相关服务）
             return InitError(_("Unable to start HTTP server. See debug log for details."));
     }
 

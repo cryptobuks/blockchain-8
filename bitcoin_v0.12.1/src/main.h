@@ -134,7 +134,7 @@ extern uint64_t nLastBlockTx;
 extern uint64_t nLastBlockSize;
 extern const std::string strMessageMagic; // 消息魔数头（字符串）
 extern CWaitableCriticalSection csBestBlock;
-extern CConditionVariable cvBlockChange;
+extern CConditionVariable cvBlockChange; // 区块改变的条件变量
 extern bool fImporting;
 extern bool fReindex;
 extern int nScriptCheckThreads;
@@ -227,12 +227,12 @@ void PartitionCheck(bool (*initialDownloadCheck)(), CCriticalSection& cs, const 
 /** Check whether we are doing an initial block download (synchronizing from disk or network) */
 bool IsInitialBlockDownload();
 /** Format a string that describes several potential problems detected by the core.
- * strFor can have three values:
+ * strFor can have three values: // strFor 有 3 种取值：
  * - "rpc": get critical warnings, which should put the client in safe mode if non-empty
  * - "statusbar": get all warnings
  * - "gui": get all warnings, translated (where possible) for GUI
  * This function only returns the highest priority warning of the set selected by strFor.
- */
+ */ // 格式化字符串，描述几个核心检测到的潜在问题。该函数仅返回通过 strFor 选择的集合的高优先级警告。
 std::string GetWarnings(const std::string& strFor);
 /** Retrieve a transaction (from memory pool, or from disk, if possible) */
 bool GetTransaction(const uint256 &hash, CTransaction &tx, const Consensus::Params& params, uint256 &hashBlock, bool fAllowSlow = false);
