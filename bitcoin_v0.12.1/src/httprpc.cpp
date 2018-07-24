@@ -38,7 +38,7 @@ private:
     HTTPEvent ev;
 };
 
-class HTTPRPCTimerInterface : public RPCTimerInterface
+class HTTPRPCTimerInterface : public RPCTimerInterface // HTTPRPC ¶¨Ê±Æ÷½Ó¿ÚÀà
 {
 public:
     HTTPRPCTimerInterface(struct event_base* base) : base(base)
@@ -58,8 +58,8 @@ private:
 
 
 /* Pre-base64-encoded authentication token */
-static std::string strRPCUserColonPass;
-/* Stored RPC timer interface (for unregistration) */
+static std::string strRPCUserColonPass; // base64 Ô¤±àÂëµÄÉí·İÑéÖ¤ÁîÅÆ
+/* Stored RPC timer interface (for unregistration) */ // ´æ´¢µÄ RPC ¶¨Ê±Æ÷½Ó¿Ú£¨ÓÃÓÚ½â×¢²á£©
 static HTTPRPCTimerInterface* httpRPCTimerInterface = 0;
 
 static void JSONErrorReply(HTTPRequest* req, const UniValue& objError, const UniValue& id)
@@ -143,23 +143,23 @@ static bool RPCAuthorized(const std::string& strAuth)
 static bool HTTPReq_JSONRPC(HTTPRequest* req, const std::string &) // HTTP ÇëÇó´¦Àíº¯Êı
 {
     // JSONRPC handles only POST // JSONRPC ½ö´¦Àí POST ÀàĞÍ HTTP ÇëÇó
-    if (req->GetRequestMethod() != HTTPRequest::POST) {
-        req->WriteReply(HTTP_BAD_METHOD, "JSONRPC server handles only POST requests");
-        return false;
+    if (req->GetRequestMethod() != HTTPRequest::POST) { // Èô·Ç POST ÀàĞÍµÄÇëÇó
+        req->WriteReply(HTTP_BAD_METHOD, "JSONRPC server handles only POST requests"); // ·´À¡ĞÅÏ¢
+        return false; // Ö±½ÓÍË³ö²¢·µ»Ø false
     }
     // Check authorization // ¼ì²éÊÚÈ¨
-    std::pair<bool, std::string> authHeader = req->GetHeader("authorization");
-    if (!authHeader.first) {
+    std::pair<bool, std::string> authHeader = req->GetHeader("authorization"); // »ñÈ¡Í·²¿ÊÚÈ¨×Ö¶Î
+    if (!authHeader.first) { // Èô²»´æÔÚ
         req->WriteHeader("WWW-Authenticate", WWW_AUTH_HEADER_DATA);
         req->WriteReply(HTTP_UNAUTHORIZED);
-        return false;
+        return false; // ÍË³ö²¢·µ»Ø false
     }
 
-    if (!RPCAuthorized(authHeader.second)) { // »ñÈ¡ÊÚÈ¨ĞÅÏ¢½øĞĞÑéÖ¤
+    if (!RPCAuthorized(authHeader.second)) { // ¶Ô»ñÈ¡ÊÚÈ¨ĞÅÏ¢½øĞĞÑéÖ¤
         LogPrintf("ThreadRPCServer incorrect password attempt from %s\n", req->GetPeer().ToString());
 
-        /* Deter brute-forcing
-           If this results in a DoS the user really
+        /* Deter brute-forcing // ×èÖ¹±©Á¦
+           If this results in a DoS the user really // Èç¹ûÕâµ¼ÖÂ DoS£¬ÓÃ»§Êµ¼ÊÉÏ²»Ó¦¸Ã±©Â¶Æä¶Ë¿Ú¡£
            shouldn't have their RPC port exposed. */
         MilliSleep(250); // Ë¯ 250ms
 
@@ -187,7 +187,7 @@ static bool HTTPReq_JSONRPC(HTTPRequest* req, const std::string &) // HTTP ÇëÇó´
 
         // array of requests // ÇëÇóÊı×é
         } else if (valRequest.isArray()) // Êı×é
-            strReply = JSONRPCExecBatch(valRequest.get_array()); // »ñÈ¡ÇëÇóÄÚÈİ
+            strReply = JSONRPCExecBatch(valRequest.get_array()); // ÅúÁ¿´¦Àí²¢»ñÈ¡ÇëÇóµÄÄÚÈİ
         else
             throw JSONRPCError(RPC_PARSE_ERROR, "Top-level object parse error");
 
@@ -200,7 +200,7 @@ static bool HTTPReq_JSONRPC(HTTPRequest* req, const std::string &) // HTTP ÇëÇó´
         JSONErrorReply(req, JSONRPCError(RPC_PARSE_ERROR, e.what()), jreq.id);
         return false;
     }
-    return true;
+    return true; // ³É¹¦·µ»Ø true
 }
 
 static bool InitRPCAuthentication()
@@ -224,15 +224,15 @@ static bool InitRPCAuthentication()
 bool StartHTTPRPC()
 {
     LogPrint("rpc", "Starting HTTP RPC server\n");
-    if (!InitRPCAuthentication()) // ³õÊ¼»¯ RPC Éí·İÑéÖ¤£¨rpc "ÓÃ»§Ãû:ÃÜÂë"£©
+    if (!InitRPCAuthentication()) // 1.³õÊ¼»¯ RPC Éí·İÑéÖ¤£¨rpc "ÓÃ»§Ãû:ÃÜÂë"£©
         return false;
 
-    RegisterHTTPHandler("/", true, HTTPReq_JSONRPC); // ×¢²á http url ´¦Àíº¯Êı
+    RegisterHTTPHandler("/", true, HTTPReq_JSONRPC); // 2.×¢²á http url ´¦Àíº¯Êı
 
-    assert(EventBase()); // ·µ»Ø eventBase Ö¸Õë¶ÔÏó
-    httpRPCTimerInterface = new HTTPRPCTimerInterface(EventBase()); // ´´½¨ http ¶¨Ê±Æ÷½Ó¿Ú¶ÔÏó
-    RPCRegisterTimerInterface(httpRPCTimerInterface); // RPC ×¢²á¶¨Ê±Æ÷½Ó¿Ú
-    return true;
+    assert(EventBase()); // ·µ»Ø event_base ¶ÔÏóÖ¸Õë
+    httpRPCTimerInterface = new HTTPRPCTimerInterface(EventBase()); // 3.´´½¨ http ¶¨Ê±Æ÷½Ó¿Ú¶ÔÏó
+    RPCRegisterTimerInterface(httpRPCTimerInterface); // ²¢×¢²á RPC ¶¨Ê±Æ÷½Ó¿Ú
+    return true; // ³É¹¦·µ»Ø true
 }
 
 void InterruptHTTPRPC()

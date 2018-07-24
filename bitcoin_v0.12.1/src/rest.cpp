@@ -597,9 +597,9 @@ static bool rest_getutxos(HTTPRequest* req, const std::string& strURIPart)
 }
 
 static const struct {
-    const char* prefix;
-    bool (*handler)(HTTPRequest* req, const std::string& strReq);
-} uri_prefixes[] = {
+    const char* prefix; // 前缀字符串
+    bool (*handler)(HTTPRequest* req, const std::string& strReq); // HTTP 请求回调函数
+} uri_prefixes[] = { // uri 前缀结构体对象
       {"/rest/tx/", rest_tx},
       {"/rest/block/notxdetails/", rest_block_notxdetails},
       {"/rest/block/", rest_block_extended},

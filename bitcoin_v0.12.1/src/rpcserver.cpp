@@ -28,11 +28,11 @@
 using namespace RPCServer;
 using namespace std;
 
-static bool fRPCRunning = false; // RPC 运行状态，默认关闭
+static bool fRPCRunning = false; // RPC 运行状态，默认为 false
 static bool fRPCInWarmup = true;
 static std::string rpcWarmupStatus("RPC server started"); // 全局静态 rpc 预热状态字符串
 static CCriticalSection cs_rpcWarmup; // rpc 预热状态锁
-/* Timer-creating functions */
+/* Timer-creating functions */ // 定时器创建功能
 static std::vector<RPCTimerInterface*> timerInterfaces; // RPC 定时器接口列表
 /* Map of name to timer.
  * @note Can be changed to std::unique_ptr when C++11 */ // 定时器名字映射
@@ -44,7 +44,7 @@ static struct CRPCSignals // RPC 信号
     boost::signals2::signal<void ()> Stopped;
     boost::signals2::signal<void (const CRPCCommand&)> PreCommand;
     boost::signals2::signal<void (const CRPCCommand&)> PostCommand;
-} g_rpcSignals;
+} g_rpcSignals; // rpc 信号全局对象
 
 void RPCServer::OnStarted(boost::function<void ()> slot)
 {
@@ -401,7 +401,7 @@ bool StartRPC()
     LogPrint("rpc", "Starting RPC\n");
     fRPCRunning = true; // 设置 RPC 运行状态为 true
     g_rpcSignals.Started(); // 此版本未找到信号注册 pending
-    return true;
+    return true; // 成功返回 true
 }
 
 void InterruptRPC()

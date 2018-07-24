@@ -83,21 +83,21 @@ bool GenerateAuthCookie(std::string *cookie_out)
 
     /** the umask determines what permissions are used to create this file -
      * these are set to 077 in init.cpp unless overridden with -sysperms.
-     */
+     */ // 掩码确定用于创建文件的权限，在 init.cpp 中设置为 077，除非使用 -sysperms 选项覆盖。
     std::ofstream file;
     boost::filesystem::path filepath = GetAuthCookieFile(); // 获取验证 cookie 文件路径
-    file.open(filepath.string().c_str());
+    file.open(filepath.string().c_str()); // 打开文件
     if (!file.is_open()) {
         LogPrintf("Unable to open cookie authentication file %s for writing\n", filepath.string());
         return false;
     }
     file << cookie; // 把 cookie 写入 cookie 文件中
-    file.close();
+    file.close(); // 关闭并刷新文件输出流缓冲区
     LogPrintf("Generated RPC authentication cookie %s\n", filepath.string());
 
     if (cookie_out)
-        *cookie_out = cookie;
-    return true;
+        *cookie_out = cookie; // 内存 cookie
+    return true; // 成功返回 true
 }
 
 bool GetAuthCookie(std::string *cookie_out)

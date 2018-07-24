@@ -11,7 +11,7 @@
 #include <boost/scoped_ptr.hpp>
 #include <boost/function.hpp>
 
-static const int DEFAULT_HTTP_THREADS=4;
+static const int DEFAULT_HTTP_THREADS=4; // HTTP RPC 线程数，默认为 4
 static const int DEFAULT_HTTP_WORKQUEUE=16;
 static const int DEFAULT_HTTP_SERVER_TIMEOUT=30;
 
@@ -39,9 +39,9 @@ typedef boost::function<void(HTTPRequest* req, const std::string &)> HTTPRequest
 /** Register handler for prefix.
  * If multiple handlers match a prefix, the first-registered one will
  * be invoked.
- */ // 注册前缀处理函数。若多个处理函数匹配到一个前缀，则调用首个注册的函数。
+ */ // 注册处理函数前缀。若多个处理函数匹配到一个前缀，则调用首个注册的函数。
 void RegisterHTTPHandler(const std::string &prefix, bool exactMatch, const HTTPRequestHandler &handler);
-/** Unregister handler for prefix */
+/** Unregister handler for prefix */ // 解注册处理函数前缀
 void UnregisterHTTPHandler(const std::string &prefix, bool exactMatch);
 
 /** Return evhttp event base. This can be used by submodules to
@@ -62,8 +62,8 @@ public:
     HTTPRequest(struct evhttp_request* req);
     ~HTTPRequest();
 
-    enum RequestMethod {
-        UNKNOWN,
+    enum RequestMethod { // HTTP 请求方式枚举
+        UNKNOWN, // 未知
         GET,
         POST,
         HEAD,
@@ -79,13 +79,13 @@ public:
     CService GetPeer();
 
     /** Get request method.
-     */
+     */ // 获取请求方式。
     RequestMethod GetRequestMethod();
 
     /**
      * Get the request header specified by hdr, or an empty string.
      * Return an pair (isPresent,string).
-     */
+     */ // 通过 hdr 获取请求头部指定的信息，或一个空字符串。返回一个 pair（是否存在，信息字符串）。
     std::pair<bool, std::string> GetHeader(const std::string& hdr);
 
     /**
@@ -110,13 +110,13 @@ public:
      *
      * @note Can be called only once. As this will give the request back to the
      * main thread, do not call any other HTTPRequest methods after calling this.
-     */
+     */ // 写入 HTTP 响应。nStatus 是 HTTP 发送的状态码。strReply 是响应体。为空用来发送一条标准消息。
     void WriteReply(int nStatus, const std::string& strReply = "");
 };
 
 /** Event handler closure.
- */
-class HTTPClosure
+ */ // 事件处理关闭
+class HTTPClosure // HTTP 关闭虚基类
 {
 public:
     virtual void operator()() = 0;

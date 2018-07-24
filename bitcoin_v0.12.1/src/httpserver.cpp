@@ -63,35 +63,35 @@ private:
 
 /** Simple work queue for distributing work over multiple threads.
  * Work items are simply callable objects.
- */
+ */ // 御用在多个线程上分配工作的简单工作队列。工作项是简易可调用对象。
 template <typename WorkItem>
 class WorkQueue
 {
 private:
-    /** Mutex protects entire object */
-    CWaitableCriticalSection cs;
-    CConditionVariable cond;
-    /* XXX in C++11 we can use std::unique_ptr here and avoid manual cleanup */
+    /** Mutex protects entire object */ // 互斥锁保护整个对象
+    CWaitableCriticalSection cs; // 临界资源
+    CConditionVariable cond; // 条件变量
+    /* XXX in C++11 we can use std::unique_ptr here and avoid manual cleanup */ // 在 C++11 中我们使用在这里 std::unique_ptr 来避免手动清理
     std::deque<WorkItem*> queue; // 任务队列
     bool running; // 运行状态（决定是否运行/退出循环）
     size_t maxDepth; // 最大深度（容量）
     int numThreads; // 线程数
 
     /** RAII object to keep track of number of running worker threads */
-    class ThreadCounter // 嵌套类
+    class ThreadCounter // 嵌套类，RAII 对象，用于追踪运行的工作线程数
     {
     public:
-        WorkQueue &wq;
-        ThreadCounter(WorkQueue &w): wq(w)
+        WorkQueue &wq; // 外类对象引用
+        ThreadCounter(WorkQueue &w): wq(w) // 构造函数
         {
-            boost::lock_guard<boost::mutex> lock(wq.cs);
-            wq.numThreads += 1;
+            boost::lock_guard<boost::mutex> lock(wq.cs); // 上锁
+            wq.numThreads += 1; // 线程数加 1
         }
-        ~ThreadCounter()
+        ~ThreadCounter() // 析构函数
         {
-            boost::lock_guard<boost::mutex> lock(wq.cs);
-            wq.numThreads -= 1;
-            wq.cond.notify_all();
+            boost::lock_guard<boost::mutex> lock(wq.cs); // 上锁
+            wq.numThreads -= 1; // 线程数减 1
+            wq.cond.notify_all(); // 通知等待在条件 cond 上的所有线程
         }
     };
 
@@ -122,10 +122,10 @@ public:
         cond.notify_one();
         return true;
     }
-    /** Thread function */
-    void Run() // 线程函数：不断从任务队列中读取、删除并执行任务，任务类型为 WorkItem（类类型）
+    /** Thread function */ // 线程函数
+    void Run() // 不断从任务队列中读取、删除并执行任务，任务类型为 WorkItem（类类型）
     {
-        ThreadCounter count(*this);
+        ThreadCounter count(*this); // 创建线程计数局部对象
         while (running) { // loop
             WorkItem* i = 0;
             {
@@ -176,17 +176,17 @@ struct HTTPPathHandler
     HTTPRequestHandler handler; // 对某个 http 路径请求
 };
 
-/** HTTP module state */
+/** HTTP module state */ // HTTP 模块状态
 
-//! libevent event loop
+//! libevent event loop // libevent 事件循环
 static struct event_base* eventBase = 0;
-//! HTTP server
+//! HTTP server // HTTP 服务
 struct evhttp* eventHTTP = 0;
 //! List of subnets to allow RPC connections from
 static std::vector<CSubNet> rpc_allow_subnets;
 //! Work queue for handling longer requests off the event loop thread
-static WorkQueue<HTTPClosure>* workQueue = 0;
-//! Handlers for (sub)paths
+static WorkQueue<HTTPClosure>* workQueue = 0; // 用于处理事件循环线程中较长请求的工作队列
+//! Handlers for (sub)paths // 处理函数（子）路径
 std::vector<HTTPPathHandler> pathHandlers; // http 请求路径对应的处理函数列表
 //! Bound listening sockets
 std::vector<evhttp_bound_socket *> boundSockets; // 已绑定的 http socket 列表
@@ -355,10 +355,10 @@ static bool HTTPBindAddresses(struct evhttp* http)
     return !boundSockets.empty();
 }
 
-/** Simple wrapper to set thread name and run work queue */
+/** Simple wrapper to set thread name and run work queue */ // 设置线程名并运行工作队列的简单包装器
 static void HTTPWorkQueueRun(WorkQueue<HTTPClosure>* queue)
 {
-    RenameThread("bitcoin-httpworker");
+    RenameThread("bitcoin-httpworker"); // 重命名线程
     queue->Run(); // 依次运行队列中的任务
 }
 
@@ -535,9 +535,9 @@ HTTPEvent::~HTTPEvent()
 void HTTPEvent::trigger(struct timeval* tv)
 {
     if (tv == NULL)
-        event_active(ev, 0, 0); // immediately trigger event in main thread
+        event_active(ev, 0, 0); // immediately trigger event in main thread // 立刻在主线程中触发事件
     else
-        evtimer_add(ev, tv); // trigger after timeval passed
+        evtimer_add(ev, tv); // trigger after timeval passed // 在过去 timeval 秒后触发
 }
 HTTPRequest::HTTPRequest(struct evhttp_request* req) : req(req),
                                                        replySent(false)
@@ -555,33 +555,33 @@ HTTPRequest::~HTTPRequest()
 
 std::pair<bool, std::string> HTTPRequest::GetHeader(const std::string& hdr)
 {
-    const struct evkeyvalq* headers = evhttp_request_get_input_headers(req);
+    const struct evkeyvalq* headers = evhttp_request_get_input_headers(req); // 获取请求头部
     assert(headers);
-    const char* val = evhttp_find_header(headers, hdr.c_str());
-    if (val)
-        return std::make_pair(true, val);
+    const char* val = evhttp_find_header(headers, hdr.c_str()); // 获取头部指定键的值
+    if (val) // 若该值存在
+        return std::make_pair(true, val); // 配对返回
     else
         return std::make_pair(false, "");
 }
 
 std::string HTTPRequest::ReadBody()
 {
-    struct evbuffer* buf = evhttp_request_get_input_buffer(req);
+    struct evbuffer* buf = evhttp_request_get_input_buffer(req); // 获取请求的输入缓冲区
     if (!buf)
         return "";
-    size_t size = evbuffer_get_length(buf);
+    size_t size = evbuffer_get_length(buf); // 获取缓冲区大小
     /** Trivial implementation: if this is ever a performance bottleneck,
      * internal copying can be avoided in multi-segment buffers by using
      * evbuffer_peek and an awkward loop. Though in that case, it'd be even
      * better to not copy into an intermediate string but use a stream
      * abstraction to consume the evbuffer on the fly in the parsing algorithm.
      */
-    const char* data = (const char*)evbuffer_pullup(buf, size);
-    if (!data) // returns NULL in case of empty buffer
-        return "";
-    std::string rv(data, size);
-    evbuffer_drain(buf, size);
-    return rv;
+    const char* data = (const char*)evbuffer_pullup(buf, size); // 获取指定大小的内容
+    if (!data) // returns NULL in case of empty buffer // 若为空缓冲区
+        return ""; // 返回 ""
+    std::string rv(data, size); // 创建一个字符串对象
+    evbuffer_drain(buf, size); // 把这部分获取的数据从缓冲区前面移除
+    return rv; // 返回缓冲区内容
 }
 
 void HTTPRequest::WriteHeader(const std::string& hdr, const std::string& value)
@@ -595,19 +595,19 @@ void HTTPRequest::WriteHeader(const std::string& hdr, const std::string& value)
  * a HTTP request.
  * Replies must be sent in the main loop in the main http thread,
  * this cannot be done from worker threads.
- */
+ */ // 发送到主线程来请求响应用于发送一个 HTTP 请求。反馈必须在主 http 线程的主循环中发送，而不能从工作线程中发送。
 void HTTPRequest::WriteReply(int nStatus, const std::string& strReply)
 {
-    assert(!replySent && req);
-    // Send event to main http thread to send reply message
-    struct evbuffer* evb = evhttp_request_get_output_buffer(req);
+    assert(!replySent && req); // 响应未发送 且 存在 http 请求
+    // Send event to main http thread to send reply message // 发送事件到主 http 线程来发送响应信息
+    struct evbuffer* evb = evhttp_request_get_output_buffer(req); // 获取输出缓冲区结构体指针
     assert(evb);
-    evbuffer_add(evb, strReply.data(), strReply.size());
-    HTTPEvent* ev = new HTTPEvent(eventBase, true,
+    evbuffer_add(evb, strReply.data(), strReply.size()); // 添加响应数据和大小到输出缓冲区
+    HTTPEvent* ev = new HTTPEvent(eventBase, true, // 构造一个 HTTP 事件对象
         boost::bind(evhttp_send_reply, req, nStatus, (const char*)NULL, (struct evbuffer *)NULL));
-    ev->trigger(0);
-    replySent = true;
-    req = 0; // transferred back to main thread
+    ev->trigger(0); // 立刻触发该事件
+    replySent = true; // 响应发送标志置为 true
+    req = 0; // transferred back to main thread // 转换回主线程
 }
 
 CService HTTPRequest::GetPeer()
@@ -631,8 +631,8 @@ std::string HTTPRequest::GetURI()
 
 HTTPRequest::RequestMethod HTTPRequest::GetRequestMethod()
 {
-    switch (evhttp_request_get_command(req)) {
-    case EVHTTP_REQ_GET:
+    switch (evhttp_request_get_command(req)) { // 获取请求命令（方式）
+    case EVHTTP_REQ_GET: // 返回相应的方式
         return GET;
         break;
     case EVHTTP_REQ_POST:

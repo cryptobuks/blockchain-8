@@ -84,8 +84,8 @@ public:
 
 /**
  * RPC timer "driver".
- */
-class RPCTimerInterface
+ */ // RPC ¶¨Ê±Æ÷¡°Çý¶¯¡±¡£
+class RPCTimerInterface // RPC ¶¨Ê±Æ÷½Ó¿ÚÀà
 {
 public:
     virtual ~RPCTimerInterface() {}
@@ -100,9 +100,9 @@ public:
     virtual RPCTimerBase* NewTimer(boost::function<void(void)>& func, int64_t millis) = 0;
 };
 
-/** Register factory function for timers */
+/** Register factory function for timers */ // ×¢²á¶¨Ê±Æ÷¹¤³§º¯Êý
 void RPCRegisterTimerInterface(RPCTimerInterface *iface);
-/** Unregister factory function for timers */
+/** Unregister factory function for timers */ // ½â×¢²á¶¨Ê±Æ÷¹¤³§º¯Êý
 void RPCUnregisterTimerInterface(RPCTimerInterface *iface);
 
 /**
@@ -265,9 +265,9 @@ extern UniValue getchaintips(const UniValue& params, bool fHelp); // »ñÈ¡Á´¼âÐÅÏ
 extern UniValue invalidateblock(const UniValue& params, bool fHelp); // ÎÞÐ§»¯Çø¿é
 extern UniValue reconsiderblock(const UniValue& params, bool fHelp); // ÔÙ¿¼ÂÇÇø¿é
 
-bool StartRPC();
+bool StartRPC(); // Æô¶¯ RPC
 void InterruptRPC();
-void StopRPC();
+void StopRPC(); // Í£Ö¹ RPC
 std::string JSONRPCExecBatch(const UniValue& vReq); // JSONRPC ÅúÁ¿Ö´ÐÐ
 
 #endif // BITCOIN_RPCSERVER_H
