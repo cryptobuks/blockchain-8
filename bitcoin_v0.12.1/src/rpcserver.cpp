@@ -446,44 +446,44 @@ bool RPCIsInWarmup(std::string *outStatus)
 
 void JSONRequest::parse(const UniValue& valRequest)
 {
-    // Parse request
-    if (!valRequest.isObject())
-        throw JSONRPCError(RPC_INVALID_REQUEST, "Invalid Request object");
-    const UniValue& request = valRequest.get_obj();
+    // Parse request // 解析请求
+    if (!valRequest.isObject()) // 若该请求非 JSON 对象
+        throw JSONRPCError(RPC_INVALID_REQUEST, "Invalid Request object"); // 抛出异常，无效请求对象
+    const UniValue& request = valRequest.get_obj(); // 获取 JSON 请求对象
 
     // Parse id now so errors from here on will have the id
-    id = find_value(request, "id");
+    id = find_value(request, "id"); // 现在解析 id，以至于来自此处的错误将有 id
 
-    // Parse method
-    UniValue valMethod = find_value(request, "method");
-    if (valMethod.isNull())
+    // Parse method // 解析方法
+    UniValue valMethod = find_value(request, "method"); // 获取方法
+    if (valMethod.isNull()) // 方法非空
         throw JSONRPCError(RPC_INVALID_REQUEST, "Missing method");
-    if (!valMethod.isStr())
+    if (!valMethod.isStr()) // 方法必须为字符串
         throw JSONRPCError(RPC_INVALID_REQUEST, "Method must be a string");
-    strMethod = valMethod.get_str();
-    if (strMethod != "getblocktemplate")
+    strMethod = valMethod.get_str(); // 获取方法
+    if (strMethod != "getblocktemplate") // 若方法非 "getblocktemplate"
         LogPrint("rpc", "ThreadRPCServer method=%s\n", SanitizeString(strMethod));
 
-    // Parse params
-    UniValue valParams = find_value(request, "params");
-    if (valParams.isArray())
-        params = valParams.get_array();
-    else if (valParams.isNull())
-        params = UniValue(UniValue::VARR);
-    else
-        throw JSONRPCError(RPC_INVALID_REQUEST, "Params must be an array");
+    // Parse params // 解析参数
+    UniValue valParams = find_value(request, "params"); // 获取请求的参数
+    if (valParams.isArray()) // 若参数为 json 数组
+        params = valParams.get_array(); // 获取该数组
+    else if (valParams.isNull()) // 若参数为空
+        params = UniValue(UniValue::VARR); // 新建数组类型空对象
+    else // 否则（方法的参数必须为 json 数组类型）
+        throw JSONRPCError(RPC_INVALID_REQUEST, "Params must be an array"); // 抛出错误
 }
 
 static UniValue JSONRPCExecOne(const UniValue& req)
 {
-    UniValue rpc_result(UniValue::VOBJ);
+    UniValue rpc_result(UniValue::VOBJ); // 创建对象类型的 JSON 对象
 
     JSONRequest jreq;
     try {
-        jreq.parse(req);
+        jreq.parse(req); // 解析请求
 
-        UniValue result = tableRPC.execute(jreq.strMethod, jreq.params); // 还是调用 execute 执行命令
-        rpc_result = JSONRPCReplyObj(result, NullUniValue, jreq.id); // 包装响应内容为 JSONRPC 格式
+        UniValue result = tableRPC.execute(jreq.strMethod, jreq.params); // 转调 execute 传入参数并执行命令
+        rpc_result = JSONRPCReplyObj(result, NullUniValue, jreq.id); // 包装结果为 JSON 对象
     }
     catch (const UniValue& objError)
     {
@@ -495,45 +495,45 @@ static UniValue JSONRPCExecOne(const UniValue& req)
                                      JSONRPCError(RPC_PARSE_ERROR, e.what()), jreq.id);
     }
 
-    return rpc_result;
+    return rpc_result; // 返回 rpc 结果对象
 }
 
 std::string JSONRPCExecBatch(const UniValue& vReq)
 {
-    UniValue ret(UniValue::VARR);
+    UniValue ret(UniValue::VARR); // 创建数组类型的 JSON 对象
     for (unsigned int reqIdx = 0; reqIdx < vReq.size(); reqIdx++) // 遍历请求
-        ret.push_back(JSONRPCExecOne(vReq[reqIdx])); // 执行一次并把响应内容追加到结果集中
+        ret.push_back(JSONRPCExecOne(vReq[reqIdx])); // 执行一次并把响应内容追加到 JSON 对象中
 
-    return ret.write() + "\n";
+    return ret.write() + "\n"; // 把 JSON 对象转换为字符串，拼接换行符后返回
 }
 
 UniValue CRPCTable::execute(const std::string &strMethod, const UniValue &params) const
 {
-    // Return immediately if in warmup // 如果处于预热状态，立刻返回
+    // Return immediately if in warmup // 1.如果处于预热状态，立刻返回
     {
-        LOCK(cs_rpcWarmup);
-        if (fRPCInWarmup)
-            throw JSONRPCError(RPC_IN_WARMUP, rpcWarmupStatus);
+        LOCK(cs_rpcWarmup); // rpc 预热状态上锁
+        if (fRPCInWarmup) // 若处于预热状态
+            throw JSONRPCError(RPC_IN_WARMUP, rpcWarmupStatus); // 抛出异常
     }
 
-    // Find method // 查找方法
-    const CRPCCommand *pcmd = tableRPC[strMethod]; // 通过查遍获取对应 RPC 命令方法
+    // Find method // 2.查找方法
+    const CRPCCommand *pcmd = tableRPC[strMethod]; // 通过方法名获取对应 RPC 命令方法
     if (!pcmd)
         throw JSONRPCError(RPC_METHOD_NOT_FOUND, "Method not found");
 
-    g_rpcSignals.PreCommand(*pcmd); // 预命令（检查该命令是否打开安全模式）
+    g_rpcSignals.PreCommand(*pcmd); // 3.预处理命令，检查该命令是否开启安全模式
 
     try
     {
-        // Execute // 执行
-        return pcmd->actor(params, false); // 执行响应的函数行为
+        // Execute // 4.执行
+        return pcmd->actor(params, false); // 传入参数是，执行响应的函数行为
     }
     catch (const std::exception& e)
     {
         throw JSONRPCError(RPC_MISC_ERROR, e.what());
     }
 
-    g_rpcSignals.PostCommand(*pcmd); // 该信号未注册处理函数
+    g_rpcSignals.PostCommand(*pcmd); // 5.后处理命令，该信号未注册处理函数
 }
 
 std::string HelpExampleCli(const std::string& methodname, const std::string& args)

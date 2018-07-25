@@ -16,7 +16,7 @@
 #include <sstream>        // .get_int64()
 #include <utility>        // std::pair
 
-class UniValue {
+class UniValue { // JSON 格式包装类，单值类
 public:
     enum VType { VNULL, VOBJ, VARR, VSTR, VNUM, VBOOL, };
 
@@ -122,7 +122,7 @@ public:
     bool pushKVs(const UniValue& obj);
 
     std::string write(unsigned int prettyIndent = 0,
-                      unsigned int indentLevel = 0) const; // 格式化（缩进）
+                      unsigned int indentLevel = 0) const; // 转换为字符串
 
     bool read(const char *raw);
     bool read(const std::string& rawStr) {
@@ -132,8 +132,8 @@ public:
 private:
     UniValue::VType typ;
     std::string val;                       // numbers are stored as C++ strings
-    std::vector<std::string> keys;
-    std::vector<UniValue> values;
+    std::vector<std::string> keys; // 键列表
+    std::vector<UniValue> values; // 值列表
 
     int findKey(const std::string& key) const;
     void writeArray(unsigned int prettyIndent, unsigned int indentLevel, std::string& s) const;
@@ -278,6 +278,6 @@ static inline bool json_isspace(int ch)
 
 extern const UniValue NullUniValue;
 
-const UniValue& find_value( const UniValue& obj, const std::string& name);
+const UniValue& find_value( const UniValue& obj, const std::string& name); // 在一个 json 对象中根据键查值
 
 #endif // __UNIVALUE_H__

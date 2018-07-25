@@ -80,74 +80,74 @@ static void JSONErrorReply(HTTPRequest* req, const UniValue& objError, const Uni
 }
 
 //This function checks username and password against -rpcauth
-//entries from config file.
+//entries from config file. // ¸Ãº¯Êı¸ù¾İÅäÖÃÎÄ¼şÖĞ -rpcauth Ñ¡ÏîÀ´¼ì²éÓÃ»§ÃûºÍÃÜÂë
 static bool multiUserAuthorized(std::string strUserPass)
 {    
-    if (strUserPass.find(":") == std::string::npos) {
-        return false;
-    }
-    std::string strUser = strUserPass.substr(0, strUserPass.find(":"));
-    std::string strPass = strUserPass.substr(strUserPass.find(":") + 1);
+    if (strUserPass.find(":") == std::string::npos) { // ÈôÎ´ÕÒµ½Ã°ºÅ
+        return false; // ·µ»Ø false£¬±íÊ¾ÑéÖ¤Ê§°Ü
+    } // ÈôÕÒµ½
+    std::string strUser = strUserPass.substr(0, strUserPass.find(":")); // »ñÈ¡ÓÃ»§Ãû
+    std::string strPass = strUserPass.substr(strUserPass.find(":") + 1); // »ñÈ¡ÃÜÂë
 
-    if (mapMultiArgs.count("-rpcauth") > 0) {
-        //Search for multi-user login/pass "rpcauth" from config
-        BOOST_FOREACH(std::string strRPCAuth, mapMultiArgs["-rpcauth"])
-        {
-            std::vector<std::string> vFields;
-            boost::split(vFields, strRPCAuth, boost::is_any_of(":$"));
+    if (mapMultiArgs.count("-rpcauth") > 0) { // Èô -rpcauth Ñ¡ÏîÖ¸¶¨ÁËÖµ
+        //Search for multi-user login/pass "rpcauth" from config // ´ÓÅäÖÃÎÄ¼şÖĞËÑË÷¶àÓÃ»§µÇÂ½/ÃÜÂëµÄ¡°ÑéÖ¤ĞÅÏ¢¡±
+        BOOST_FOREACH(std::string strRPCAuth, mapMultiArgs["-rpcauth"]) // ±éÀú -rpcauth Ñ¡Ïî¶ÔÓ¦µÄÖµ
+        { // -rpcauth ¸ñÊ½£º<USERNAME>:<SALT>$<HASH>
+            std::vector<std::string> vFields; // ±£´æ 3 ¸öÓò
+            boost::split(vFields, strRPCAuth, boost::is_any_of(":$")); // ¸ù¾İ ":$" ·Ö¸îµ¥¸öÑéÖ¤ĞÅÏ¢
             if (vFields.size() != 3) {
-                //Incorrect formatting in config file
+                //Incorrect formatting in config file // ÅäÖÃÎÄ¼şµÄ¸ñÊ½²»ÕıÈ·
+                continue; // Ìø¹ı
+            }
+
+            std::string strName = vFields[0]; // »ñÈ¡ÓÃ»§Ãû
+            if (!TimingResistantEqual(strName, strUser)) { // ¶Ô±ÈÑéÖ¤ÓÃ»§Ãû
                 continue;
             }
 
-            std::string strName = vFields[0];
-            if (!TimingResistantEqual(strName, strUser)) {
-                continue;
-            }
-
-            std::string strSalt = vFields[1];
-            std::string strHash = vFields[2];
+            std::string strSalt = vFields[1]; // »ñÈ¡ÑÎÖµ
+            std::string strHash = vFields[2]; // »ñÈ¡¹şÏ£Öµ
 
             unsigned int KEY_SIZE = 32;
-            unsigned char *out = new unsigned char[KEY_SIZE]; 
+            unsigned char *out = new unsigned char[KEY_SIZE]; // ´´½¨ 256 Î»µÄ¶Ñ¶ÔÏó
             
-            CHMAC_SHA256(reinterpret_cast<const unsigned char*>(strSalt.c_str()), strSalt.size()).Write(reinterpret_cast<const unsigned char*>(strPass.c_str()), strPass.size()).Finalize(out);
-            std::vector<unsigned char> hexvec(out, out+KEY_SIZE);
-            std::string strHashFromPass = HexStr(hexvec);
+            CHMAC_SHA256(reinterpret_cast<const unsigned char*>(strSalt.c_str()), strSalt.size()).Write(reinterpret_cast<const unsigned char*>(strPass.c_str()), strPass.size()).Finalize(out); // DSHA256
+            std::vector<unsigned char> hexvec(out, out+KEY_SIZE); // ³õÊ¼»¯ 256 ÎªµÄÊı¾İ
+            std::string strHashFromPass = HexStr(hexvec); // ×ª»»Îª 16 ½øÖÆ×Ö·û´®
 
-            if (TimingResistantEqual(strHashFromPass, strHash)) {
-                return true;
+            if (TimingResistantEqual(strHashFromPass, strHash)) { // ¶Ô±È¹şÏ£Öµ
+                return true; // ÑéÖ¤³É¹¦£¬·µ»Ø true
             }
         }
-    }
-    return false;
+    } // ÑéÖ¤Ê§°Ü
+    return false; // ·µ»Ø false
 }
 
 static bool RPCAuthorized(const std::string& strAuth)
 {
     if (strRPCUserColonPass.empty()) // Belt-and-suspenders measure if InitRPCAuthentication was not called
-        return false;
-    if (strAuth.substr(0, 6) != "Basic ")
-        return false;
-    std::string strUserPass64 = strAuth.substr(6);
-    boost::trim(strUserPass64);
-    std::string strUserPass = DecodeBase64(strUserPass64);
+        return false; // ÈôÎ´µ÷ÓÃ InitRPCAuthentication ³õÊ¼»¯ strRPCUserColonPass£¬ÔòÖ±½Ó·µ»Ø false ±íÊ¾ÑéÖ¤Ê§°Ü
+    if (strAuth.substr(0, 6) != "Basic ") // ÈôÑéÖ¤ĞÅÏ¢Ç° 6 ¸ö×Ö·û·Ç "Basic "
+        return false; // Ö±½Ó·µ»Ø false ±íÊ¾ÑéÖ¤Ê§°Ü
+    std::string strUserPass64 = strAuth.substr(6); // ½ØÈ¡´ÓÏÂ±êÎª 6 µÄ×Ö·û¿ªÊ¼µÄ×Ö´®
+    boost::trim(strUserPass64); // È¥³ıÔ­×Ö·û´®Í·Î²µÄ¿Õ¸ñ
+    std::string strUserPass = DecodeBase64(strUserPass64); // base64 ½âÂë
     
-    //Check if authorized under single-user field
+    //Check if authorized under single-user field // ¼ì²éÊÇ·ñÔÚµ¥ÓÃ»§×Ö¶ÎÏÂÊÚÈ¨
     if (TimingResistantEqual(strUserPass, strRPCUserColonPass)) {
-        return true;
-    }
-    return multiUserAuthorized(strUserPass);
+        return true; // ÑéÖ¤³É¹¦·µ»Ø true
+    } // ·ñÔò
+    return multiUserAuthorized(strUserPass); // ½øĞĞ¶àÓÃ»§ÊÚÈ¨¼ì²â
 }
 
 static bool HTTPReq_JSONRPC(HTTPRequest* req, const std::string &) // HTTP ÇëÇó´¦Àíº¯Êı
 {
-    // JSONRPC handles only POST // JSONRPC ½ö´¦Àí POST ÀàĞÍ HTTP ÇëÇó
+    // JSONRPC handles only POST // 1.JSONRPC ½ö´¦Àí POST ÀàĞÍ HTTP ÇëÇó
     if (req->GetRequestMethod() != HTTPRequest::POST) { // Èô·Ç POST ÀàĞÍµÄÇëÇó
         req->WriteReply(HTTP_BAD_METHOD, "JSONRPC server handles only POST requests"); // ·´À¡ĞÅÏ¢
         return false; // Ö±½ÓÍË³ö²¢·µ»Ø false
     }
-    // Check authorization // ¼ì²éÊÚÈ¨
+    // Check authorization // 2.¼ì²éÊÚÈ¨
     std::pair<bool, std::string> authHeader = req->GetHeader("authorization"); // »ñÈ¡Í·²¿ÊÚÈ¨×Ö¶Î
     if (!authHeader.first) { // Èô²»´æÔÚ
         req->WriteHeader("WWW-Authenticate", WWW_AUTH_HEADER_DATA);
@@ -170,29 +170,29 @@ static bool HTTPReq_JSONRPC(HTTPRequest* req, const std::string &) // HTTP ÇëÇó´
 
     JSONRequest jreq; // JSON ÇëÇó¶ÔÏó
     try {
-        // Parse request // ½âÎöÇëÇó
-        UniValue valRequest;
+        // Parse request // 3.½âÎöÇëÇó
+        UniValue valRequest; // ¹¹ÔìÒ»¸ö JSON ¶ÔÏó
         if (!valRequest.read(req->ReadBody())) // »ñÈ¡ÇëÇóÌå
             throw JSONRPCError(RPC_PARSE_ERROR, "Parse error");
 
-        std::string strReply; // ÏìÓ¦ÄÚÈİ
-        // singleton request // µ¥ÀıÇëÇó
+        std::string strReply; // 4.ÏìÓ¦ÄÚÈİ×Ö·û´®
+        // singleton request // 4.1.µ¥ÀıÇëÇó
         if (valRequest.isObject()) { // ÇëÇóÌåÊÇÒ»¸ö¶ÔÏó
-            jreq.parse(valRequest); // ½âÎöÇëÇó
+            jreq.parse(valRequest); // ½âÎöÇëÇó£¬·ÅÈë JSON ÇëÇó¶ÔÏóÖĞ
 
-            UniValue result = tableRPC.execute(jreq.strMethod, jreq.params); // Ö´ĞĞÏàÓ¦·½·¨¼°Æä²ÎÊı
+            UniValue result = tableRPC.execute(jreq.strMethod, jreq.params); // ´«ÈëÏàÓ¦µÄ²ÎÊıÖ´ĞĞ·½·¨²¢»ñÈ¡ÏìÓ¦½á¹û
 
             // Send reply // ·¢ËÍÏìÓ¦
-            strReply = JSONRPCReply(result, NullUniValue, jreq.id); // °ü×°Îª JSONRPC ÏìÓ¦ÄÚÈİ
+            strReply = JSONRPCReply(result, NullUniValue, jreq.id); // °ü×°Îª JSONRPC ÏìÓ¦ÄÚÈİ×Ö·û´®
 
         // array of requests // ÇëÇóÊı×é
-        } else if (valRequest.isArray()) // Êı×é
-            strReply = JSONRPCExecBatch(valRequest.get_array()); // ÅúÁ¿´¦Àí²¢»ñÈ¡ÇëÇóµÄÄÚÈİ
+        } else if (valRequest.isArray()) // 4.2.Êı×é
+            strReply = JSONRPCExecBatch(valRequest.get_array()); // ÅúÁ¿´¦Àí²¢»ñÈ¡ÇëÇóµÄÏìÓ¦ÄÚÈİ×Ö·û´®
         else
             throw JSONRPCError(RPC_PARSE_ERROR, "Top-level object parse error");
 
-        req->WriteHeader("Content-Type", "application/json"); // Ğ´ÈëÏìÓ¦Í·
-        req->WriteReply(HTTP_OK, strReply); // Ğ´Èë×´Ì¬ÂëºÍÏìÓ¦Ìå
+        req->WriteHeader("Content-Type", "application/json"); // 5.Ğ´ÈëÏìÓ¦Í·
+        req->WriteReply(HTTP_OK, strReply); // Ğ´Èë×´Ì¬ÂëºÍÏìÓ¦ÄÚÈİ×Ö·û´®
     } catch (const UniValue& objError) {
         JSONErrorReply(req, objError, jreq.id);
         return false;
@@ -200,7 +200,7 @@ static bool HTTPReq_JSONRPC(HTTPRequest* req, const std::string &) // HTTP ÇëÇó´
         JSONErrorReply(req, JSONRPCError(RPC_PARSE_ERROR, e.what()), jreq.id);
         return false;
     }
-    return true; // ³É¹¦·µ»Ø true
+    return true; // 6.³É¹¦·µ»Ø true
 }
 
 static bool InitRPCAuthentication()

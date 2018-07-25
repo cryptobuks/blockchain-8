@@ -575,7 +575,7 @@ std::string HTTPRequest::ReadBody()
      * evbuffer_peek and an awkward loop. Though in that case, it'd be even
      * better to not copy into an intermediate string but use a stream
      * abstraction to consume the evbuffer on the fly in the parsing algorithm.
-     */
+     */ // 简单的实现：如果这是一个性能瓶颈，通过使用 evbuffer_peek 和笨拙的循环可以在多端缓冲区中避免内部复制。
     const char* data = (const char*)evbuffer_pullup(buf, size); // 获取指定大小的内容
     if (!data) // returns NULL in case of empty buffer // 若为空缓冲区
         return ""; // 返回 ""
@@ -586,9 +586,9 @@ std::string HTTPRequest::ReadBody()
 
 void HTTPRequest::WriteHeader(const std::string& hdr, const std::string& value)
 {
-    struct evkeyvalq* headers = evhttp_request_get_output_headers(req);
+    struct evkeyvalq* headers = evhttp_request_get_output_headers(req); // 获取请求头部指针
     assert(headers);
-    evhttp_add_header(headers, hdr.c_str(), value.c_str());
+    evhttp_add_header(headers, hdr.c_str(), value.c_str()); // 把相关信息添加到请求头部
 }
 
 /** Closure sent to main thread to request a reply to be sent to
@@ -607,7 +607,7 @@ void HTTPRequest::WriteReply(int nStatus, const std::string& strReply)
         boost::bind(evhttp_send_reply, req, nStatus, (const char*)NULL, (struct evbuffer *)NULL));
     ev->trigger(0); // 立刻触发该事件
     replySent = true; // 响应发送标志置为 true
-    req = 0; // transferred back to main thread // 转换回主线程
+    req = 0; // transferred back to main thread // 切换回主线程
 }
 
 CService HTTPRequest::GetPeer()

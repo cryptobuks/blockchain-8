@@ -100,7 +100,7 @@ public:
      * Write output header.
      *
      * @note call this before calling WriteErrorReply or Reply.
-     */
+     */ // 写入输出（响应）头。注：在调用 WriteErrorReply 或 Reply 前调用该项。
     void WriteHeader(const std::string& hdr, const std::string& value);
 
     /**

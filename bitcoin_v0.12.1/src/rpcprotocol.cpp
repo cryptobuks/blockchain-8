@@ -37,20 +37,20 @@ string JSONRPCRequest(const string& strMethod, const UniValue& params, const Uni
 
 UniValue JSONRPCReplyObj(const UniValue& result, const UniValue& error, const UniValue& id)
 {
-    UniValue reply(UniValue::VOBJ);
-    if (!error.isNull())
-        reply.push_back(Pair("result", NullUniValue));
-    else
-        reply.push_back(Pair("result", result));
-    reply.push_back(Pair("error", error));
-    reply.push_back(Pair("id", id));
-    return reply;
+    UniValue reply(UniValue::VOBJ); // 构造对象类型的 JSON 对象
+    if (!error.isNull()) // 若存在错误
+        reply.push_back(Pair("result", NullUniValue)); // 返回空结果
+    else // 否则
+        reply.push_back(Pair("result", result)); // 追加响应的结果
+    reply.push_back(Pair("error", error)); // 增加错误字段
+    reply.push_back(Pair("id", id)); // 增加 id 字段
+    return reply; // 返回响应对象
 }
 
 string JSONRPCReply(const UniValue& result, const UniValue& error, const UniValue& id)
 {
-    UniValue reply = JSONRPCReplyObj(result, error, id);
-    return reply.write() + "\n";
+    UniValue reply = JSONRPCReplyObj(result, error, id); // 转调 JSONRPC 响应对象
+    return reply.write() + "\n"; // 结果转换为字符串，拼接换行后返回
 }
 
 UniValue JSONRPCError(int code, const string& message)

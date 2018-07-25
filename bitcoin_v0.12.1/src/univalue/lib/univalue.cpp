@@ -75,7 +75,7 @@ bool ParseDouble(const std::string& str, double *out)
 
 using namespace std;
 
-const UniValue NullUniValue;
+const UniValue NullUniValue; // 空 json 对象
 
 void UniValue::clear()
 {
@@ -279,11 +279,11 @@ const char *uvTypeName(UniValue::VType t)
 
 const UniValue& find_value(const UniValue& obj, const std::string& name)
 {
-    for (unsigned int i = 0; i < obj.keys.size(); i++)
-        if (obj.keys[i] == name)
-            return obj.values.at(i);
+    for (unsigned int i = 0; i < obj.keys.size(); i++) // 遍历 json 对象的关键字列表
+        if (obj.keys[i] == name) // 若找到指定键
+            return obj.values.at(i); // 返回对应值
 
-    return NullUniValue;
+    return NullUniValue; // 否则，返回空对象
 }
 
 std::vector<std::string> UniValue::getKeys() const

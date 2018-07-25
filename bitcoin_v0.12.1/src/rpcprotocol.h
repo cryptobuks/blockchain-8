@@ -14,23 +14,23 @@
 
 #include <univalue.h>
 
-//! HTTP status codes
-enum HTTPStatusCode
+//! HTTP status codes // HTTP 状态码
+enum HTTPStatusCode // HTTP 状态码枚举
 {
-    HTTP_OK                    = 200,
+    HTTP_OK                    = 200, // 正常
     HTTP_BAD_REQUEST           = 400,
     HTTP_UNAUTHORIZED          = 401,
     HTTP_FORBIDDEN             = 403,
-    HTTP_NOT_FOUND             = 404,
+    HTTP_NOT_FOUND             = 404, // NOT_FOUND
     HTTP_BAD_METHOD            = 405,
     HTTP_INTERNAL_SERVER_ERROR = 500,
     HTTP_SERVICE_UNAVAILABLE   = 503,
 };
 
-//! Bitcoin RPC error codes
-enum RPCErrorCode
+//! Bitcoin RPC error codes // 比特币 RPC 错误代码
+enum RPCErrorCode // RPC 错误代码枚举
 {
-    //! Standard JSON-RPC 2.0 errors
+    //! Standard JSON-RPC 2.0 errors // 标准 JSON-RPC 2.0 错误
     RPC_INVALID_REQUEST  = -32600,
     RPC_METHOD_NOT_FOUND = -32601,
     RPC_INVALID_PARAMS   = -32602,
@@ -77,8 +77,8 @@ enum RPCErrorCode
 };
 
 std::string JSONRPCRequest(const std::string& strMethod, const UniValue& params, const UniValue& id);
-UniValue JSONRPCReplyObj(const UniValue& result, const UniValue& error, const UniValue& id);
-std::string JSONRPCReply(const UniValue& result, const UniValue& error, const UniValue& id);
+UniValue JSONRPCReplyObj(const UniValue& result, const UniValue& error, const UniValue& id); // JSONRPC 响应对象
+std::string JSONRPCReply(const UniValue& result, const UniValue& error, const UniValue& id); // JSONRPC 响应
 UniValue JSONRPCError(int code, const std::string& message);
 
 /** Get name of RPC authentication cookie file */

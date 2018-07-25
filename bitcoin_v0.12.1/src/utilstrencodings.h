@@ -112,15 +112,15 @@ std::string FormatParagraph(const std::string& in, size_t width = 79, size_t ind
  * Timing-attack-resistant comparison.
  * Takes time proportional to length
  * of first argument.
- */
+ */ // 抗时间攻击对比。采用与第一个参数长度成比例的时间。
 template <typename T>
-bool TimingResistantEqual(const T& a, const T& b)
+bool TimingResistantEqual(const T& a, const T& b) // 比较是否相等
 {
-    if (b.size() == 0) return a.size() == 0;
-    size_t accumulator = a.size() ^ b.size();
-    for (size_t i = 0; i < a.size(); i++)
-        accumulator |= a[i] ^ b[i%b.size()];
-    return accumulator == 0;
+    if (b.size() == 0) return a.size() == 0; // 长度检测
+    size_t accumulator = a.size() ^ b.size(); // 累加器，若 a 与 b 相等，初始为 0
+    for (size_t i = 0; i < a.size(); i++) // 遍历 a
+        accumulator |= a[i] ^ b[i%b.size()]; // 逐个比较（若是字符串，这里比较的就是字符）
+    return accumulator == 0; // 若累加器的值最终为 0，表示相等
 }
 
 /** Parse number as fixed point according to JSON number syntax.

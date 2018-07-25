@@ -10,8 +10,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-/** A hasher class for HMAC-SHA-512. */
-class CHMAC_SHA256
+/** A hasher class for HMAC-SHA-512. */ // HMAC（Hash-based message authentication code，散列消息认证码）
+class CHMAC_SHA256 // 一个 HMAC-SHA-512 散列类
 {
 private:
     CSHA256 outer;
@@ -26,7 +26,7 @@ public:
         inner.Write(data, len);
         return *this;
     }
-    void Finalize(unsigned char hash[OUTPUT_SIZE]);
+    void Finalize(unsigned char hash[OUTPUT_SIZE]); // DSHA256
 };
 
 #endif // BITCOIN_CRYPTO_HMAC_SHA256_H

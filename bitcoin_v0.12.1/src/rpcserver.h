@@ -32,15 +32,15 @@ namespace RPCServer // RPC 服务
 class CBlockIndex;
 class CNetAddr;
 
-class JSONRequest
+class JSONRequest // JSON 请求类
 {
 public:
-    UniValue id;
-    std::string strMethod;
+    UniValue id; // 请求的 id
+    std::string strMethod; // 请求的方法
     UniValue params;
 
     JSONRequest() { id = NullUniValue; }
-    void parse(const UniValue& valRequest);
+    void parse(const UniValue& valRequest); // 解析 JSON 请求
 };
 
 /** Query whether RPC is running */
@@ -131,7 +131,7 @@ private:
     std::map<std::string, const CRPCCommand*> mapCommands; // RPC 命令列表
 public:
     CRPCTable(); // 注册所有定义的 RPC 命令到 RPC 命令列表
-    const CRPCCommand* operator[](const std::string& name) const;
+    const CRPCCommand* operator[](const std::string& name) const; // 重载的下标运算符
     std::string help(const std::string& name) const;
 
     /**
