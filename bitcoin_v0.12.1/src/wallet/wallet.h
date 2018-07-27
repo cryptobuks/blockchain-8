@@ -678,15 +678,15 @@ public:
     /**
      * Estimate the minimum fee considering user set parameters
      * and the required fee
-     */
+     */ // 考虑用户设置参数和所需费用，估算最低交易费
     static CAmount GetMinimumFee(unsigned int nTxBytes, unsigned int nConfirmTarget, const CTxMemPool& pool);
     /**
      * Return the minimum required fee taking into account the
      * floating relay fee and user set minimum transaction fee
-     */
+     */ // 考虑到浮动中继费和用户设置的最低交易费，返回所需最低交易费
     static CAmount GetRequiredFee(unsigned int nTxBytes);
 
-    bool NewKeyPool();
+    bool NewKeyPool(); // 标记旧密钥池的密钥位已使用，并生成全部新密钥
     bool TopUpKeyPool(unsigned int kpSize = 0); // 填充满密钥池
     void ReserveKeyFromKeyPool(int64_t& nIndex, CKeyPool& keypool);
     void KeepKey(int64_t nIndex); // 从密钥池中移除指定索引的密钥
@@ -760,16 +760,16 @@ public:
     //! Get wallet transactions that conflict with given transaction (spend same outputs)
     std::set<uint256> GetConflicts(const uint256& txid) const;
 
-    //! Flush wallet (bitdb flush)
+    //! Flush wallet (bitdb flush) // 刷新钱包（数据库刷新）
     void Flush(bool shutdown=false);
 
-    //! Verify the wallet database and perform salvage if required
-    static bool Verify(const std::string& walletFile, std::string& warningString, std::string& errorString); // 验证钱包数据库 且 需要的话实施挽救
+    //! Verify the wallet database and perform salvage if required // 验证钱包数据库，若需要则实施挽救
+    static bool Verify(const std::string& walletFile, std::string& warningString, std::string& errorString);
     
     /** 
      * Address book entry changed.
      * @note called with lock cs_wallet held.
-     */
+     */ // 地址簿条目改变。注：持有 cs_wallet 锁调用。
     boost::signals2::signal<void (CWallet *wallet, const CTxDestination
             &address, const std::string &label, bool isMine,
             const std::string &purpose,
@@ -782,23 +782,23 @@ public:
     boost::signals2::signal<void (CWallet *wallet, const uint256 &hashTx,
             ChangeType status)> NotifyTransactionChanged;
 
-    /** Show progress e.g. for rescan */
+    /** Show progress e.g. for rescan */ // 显示进度，例如：再扫描
     boost::signals2::signal<void (const std::string &title, int nProgress)> ShowProgress;
 
-    /** Watch-only address added */
+    /** Watch-only address added */ // 添加 Watch-only 地址
     boost::signals2::signal<void (bool fHaveWatchOnly)> NotifyWatchonlyChanged;
 
-    /** Inquire whether this wallet broadcasts transactions. */ // 查询该钱包是否广播交易
+    /** Inquire whether this wallet broadcasts transactions. */ // 查询该钱包是否广播交易。
     bool GetBroadcastTransactions() const { return fBroadcastTransactions; } // 返回广播交易标志
-    /** Set whether this wallet broadcasts transactions. */
+    /** Set whether this wallet broadcasts transactions. */ // 设置该钱包是否广播交易。
     void SetBroadcastTransactions(bool broadcast) { fBroadcastTransactions = broadcast; }
 
     /* Mark a transaction (and it in-wallet descendants) as abandoned so its inputs may be respent. */
     bool AbandonTransaction(const uint256& hashTx); // 标记一笔交易（及其钱包后裔）为以抛弃，以至于它的输入被重新关注
 };
 
-/** A key allocated from the key pool. */
-class CReserveKey : public CReserveScript // 一个从密钥池分配的密钥
+/** A key allocated from the key pool. */ // 一个从密钥池分配的密钥。
+class CReserveKey : public CReserveScript
 {
 protected:
     CWallet* pwallet; // 钱包指针，指向主钱包

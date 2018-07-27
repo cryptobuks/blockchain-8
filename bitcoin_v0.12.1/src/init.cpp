@@ -684,7 +684,7 @@ bool AppInitServers(boost::thread_group& threadGroup)
         return false;
     if (GetBoolArg("-rest", DEFAULT_REST_ENABLE) && !StartREST()) // 6.启动 REST 服务，默认关闭
         return false;
-    if (!StartHTTPServer()) // 8.启动 HTTP 服务
+    if (!StartHTTPServer()) // 7.启动 HTTP 服务
         return false;
     return true;
 }

@@ -109,7 +109,7 @@ static bool AppInitRPC(int argc, char* argv[]) // 2.0.应用程序初始化远程过程调用
 
 
 /** Reply structure for request_done to fill in */
-struct HTTPReply
+struct HTTPReply // 用于 request_done 填充的响应结构
 {
     int status;
     std::string body;
@@ -145,12 +145,12 @@ UniValue CallRPC(const string& strMethod, const UniValue& params)
     std::string host = GetArg("-rpcconnect", DEFAULT_RPCCONNECT); // 远程过程调用 IP 地址，默认本机环回 IP
     int port = GetArg("-rpcport", BaseParams().RPCPort()); // 远程过程调用端口，默认基础参数中的 RPC 端口
 
-    // Create event base
+    // Create event base // 创建事件库对象
     struct event_base *base = event_base_new(); // TODO RAII
     if (!base)
         throw runtime_error("cannot create event_base");
 
-    // Synchronously look up hostname
+    // Synchronously look up hostname // 同步查找主机名
     struct evhttp_connection *evcon = evhttp_connection_base_new(base, NULL, host.c_str(), port); // TODO RAII
     if (evcon == NULL)
         throw runtime_error("create connection failed");
@@ -161,7 +161,7 @@ UniValue CallRPC(const string& strMethod, const UniValue& params)
     if (req == NULL)
         throw runtime_error("create http request failed");
 
-    // Get credentials
+    // Get credentials // 获取凭证
     std::string strRPCUserColonPass; // 用于保存用户名和密码
     if (mapArgs["-rpcpassword"] == "") { // 未提供密码
         // Try fall back to cookie-based authentication if no password is provided
@@ -181,7 +181,7 @@ UniValue CallRPC(const string& strMethod, const UniValue& params)
     evhttp_add_header(output_headers, "Connection", "close"); // 关闭长连接（即请求结束后连接就断掉）
     evhttp_add_header(output_headers, "Authorization", (std::string("Basic ") + EncodeBase64(strRPCUserColonPass)).c_str()); // 添加授权（用户名 + 密码）
 
-    // Attach request data
+    // Attach request data // 获取请求数据
     std::string strRequest = JSONRPCRequest(strMethod, params, 1); // RPC 请求参数使用 Json 封装
     struct evbuffer * output_buffer = evhttp_request_get_output_buffer(req); // 获取请求的输出缓存
     assert(output_buffer);
@@ -194,9 +194,9 @@ UniValue CallRPC(const string& strMethod, const UniValue& params)
         throw CConnectionFailed("send http request failed");
     }
 
-    event_base_dispatch(base); // 类似于 event_base_loop，循环等待事件并通知事件发生
-    evhttp_connection_free(evcon);
-    event_base_free(base);
+    event_base_dispatch(base); // 事件调度循环，类似于 event_base_loop，循环等待事件并通知事件发生
+    evhttp_connection_free(evcon); // 释放 HTTP 连接
+    event_base_free(base); // 释放与事件库对象 event_base 关联的所有内存
 
     if (response.status == 0) // 响应状态码为 0，表示无法连接到服务器
         throw CConnectionFailed("couldn't connect to server");
@@ -207,7 +207,7 @@ UniValue CallRPC(const string& strMethod, const UniValue& params)
     else if (response.body.empty()) // 响应体为空，抛出异常
         throw runtime_error("no response from server");
 
-    // Parse reply
+    // Parse reply // 解析响应
     UniValue valReply(UniValue::VSTR); // 构造字符串类型响应对象
     if (!valReply.read(response.body)) // 读入响应的内容 pending
         throw runtime_error("couldn't parse reply from server");

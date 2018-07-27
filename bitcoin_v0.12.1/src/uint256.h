@@ -15,7 +15,7 @@
 #include "crypto/common.h"
 
 /** Template base class for fixed-sized opaque blobs. */
-template<unsigned int BITS>
+template<unsigned int BITS> // 固定大小不透明的 blob 基类模板
 class base_blob
 {
 protected:
@@ -97,7 +97,7 @@ public:
 /** 160-bit opaque blob.
  * @note This type is called uint160 for historical reasons only. It is an opaque
  * blob of 160 bits and has no integer operations.
- */
+ */ // 160 位不透明的二进制大对象（blob：binary large object）。注：该类型仅因历史原因被称为 uint160。它是一个 160 位不透明的 blob，没有整数运算。
 class uint160 : public base_blob<160> {
 public:
     uint160() {}

@@ -306,13 +306,13 @@ static void http_reject_request_cb(struct evhttp_request* req, void*)
     evhttp_send_error(req, HTTP_SERVUNAVAIL, NULL);
 }
 
-/** Event dispatcher thread */
+/** Event dispatcher thread */ // 事件派发线程
 static void ThreadHTTP(struct event_base* base, struct evhttp* http)
 {
-    RenameThread("bitcoin-http");
+    RenameThread("bitcoin-http"); // 重命名线程
     LogPrint("http", "Entering http event loop\n");
-    event_base_dispatch(base); // 5.派发事件循环
-    // Event loop will be interrupted by InterruptHTTPServer()
+    event_base_dispatch(base); // 进入 http 事件循环
+    // Event loop will be interrupted by InterruptHTTPServer() // 事件循环将被 InterruptHTTPServer() 打断
     LogPrint("http", "Exited http event loop\n");
 }
 
@@ -447,11 +447,11 @@ boost::thread threadHTTP;
 bool StartHTTPServer()
 {
     LogPrint("http", "Starting HTTP server\n");
-    int rpcThreads = std::max((long)GetArg("-rpcthreads", DEFAULT_HTTP_THREADS), 1L); // 获取 RPC 线程数，默认为 4，至少为 1
+    int rpcThreads = std::max((long)GetArg("-rpcthreads", DEFAULT_HTTP_THREADS), 1L); // 1.获取 RPC 线程数，默认为 4，至少为 1
     LogPrintf("HTTP: starting %d worker threads\n", rpcThreads);
-    threadHTTP = boost::thread(boost::bind(&ThreadHTTP, eventBase, eventHTTP)); // 5.派发事件循环，http 协议启动
+    threadHTTP = boost::thread(boost::bind(&ThreadHTTP, eventBase, eventHTTP)); // 2.派发事件循环，http 协议启动
 
-    for (int i = 0; i < rpcThreads; i++) // 创建 HTTP 服务（任务队列运行）线程
+    for (int i = 0; i < rpcThreads; i++) // 3.创建 HTTP 工作队列处理线程
         boost::thread(boost::bind(&HTTPWorkQueueRun, workQueue));
     return true;
 }
