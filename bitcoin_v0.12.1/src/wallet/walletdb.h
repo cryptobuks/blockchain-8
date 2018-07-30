@@ -130,7 +130,7 @@ public:
     DBErrors LoadWallet(CWallet* pwallet);
     DBErrors FindWalletTx(CWallet* pwallet, std::vector<uint256>& vTxHash, std::vector<CWalletTx>& vWtx);
     DBErrors ZapWalletTx(CWallet* pwallet, std::vector<CWalletTx>& vWtx);
-    static bool Recover(CDBEnv& dbenv, const std::string& filename, bool fOnlyKeys);
+    static bool Recover(CDBEnv& dbenv, const std::string& filename, bool fOnlyKeys); // 恢复钱包可读的密钥对
     static bool Recover(CDBEnv& dbenv, const std::string& filename);
 
 private:

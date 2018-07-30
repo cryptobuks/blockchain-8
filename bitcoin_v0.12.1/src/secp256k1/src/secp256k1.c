@@ -525,10 +525,10 @@ int secp256k1_ec_pubkey_tweak_mul(const secp256k1_context* ctx, secp256k1_pubkey
 }
 
 int secp256k1_context_randomize(secp256k1_context* ctx, const unsigned char *seed32) {
-    VERIFY_CHECK(ctx != NULL); // 验证 secp256k1 上下文对象是否创建
-    ARG_CHECK(secp256k1_ecmult_gen_context_is_built(&ctx->ecmult_gen_ctx)); // 检查 secp256k1_ecmult_gen_context 对象的数据成员是否为空
-    secp256k1_ecmult_gen_blind(&ctx->ecmult_gen_ctx, seed32); // 设置 secp256k1_ecmult_gen 的盲值
-    return 1; // 成功返回 1
+    VERIFY_CHECK(ctx != NULL);
+    ARG_CHECK(secp256k1_ecmult_gen_context_is_built(&ctx->ecmult_gen_ctx));
+    secp256k1_ecmult_gen_blind(&ctx->ecmult_gen_ctx, seed32);
+    return 1;
 }
 
 int secp256k1_ec_pubkey_combine(const secp256k1_context* ctx, secp256k1_pubkey *pubnonce, const secp256k1_pubkey * const *pubnonces, size_t n) {

@@ -147,16 +147,16 @@ typedef int (*secp256k1_nonce_function)(
 #  define SECP256K1_ARG_NONNULL(_x)
 # endif
 
-/** All flags' lower 8 bits indicate what they're for. Do not use directly. */ // 所有标志的低 8 位表示它们的用途。不要直接使用。
+/** All flags' lower 8 bits indicate what they're for. Do not use directly. */
 #define SECP256K1_FLAGS_TYPE_MASK ((1 << 8) - 1)
 #define SECP256K1_FLAGS_TYPE_CONTEXT (1 << 0) // 1
 #define SECP256K1_FLAGS_TYPE_COMPRESSION (1 << 1)
-/** The higher bits contain the actual data. Do not use directly. */ // 高位包含真正的数据。不要直接使用。
+/** The higher bits contain the actual data. Do not use directly. */
 #define SECP256K1_FLAGS_BIT_CONTEXT_VERIFY (1 << 8)
 #define SECP256K1_FLAGS_BIT_CONTEXT_SIGN (1 << 9) // 512
 #define SECP256K1_FLAGS_BIT_COMPRESSION (1 << 8)
 
-/** Flags to pass to secp256k1_context_create. */ // 传递给 secp256k1_context_create 的标志
+/** Flags to pass to secp256k1_context_create. */
 #define SECP256K1_CONTEXT_VERIFY (SECP256K1_FLAGS_TYPE_CONTEXT | SECP256K1_FLAGS_BIT_CONTEXT_VERIFY)
 #define SECP256K1_CONTEXT_SIGN (SECP256K1_FLAGS_TYPE_CONTEXT | SECP256K1_FLAGS_BIT_CONTEXT_SIGN) // 513
 #define SECP256K1_CONTEXT_NONE (SECP256K1_FLAGS_TYPE_CONTEXT)
@@ -169,7 +169,7 @@ typedef int (*secp256k1_nonce_function)(
  *
  *  Returns: a newly created context object.
  *  In:      flags: which parts of the context to initialize.
- */ // 创建一个 secp256k1 上下文对象。
+ */
 SECP256K1_API secp256k1_context* secp256k1_context_create(
     unsigned int flags
 ) SECP256K1_WARN_UNUSED_RESULT;

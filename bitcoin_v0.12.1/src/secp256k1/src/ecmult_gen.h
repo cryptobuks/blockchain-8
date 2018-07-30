@@ -22,7 +22,7 @@ typedef struct {
      * precomputed (call it prec(i, n_i)). The formula now becomes sum(prec(i, n_i), i=0..63).
      * None of the resulting prec group elements have a known scalar, and neither do any of
      * the intermediate sums while computing a*G.
-     */ // 对于每个 i，16 个 n_i 可能值的每一个，预先计算 (n_i * 16^i * G + U_i) （称为 prec(i, n_i)）。该公式现在变为 sum(prec(i, n_i), i=0..63)。得到的 prec 组元素都没有已知的标量，计算 a*G 时也没有任何中间和。
+     */
     secp256k1_ge_storage (*prec)[64][16]; /* prec[j][i] = 16^j * i * G + U_i */
     secp256k1_scalar blind;
     secp256k1_gej initial;

@@ -151,33 +151,33 @@ void CDBEnv::MakeMock()
 CDBEnv::VerifyResult CDBEnv::Verify(const std::string& strFile, bool (*recoverFunc)(CDBEnv& dbenv, const std::string& strFile))
 {
     LOCK(cs_db); // 临界资源，先上锁保护
-    assert(mapFileUseCount.count(strFile) == 0);
+    assert(mapFileUseCount.count(strFile) == 0); // 该文件不存在于文件使用次数映射列表中
 
-    Db db(dbenv, 0);
+    Db db(dbenv, 0); // 创建数据库对象
     int result = db.verify(strFile.c_str(), NULL, NULL, 0); // 验证数据库文件
     if (result == 0) // 数据库文件状态正常
         return VERIFY_OK;
     else if (recoverFunc == NULL) // 数据库文件状态异常，进行数据文件的恢复
         return RECOVER_FAIL;
 
-    // Try to recover:
+    // Try to recover: // 尝试恢复：
     bool fRecovered = (*recoverFunc)(*this, strFile); // 恢复文件
     return (fRecovered ? RECOVER_OK : RECOVER_FAIL); // 返回恢复的结果
 }
 
 bool CDBEnv::Salvage(const std::string& strFile, bool fAggressive, std::vector<CDBEnv::KeyValPair>& vResult)
 {
-    LOCK(cs_db);
-    assert(mapFileUseCount.count(strFile) == 0);
+    LOCK(cs_db); // 数据库上锁
+    assert(mapFileUseCount.count(strFile) == 0); // 文件映射列表中不含该新的数据库文件
 
-    u_int32_t flags = DB_SALVAGE;
+    u_int32_t flags = DB_SALVAGE; // 抢救标志
     if (fAggressive)
         flags |= DB_AGGRESSIVE;
 
     stringstream strDump;
 
-    Db db(dbenv, 0);
-    int result = db.verify(strFile.c_str(), NULL, &strDump, flags);
+    Db db(dbenv, 0); // 创建数据库对象
+    int result = db.verify(strFile.c_str(), NULL, &strDump, flags); // 验证新的钱包文件，并获取导出数据
     if (result == DB_VERIFY_BAD) {
         LogPrintf("CDBEnv::Salvage: Database salvage found errors, all data may not be recoverable.\n");
         if (!fAggressive) {
@@ -185,33 +185,33 @@ bool CDBEnv::Salvage(const std::string& strFile, bool fAggressive, std::vector<C
             return false;
         }
     }
-    if (result != 0 && result != DB_VERIFY_BAD) {
+    if (result != 0 && result != DB_VERIFY_BAD) { // 若验证结果非 DB_VERIFY_BAD
         LogPrintf("CDBEnv::Salvage: Database salvage failed with result %d.\n", result);
         return false;
     }
 
-    // Format of bdb dump is ascii lines:
-    // header lines...
-    // HEADER=END
-    // hexadecimal key
-    // hexadecimal value
-    // ... repeated
-    // DATA=END
+    // Format of bdb dump is ascii lines: // bdb 导出格式是 ascii 行：
+    // header lines... // 头行...
+    // HEADER=END // 头结束
+    // hexadecimal key // 16 进制键
+    // hexadecimal value // 16 进制值
+    // ... repeated // ...重复
+    // DATA=END // 数据结束
 
     string strLine;
     while (!strDump.eof() && strLine != "HEADER=END")
-        getline(strDump, strLine); // Skip past header
+        getline(strDump, strLine); // Skip past header // 跳过头部数据
 
     std::string keyHex, valueHex;
-    while (!strDump.eof() && keyHex != "DATA=END") {
-        getline(strDump, keyHex);
-        if (keyHex != "DATA=END") {
-            getline(strDump, valueHex);
-            vResult.push_back(make_pair(ParseHex(keyHex), ParseHex(valueHex)));
+    while (!strDump.eof() && keyHex != "DATA=END") { // 遍历数据体
+        getline(strDump, keyHex); // 获取一行数据
+        if (keyHex != "DATA=END") { // 若关键字非 "DATA=END"
+            getline(strDump, valueHex); // 再获取一行数据
+            vResult.push_back(make_pair(ParseHex(keyHex), ParseHex(valueHex))); // 解析为 16 进制后配对加入结果集
         }
     }
 
-    return (result == 0);
+    return (result == 0); // 若抢救成功，返回 false
 }
 
 

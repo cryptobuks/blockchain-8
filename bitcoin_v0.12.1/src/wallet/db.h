@@ -54,11 +54,11 @@ public:
      * call the callback to try to recover.
      * This must be called BEFORE strFile is opened.
      * Returns true if strFile is OK.
-     */
+     */ // 验证数据库文件 strFile 正确。若出错，调用回调尝试恢复。必须在 strFile 打开前调用。若 strFile 正确返回 true。
     enum VerifyResult { VERIFY_OK,
                         RECOVER_OK,
                         RECOVER_FAIL };
-    VerifyResult Verify(const std::string& strFile, bool (*recoverFunc)(CDBEnv& dbenv, const std::string& strFile));
+    VerifyResult Verify(const std::string& strFile, bool (*recoverFunc)(CDBEnv& dbenv, const std::string& strFile)); // 验证钱包数据库
     /**
      * Salvage data from a file that Verify says is bad.
      * fAggressive sets the DB_AGGRESSIVE flag (see berkeley DB->verify() method documentation).
@@ -67,7 +67,7 @@ public:
      * for huge databases.
      */
     typedef std::pair<std::vector<unsigned char>, std::vector<unsigned char> > KeyValPair;
-    bool Salvage(const std::string& strFile, bool fAggressive, std::vector<KeyValPair>& vResult);
+    bool Salvage(const std::string& strFile, bool fAggressive, std::vector<KeyValPair>& vResult); // 抢救钱包并获取抢救数据
 
     bool Open(const boost::filesystem::path& path);
     void Close();
