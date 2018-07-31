@@ -365,7 +365,7 @@ void CWallet::Flush(bool shutdown)
 
 bool CWallet::Verify(const string& walletFile, string& warningString, string& errorString)
 {
-    if (!bitdb.Open(GetDataDir())) // 若打开数据库失败
+    if (!bitdb.Open(GetDataDir())) // 1.若打开数据库失败
     {
         // try moving the database env out of the way // 尝试移动数据库条目
         boost::filesystem::path pathDatabase = GetDataDir() / "database"; // 拼接数据库目录
@@ -386,14 +386,14 @@ bool CWallet::Verify(const string& walletFile, string& warningString, string& er
         }
     }
     
-    if (GetBoolArg("-salvagewallet", false)) // 拯救钱包选项，默认关闭
+    if (GetBoolArg("-salvagewallet", false)) // 2.拯救钱包选项，默认关闭
     {
         // Recover readable keypairs: // 恢复可读的密钥对：
         if (!CWalletDB::Recover(bitdb, walletFile, true)) // 恢复可读的密钥对
             return false;
     }
     
-    if (boost::filesystem::exists(GetDataDir() / walletFile)) // 若钱包文件存在
+    if (boost::filesystem::exists(GetDataDir() / walletFile)) // 3.若钱包文件存在
     {
         CDBEnv::VerifyResult r = bitdb.Verify(walletFile, CWalletDB::Recover); // 验证钱包数据库文件，若文件异常，则进行恢复并返回恢复的结果
         if (r == CDBEnv::RECOVER_OK) // 恢复信息追加
@@ -407,7 +407,7 @@ bool CWallet::Verify(const string& walletFile, string& warningString, string& er
             errorString += _("wallet.dat corrupt, salvage failed");
     }
     
-    return true; // 验证成功，返回 true
+    return true; // 4.验证成功，返回 true
 }
 
 void CWallet::SyncMetaData(pair<TxSpends::iterator, TxSpends::iterator> range)

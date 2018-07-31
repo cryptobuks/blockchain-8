@@ -73,8 +73,8 @@ public:
     }
 };
 
-/** Access to the wallet database (wallet.dat) */
-class CWalletDB : public CDB // 访问钱包数据库（wallet.dat）
+/** Access to the wallet database (wallet.dat) */ // 访问钱包数据库（wallet.dat）
+class CWalletDB : public CDB // 钱包数据库类
 {
 public:
     CWalletDB(const std::string& strFilename, const char* pszMode = "r+", bool fFlushOnClose = true) : CDB(strFilename, pszMode, fFlushOnClose)

@@ -65,7 +65,7 @@ public:
      * Appends binary key/value pairs to vResult, returns true if successful.
      * NOTE: reads the entire database into memory, so cannot be used
      * for huge databases.
-     */
+     */ // 从验证一个文件出错抢救数据。fAggressive 设置 DB_AGGRESSIVE 标志（见 berkeley DB->verify() 方法文档）。把二进制键/值对追加到 vResult，如果成功则返回 true。注：把完整的数据库读入内存，所以不能使用过大的数据库。
     typedef std::pair<std::vector<unsigned char>, std::vector<unsigned char> > KeyValPair;
     bool Salvage(const std::string& strFile, bool fAggressive, std::vector<KeyValPair>& vResult); // 抢救钱包并获取抢救数据
 

@@ -150,17 +150,17 @@ void CDBEnv::MakeMock()
 
 CDBEnv::VerifyResult CDBEnv::Verify(const std::string& strFile, bool (*recoverFunc)(CDBEnv& dbenv, const std::string& strFile))
 {
-    LOCK(cs_db); // 临界资源，先上锁保护
-    assert(mapFileUseCount.count(strFile) == 0); // 该文件不存在于文件使用次数映射列表中
+    LOCK(cs_db); // 1.临界资源，先上锁保护
+    assert(mapFileUseCount.count(strFile) == 0); // 2.该文件不存在于文件使用次数映射列表中
 
     Db db(dbenv, 0); // 创建数据库对象
-    int result = db.verify(strFile.c_str(), NULL, NULL, 0); // 验证数据库文件
+    int result = db.verify(strFile.c_str(), NULL, NULL, 0); // 3.验证数据库文件
     if (result == 0) // 数据库文件状态正常
         return VERIFY_OK;
     else if (recoverFunc == NULL) // 数据库文件状态异常，进行数据文件的恢复
         return RECOVER_FAIL;
 
-    // Try to recover: // 尝试恢复：
+    // Try to recover: // 4.尝试恢复：
     bool fRecovered = (*recoverFunc)(*this, strFile); // 恢复文件
     return (fRecovered ? RECOVER_OK : RECOVER_FAIL); // 返回恢复的结果
 }

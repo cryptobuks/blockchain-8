@@ -350,11 +350,11 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
              CWalletScanState &wss, string& strType, string& strErr)
 {
     try {
-        // Unserialize
-        // Taking advantage of the fact that pair serialization
-        // is just the two items serialized one after the other
-        ssKey >> strType;
-        if (strType == "name")
+        // Unserialize // 反序列化
+        // Taking advantage of the fact that pair serialization // 利用序列化的事实
+        // is just the two items serialized one after the other // 只是两个一个接一个的项目
+        ssKey >> strType; // 导出键的类型
+        if (strType == "name") // 分类型导出并构造对应的值到钱包
         {
             string strAddress;
             ssKey >> strAddress;
@@ -600,9 +600,9 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
         }
     } catch (...)
     {
-        return false;
+        return false; // 反序列化失败返回 false
     }
-    return true;
+    return true; // 成功返回 true
 }
 
 static bool IsKeyType(string strType)
@@ -909,7 +909,7 @@ bool BackupWallet(const CWallet& wallet, const string& strDest)
 bool CWalletDB::Recover(CDBEnv& dbenv, const std::string& filename, bool fOnlyKeys)
 {
     // Recovery procedure: // 恢复步骤：
-    // move wallet.dat to wallet.timestamp.bak // 1.重命名钱包我呢见 wallet.dat 为 wallet.timestamp.bak
+    // move wallet.dat to wallet.timestamp.bak // 1.重命名钱包文件 wallet.dat 为 wallet.timestamp.bak
     // Call Salvage with fAggressive=true to // 2.调用 Salvage 函数挽救钱包数据，fAggressive 标志设为 true，表示开启 DB_AGGRESSIVE 模式
     // get as much data as possible. // 可能获取更多的数据。
     // Rewrite salvaged data to wallet.dat // 3.重写挽救的数据到 wallet.dat
@@ -965,7 +965,7 @@ bool CWalletDB::Recover(CDBEnv& dbenv, const std::string& filename, bool fOnlyKe
                 // Required in LoadKeyMetadata(): // 需要 LoadKeyMetadata()：
                 LOCK(dummyWallet.cs_wallet); // 假钱包上锁
                 fReadOK = ReadKeyValue(&dummyWallet, ssKey, ssValue,
-                                        wss, strType, strErr); // 把键值对读入假钱包（内存）
+                                        wss, strType, strErr); // 把一个键值对（反序列化）读入假钱包（内存），并获取键的类型
             }
             if (!IsKeyType(strType)) // 非 Key 类型
                 continue;
@@ -981,7 +981,7 @@ bool CWalletDB::Recover(CDBEnv& dbenv, const std::string& filename, bool fOnlyKe
         if (ret2 > 0)
             fSuccess = false;
     }
-    ptxn->commit(0); // 提交交易，修改的内容将写入稳定的内存
+    ptxn->commit(0); // 5.提交交易，修改的内容将写入稳定的内存
     pdbCopy->close(0); // 关闭数据库副本
 
     return fSuccess; // 成功返回 true
