@@ -63,7 +63,7 @@ extern const std::string CLIENT_DATE;
 
 
 std::string FormatFullVersion(); // 格式化全版本信息
-std::string FormatSubVersion(const std::string& name, int nClientVersion, const std::vector<std::string>& comments);
+std::string FormatSubVersion(const std::string& name, int nClientVersion, const std::vector<std::string>& comments); // 格式化子版本号
 
 #endif // WINDRES_PREPROC
 

@@ -249,7 +249,7 @@ enum {
 };
 
 /** A CService with information about it as peer */
-class CAddress : public CService
+class CAddress : public CService // CService 包含关于它作为对端的信息
 {
 public:
     CAddress();

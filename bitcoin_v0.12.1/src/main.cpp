@@ -198,16 +198,16 @@ namespace {
     map<uint256, pair<NodeId, list<QueuedBlock>::iterator> > mapBlocksInFlight;
 
     /** Number of preferable block download peers. */
-    int nPreferredDownload = 0;
+    int nPreferredDownload = 0; // 优先去快下载的对端数
 
     /** Dirty block index entries. */
     set<CBlockIndex*> setDirtyBlockIndex; // 无效区块索引条目集合
 
     /** Dirty block file entries. */
-    set<int> setDirtyFileInfo;
+    set<int> setDirtyFileInfo; // 无效区块文件条目
 
     /** Number of peers from which we're downloading blocks. */
-    int nPeersWithValidatedDownloads = 0;
+    int nPeersWithValidatedDownloads = 0; // 我们正在下载区块的对端数
 } // anon namespace
 
 //////////////////////////////////////////////////////////////////////////////
@@ -295,8 +295,8 @@ CNodeState *State(NodeId pnode) { // 通过节点 id 获取节点状态
 
 int GetHeight() // 获取激活链的高度
 {
-    LOCK(cs_main);
-    return chainActive.Height();
+    LOCK(cs_main); // 上锁
+    return chainActive.Height(); // 返回激活链的高度
 }
 
 void UpdatePreferredDownload(CNode* node, CNodeState* state)
@@ -310,18 +310,18 @@ void UpdatePreferredDownload(CNode* node, CNodeState* state)
 }
 
 void InitializeNode(NodeId nodeid, const CNode *pnode) {
-    LOCK(cs_main);
-    CNodeState &state = mapNodeState.insert(std::make_pair(nodeid, CNodeState())).first->second;
-    state.name = pnode->addrName;
-    state.address = pnode->addr;
+    LOCK(cs_main); // 上锁
+    CNodeState &state = mapNodeState.insert(std::make_pair(nodeid, CNodeState())).first->second; // 插入节点状态映射列表，并获取该节点状态的引用
+    state.name = pnode->addrName; // 修改状态名
+    state.address = pnode->addr; // 修改对端地址
 }
 
 void FinalizeNode(NodeId nodeid) {
-    LOCK(cs_main);
-    CNodeState *state = State(nodeid);
+    LOCK(cs_main); // 上锁
+    CNodeState *state = State(nodeid); // 通过节点 id 创建节点状态对象
 
-    if (state->fSyncStarted)
-        nSyncStarted--;
+    if (state->fSyncStarted) // 若节点数量非 0
+        nSyncStarted--; // 数量减 1
 
     if (state->nMisbehavior == 0 && state->fCurrentlyConnected) {
         AddressCurrentlyConnected(state->address);
@@ -335,13 +335,13 @@ void FinalizeNode(NodeId nodeid) {
     nPeersWithValidatedDownloads -= (state->nBlocksInFlightValidHeaders != 0);
     assert(nPeersWithValidatedDownloads >= 0);
 
-    mapNodeState.erase(nodeid);
+    mapNodeState.erase(nodeid); // 从节点状态映射列表中擦除该节点
 
-    if (mapNodeState.empty()) {
-        // Do a consistency check after the last peer is removed.
+    if (mapNodeState.empty()) { // 若列表为空
+        // Do a consistency check after the last peer is removed. // 删除最后一个对等体后进行一致性检查
         assert(mapBlocksInFlight.empty());
-        assert(nPreferredDownload == 0);
-        assert(nPeersWithValidatedDownloads == 0);
+        assert(nPreferredDownload == 0); // 优先区块下载对端数
+        assert(nPeersWithValidatedDownloads == 0); // 正在下载区块的对端数
     }
 }
 

@@ -178,10 +178,10 @@ static const unsigned int DEFAULT_CHECKLEVEL = 3; // 默认检查等级
 // Setting the target to > than 550MB will make it likely we can respect the target.
 static const uint64_t MIN_DISK_SPACE_FOR_BLOCK_FILES = 550 * 1024 * 1024;
 
-/** Register with a network node to receive its signals */
-void RegisterNodeSignals(CNodeSignals& nodeSignals); // 注册信号处理函数
-/** Unregister a network node */
-void UnregisterNodeSignals(CNodeSignals& nodeSignals); // 解注册
+/** Register with a network node to receive its signals */ // 注册网络节点来接收其信号
+void RegisterNodeSignals(CNodeSignals& nodeSignals);
+/** Unregister a network node */ // 取消注册网络节点
+void UnregisterNodeSignals(CNodeSignals& nodeSignals);
 
 /** 
  * Process an incoming block. This only returns after the best known valid

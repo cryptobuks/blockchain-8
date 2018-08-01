@@ -1131,10 +1131,10 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
 #endif // ENABLE_WALLET
     // ********************************************************* Step 6: network initialization // 网络初始化
 
-    RegisterNodeSignals(GetNodeSignals()); // 6.1.注册节点信号，获取节点信号全局对象，并传入 RegisterNodeSignals 进行函数注册（连接）
+    RegisterNodeSignals(GetNodeSignals()); // 1.注册节点信号，获取节点信号全局对象，传入进行注册
 
-    // sanitize comments per BIP-0014, format user agent and check total size
-    std::vector<string> uacomments; // 6.2.存放用户代理评论列表，意味不明 pending
+    // sanitize comments per BIP-0014, format user agent and check total size // 根据 BIP-0014 清理评论，格式化用户代理并检查总大小
+    std::vector<string> uacomments; // 2.存放用户代理评论列表
     BOOST_FOREACH(string cmt, mapMultiArgs["-uacomment"]) // 依次遍历所有评论
     {
         if (cmt != SanitizeString(cmt, SAFE_CHARS_UA_COMMENT)) // 序列化字符串后进行比较，保证不含不安全的字符
@@ -1147,7 +1147,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
             strSubVersion.size(), MAX_SUBVERSION_LENGTH));
     }
 
-    if (mapArgs.count("-onlynet")) { // 指定网络选项，只连接到指定网络中的节点
+    if (mapArgs.count("-onlynet")) { // 3.指定网络选项，只连接到指定网络中的节点
         std::set<enum Network> nets; // 存放指定网络的集合
         BOOST_FOREACH(const std::string& snet, mapMultiArgs["-onlynet"]) { // 遍历 -onlynet 的所有值
             enum Network net = ParseNetwork(snet); // 解析网络
@@ -1157,12 +1157,12 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
         }
         for (int n = 0; n < NET_MAX; n++) { // 遍历网络类型，共 5 种
             enum Network net = (enum Network)n;
-            if (!nets.count(net)) // 把指定网络集合中不存在的网络类型
-                SetLimited(net); // 禁用指定网络中不存在的网络类型
+            if (!nets.count(net)) // 若该网络类型未指定
+                SetLimited(net); // 禁用未指定的网络类型
         }
     }
 
-    if (mapArgs.count("-whitelist")) { // 白名单选项
+    if (mapArgs.count("-whitelist")) { // 4.白名单选项
         BOOST_FOREACH(const std::string& net, mapMultiArgs["-whitelist"]) { // 遍历指定的白名单列表
             CSubNet subnet(net); // 构建子网对象
             if (!subnet.IsValid()) // 检测子网是否有效
@@ -1172,8 +1172,8 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
     }
 
     bool proxyRandomize = GetBoolArg("-proxyrandomize", DEFAULT_PROXYRANDOMIZE); // 代理随机化选项，默认开启
-    // -proxy sets a proxy for all outgoing network traffic
-    // -noproxy (or -proxy=0) as well as the empty string can be used to not set a proxy, this is the default
+    // -proxy sets a proxy for all outgoing network traffic // -proxy 设置全部向外网络流量的代理
+    // -noproxy (or -proxy=0) as well as the empty string can be used to not set a proxy, this is the default // -noproxy（或 -proxy=0）以及空字符串用于不设置代理，这是默认值
     std::string proxyArg = GetArg("-proxy", ""); // 代理选项，默认关闭，代理全部向外的网络流量
     if (proxyArg != "" && proxyArg != "0") { // 值非 0 且 非空表示设置了代理
         proxyType addrProxy = proxyType(CService(proxyArg, 9050), proxyRandomize); // 设置代理地址和端口
@@ -1203,7 +1203,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
         }
     }
 
-    // see Step 2: parameter interactions for more information about these
+    // see Step 2: parameter interactions for more information about these // 获取更多相关信息，查看第二步：参数交互
     fListen = GetBoolArg("-listen", DEFAULT_LISTEN); // 监听选项，默认开启
     fDiscover = GetBoolArg("-discover", true); // 发现选项，默认开启
     fNameLookup = GetBoolArg("-dns", DEFAULT_NAME_LOOKUP); // dns 名字发现，默认打开

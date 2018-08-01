@@ -119,23 +119,23 @@ struct CNodeSignals
 };
 
 
-CNodeSignals& GetNodeSignals();
+CNodeSignals& GetNodeSignals(); // 获取节点信号全局对象的引用
 
 
 enum
 {
-    LOCAL_NONE,   // unknown
-    LOCAL_IF,     // address a local interface listens on
-    LOCAL_BIND,   // address explicit bound to
-    LOCAL_UPNP,   // address reported by UPnP
-    LOCAL_MANUAL, // address explicitly specified (-externalip=)
+    LOCAL_NONE,   // unknown // 未知
+    LOCAL_IF,     // address a local interface listens on // 本地接口侦听地址
+    LOCAL_BIND,   // address explicit bound to // 显示绑定到的地址
+    LOCAL_UPNP,   // address reported by UPnP // UPnP 报告的地址
+    LOCAL_MANUAL, // address explicitly specified (-externalip=) // 显示指定的地址（-externalip=）
 
     LOCAL_MAX
 };
 
 bool IsPeerAddrLocalGood(CNode *pnode);
 void AdvertizeLocal(CNode *pnode); // 广告本地地址到对端
-void SetLimited(enum Network net, bool fLimited = true);
+void SetLimited(enum Network net, bool fLimited = true); // 设置网络类型限制
 bool IsLimited(enum Network net);
 bool IsLimited(const CNetAddr& addr);
 bool AddLocal(const CService& addr, int nScore = LOCAL_NONE);
@@ -157,7 +157,7 @@ extern uint64_t nLocalHostNonce;
 extern CAddrMan addrman;
 
 /** Maximum number of connections to simultaneously allow (aka connection slots) */
-extern int nMaxConnections;
+extern int nMaxConnections; // 同时允许的最大连接数（也称连接槽）
 
 extern std::vector<CNode*> vNodes; // 已建立连接的节点列表
 extern CCriticalSection cs_vNodes; // 节点列表锁
@@ -173,7 +173,7 @@ extern NodeId nLastNodeId;
 extern CCriticalSection cs_nLastNodeId;
 
 /** Subversion as sent to the P2P network in `version` messages */
-extern std::string strSubVersion;
+extern std::string strSubVersion; // Subversion 在 `version` 消息中发送到 P2P 网络
 
 struct LocalServiceInfo {
     int nScore;
@@ -334,7 +334,7 @@ public:
     int64_t nLastRecv;
     int64_t nTimeConnected;
     int64_t nTimeOffset;
-    CAddress addr;
+    CAddress addr; // 节点地址
     std::string addrName; // 节点的 IP
     CService addrLocal;
     int nVersion; // 节点版本
@@ -368,8 +368,8 @@ protected:
     static CCriticalSection cs_setBanned;
     static bool setBannedIsDirty;
 
-    // Whitelisted ranges. Any node connecting from these is automatically
-    // whitelisted (as well as those connecting to whitelisted binds).
+    // Whitelisted ranges. Any node connecting from these is automatically // 白名单范围。从这些节点连接的任何节点都会自动加入白名单
+    // whitelisted (as well as those connecting to whitelisted binds). // （且连接到白名单绑定的节点）
     static std::vector<CSubNet> vWhitelistedRange;
     static CCriticalSection cs_vWhitelistedRange;
 
@@ -727,7 +727,7 @@ public:
     void copyStats(CNodeStats &stats);
 
     static bool IsWhitelistedRange(const CNetAddr &ip);
-    static void AddWhitelistedRange(const CSubNet &subnet);
+    static void AddWhitelistedRange(const CSubNet &subnet); // 添加子网到白名单
 
     // Network stats
     static void RecordBytesRecv(uint64_t bytes);

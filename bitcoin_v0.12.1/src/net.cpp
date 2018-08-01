@@ -71,7 +71,7 @@ namespace {
 
 //
 // Global state variables
-//
+// // 全局状态变量
 bool fDiscover = true;
 bool fListen = true;
 uint64_t nLocalServices = NODE_NETWORK;
@@ -109,9 +109,9 @@ CCriticalSection cs_nLastNodeId;
 static CSemaphore *semOutbound = NULL;
 boost::condition_variable messageHandlerCondition;
 
-// Signals for message handling // 处理消息的信号全局静态对象
+// Signals for message handling // 处理消息的全局静态信号对象
 static CNodeSignals g_signals;
-CNodeSignals& GetNodeSignals() { return g_signals; }
+CNodeSignals& GetNodeSignals() { return g_signals; } // 获取节点信号全局对象的引用
 
 void AddOneShot(const std::string& strDest)
 {
@@ -273,13 +273,13 @@ bool RemoveLocal(const CService& addr)
     return true;
 }
 
-/** Make a particular network entirely off-limits (no automatic connects to it) */
+/** Make a particular network entirely off-limits (no automatic connects to it) */ // 使特定网络完全禁止（不自动连接到该网络）
 void SetLimited(enum Network net, bool fLimited) // fLimited 默认为 true
 {
-    if (net == NET_UNROUTABLE)
-        return;
-    LOCK(cs_mapLocalHost);
-    vfLimited[net] = fLimited; // 把网络限制集中对应的未指定的网络类型设为 true，表示该网络类型被限制
+    if (net == NET_UNROUTABLE) // 不可路由类型的网络
+        return; // 什么也不做直接返回
+    LOCK(cs_mapLocalHost); // 上锁
+    vfLimited[net] = fLimited; // 把未指定的网络类型设为 true，表示该网络类型被限制
 }
 
 bool IsLimited(enum Network net)
