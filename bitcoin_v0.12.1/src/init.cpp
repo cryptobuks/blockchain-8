@@ -1171,10 +1171,10 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
         }
     }
 
-    bool proxyRandomize = GetBoolArg("-proxyrandomize", DEFAULT_PROXYRANDOMIZE); // 代理随机化选项，默认开启
+    bool proxyRandomize = GetBoolArg("-proxyrandomize", DEFAULT_PROXYRANDOMIZE); // 5.代理随机化选项，默认开启
     // -proxy sets a proxy for all outgoing network traffic // -proxy 设置全部向外网络流量的代理
     // -noproxy (or -proxy=0) as well as the empty string can be used to not set a proxy, this is the default // -noproxy（或 -proxy=0）以及空字符串用于不设置代理，这是默认值
-    std::string proxyArg = GetArg("-proxy", ""); // 代理选项，默认关闭，代理全部向外的网络流量
+    std::string proxyArg = GetArg("-proxy", ""); // 代理选项
     if (proxyArg != "" && proxyArg != "0") { // 值非 0 且 非空表示设置了代理
         proxyType addrProxy = proxyType(CService(proxyArg, 9050), proxyRandomize); // 设置代理地址和端口
         if (!addrProxy.IsValid()) // 验证代理地址的有效性
@@ -1187,9 +1187,9 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
         SetReachable(NET_TOR); // by default, -proxy sets onion as reachable, unless -noonion later
     }
 
-    // -onion can be used to set only a proxy for .onion, or override normal proxy for .onion addresses
-    // -noonion (or -onion=0) disables connecting to .onion entirely
-    // An empty string is used to not override the onion proxy (in which case it defaults to -proxy set above, or none)
+    // -onion can be used to set only a proxy for .onion, or override normal proxy for .onion addresses // -onion 选项用于仅为 .onion 设置代理，或覆盖 .onion 地址的普通代理
+    // -noonion (or -onion=0) disables connecting to .onion entirely // -noonion（或 -onion=0）完全关闭连接到 .onion
+    // An empty string is used to not override the onion proxy (in which case it defaults to -proxy set above, or none) // 空字符串用于不覆盖洋葱代理（在此情况下，默认 -proxy 设置上面，或无）
     std::string onionArg = GetArg("-onion", ""); // 洋葱路由选项，默认关闭
     if (onionArg != "") { // 值非空时
         if (onionArg == "0") { // Handle -noonion/-onion=0
@@ -1199,11 +1199,11 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
             if (!addrOnion.IsValid()) // 检测洋葱路由地址可用性
                 return InitError(strprintf(_("Invalid -onion address: '%s'"), onionArg));
             SetProxy(NET_TOR, addrOnion); // 设置洋葱代理
-            SetReachable(NET_TOR); // pending
+            SetReachable(NET_TOR); // 设置洋葱网络可达
         }
     }
 
-    // see Step 2: parameter interactions for more information about these // 获取更多相关信息，查看第二步：参数交互
+    // see Step 2: parameter interactions for more information about these // 6.获取更多相关信息，查看第二步：参数交互
     fListen = GetBoolArg("-listen", DEFAULT_LISTEN); // 监听选项，默认开启
     fDiscover = GetBoolArg("-discover", true); // 发现选项，默认开启
     fNameLookup = GetBoolArg("-dns", DEFAULT_NAME_LOOKUP); // dns 名字发现，默认打开
@@ -1248,14 +1248,14 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
     BOOST_FOREACH(const std::string& strDest, mapMultiArgs["-seednode"]) // 遍历添加的种子节点 IP 地址
         AddOneShot(strDest); // 加入双端队列 vOneShots
 
-#if ENABLE_ZMQ // 开启 ZeroMQ 选项，一套嵌入式的网络链接库，类似于 Socket 的一系列接口
+#if ENABLE_ZMQ // 7.开启 ZeroMQ 选项，一套嵌入式的网络链接库，类似于 Socket 的一系列接口
     pzmqNotificationInterface = CZMQNotificationInterface::CreateWithArguments(mapArgs);
 
     if (pzmqNotificationInterface) {
         RegisterValidationInterface(pzmqNotificationInterface); // 注册 zmq 通知接口
     }
 #endif
-    if (mapArgs.count("-maxuploadtarget")) { // 尝试保持外接流量低于给定目标值
+    if (mapArgs.count("-maxuploadtarget")) { // 8.尝试保持外接流量低于给定目标值
         CNode::SetMaxOutboundTarget(GetArg("-maxuploadtarget", DEFAULT_MAX_UPLOAD_TARGET)*1024*1024); // 默认为 0 表示无限制
     }
 
@@ -1263,7 +1263,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
 
     fReindex = GetBoolArg("-reindex", false); // 再索引标志（重新生成 rev 文件），默认关闭
 
-    // Upgrading to 0.8; hard-link the old blknnnn.dat files into /blocks/
+    // Upgrading to 0.8; hard-link the old blknnnn.dat files into /blocks/ // 升级到 0.8；硬链接旧的区块数据文件 blknnnn.dat 到 /blocks/ 目录下
     boost::filesystem::path blocksDir = GetDataDir() / "blocks"; // 兼容老版的区块格式，区块文件扩容
     if (!boost::filesystem::exists(blocksDir)) // 若该目录不存在
     {
@@ -1292,8 +1292,8 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
 
     // cache size calculations // 缓存大小计算
     int64_t nTotalCache = (GetArg("-dbcache", nDefaultDbCache) << 20); // 总缓存大小
-    nTotalCache = std::max(nTotalCache, nMinDbCache << 20); // total cache cannot be less than nMinDbCache
-    nTotalCache = std::min(nTotalCache, nMaxDbCache << 20); // total cache cannot be greated than nMaxDbcache
+    nTotalCache = std::max(nTotalCache, nMinDbCache << 20); // total cache cannot be less than nMinDbCache // 总缓存不能低于 nMinDbCache
+    nTotalCache = std::min(nTotalCache, nMaxDbCache << 20); // total cache cannot be greated than nMaxDbcache // 总缓存不能高于 nMaxDbcache
     int64_t nBlockTreeDBCache = nTotalCache / 8; // 区块树数据库缓存大小
     if (nBlockTreeDBCache > (1 << 21) && !GetBoolArg("-txindex", DEFAULT_TXINDEX))
         nBlockTreeDBCache = (1 << 21); // block tree db cache shouldn't be larger than 2 MiB
@@ -1339,25 +1339,25 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
                     break;
                 }
 
-                // If the loaded chain has a wrong genesis, bail out immediately
-                // (we're likely using a testnet datadir, or the other way around).
+                // If the loaded chain has a wrong genesis, bail out immediately // 如果加载的链的创世区块错误，马上补救
+                // (we're likely using a testnet datadir, or the other way around). // （我们可能使用测试网的数据目录，或者相反）。
                 if (!mapBlockIndex.empty() && mapBlockIndex.count(chainparams.GetConsensus().hashGenesisBlock) == 0) // 检查 mapBlockIndex 是否为空 且 是否加载了创世区块索引（通过哈希查找）
                     return InitError(_("Incorrect or no genesis block found. Wrong datadir for network?"));
 
-                // Initialize the block index (no-op if non-empty database was already loaded)
+                // Initialize the block index (no-op if non-empty database was already loaded) // 初始化区块索引(如果非空数据库已经加载则无操作)
                 if (!InitBlockIndex(chainparams)) {
                     strLoadError = _("Error initializing block database");
                     break;
                 }
 
-                // Check for changed -txindex state
+                // Check for changed -txindex state // 检查 -txindex 改变的状态
                 if (fTxIndex != GetBoolArg("-txindex", DEFAULT_TXINDEX)) { // 检查 fTxIndex 标志，在 LoadBlockIndex 函数中可能被改变
                     strLoadError = _("You need to rebuild the database using -reindex to change -txindex");
                     break;
                 }
 
-                // Check for changed -prune state.  What we are concerned about is a user who has pruned blocks
-                // in the past, but is now trying to run unpruned.
+                // Check for changed -prune state.  What we are concerned about is a user who has pruned blocks // 检查 -prune 改变的状态。我们关注的时过去曾修剪过的区块，
+                // in the past, but is now trying to run unpruned. // 但现在尝试运行未修剪过的区块。
                 if (fHavePruned && !fPruneMode) { // 检查 fHavePruned 标志，用户删了一些文件后，又先在未修剪模式中运行 
                     strLoadError = _("You need to rebuild the database using -reindex to go back to unpruned mode.  This will redownload the entire blockchain");
                     break;
@@ -1413,20 +1413,20 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
         }
     } // end of while load
 
-    // As LoadBlockIndex can take several minutes, it's possible the user
-    // requested to kill the GUI during the last operation. If so, exit.
-    // As the program has not fully started yet, Shutdown() is possibly overkill.（这里是未使用 Shutdown 的原因）
-    if (fRequestShutdown) // 加载区块索引可能需要几分钟，在这期间，用户可能会关闭 GUI。如此，便退出。
+    // As LoadBlockIndex can take several minutes, it's possible the user // LoadBlockIndex 会花几分钟，在最后一次操作期间，用户可能请求关闭 GUI。
+    // requested to kill the GUI during the last operation. If so, exit. // 如此，便退出。
+    // As the program has not fully started yet, Shutdown() is possibly overkill. // 问题是还未完全启动，Shutdown() 可能杀伤力过大。
+    if (fRequestShutdown) // 若用户在加载区块期间请求关闭
     {
         LogPrintf("Shutdown requested. Exiting.\n");
-        return false;
+        return false; // 不调用 Shutdown() 直接退出
     }
     LogPrintf(" block index %15dms\n", GetTimeMillis() - nStart); // 记录区块索引时间
 
-    boost::filesystem::path est_path = GetDataDir() / FEE_ESTIMATES_FILENAME; // 费用估计文件
-    CAutoFile est_filein(fopen(est_path.string().c_str(), "rb"), SER_DISK, CLIENT_VERSION); // 创建该文件并创建估费文件对象
-    // Allowed to fail as this file IS missing on first startup.
-    if (!est_filein.IsNull())
+    boost::filesystem::path est_path = GetDataDir() / FEE_ESTIMATES_FILENAME; // 拼接费用估计文件路径
+    CAutoFile est_filein(fopen(est_path.string().c_str(), "rb"), SER_DISK, CLIENT_VERSION); // 打开（首次创建）该文件并创建估费文件对象
+    // Allowed to fail as this file IS missing on first startup. // 允许失败，因为首次启动时该文件不存在。
+    if (!est_filein.IsNull()) // 若该文件存在
         mempool.ReadFeeEstimates(est_filein); // 内存池读取估计费用
     fFeeEstimatesInitialized = true; // 费用估计初始化状态标志置为 true
 

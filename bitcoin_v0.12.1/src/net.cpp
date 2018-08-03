@@ -77,8 +77,8 @@ bool fListen = true;
 uint64_t nLocalServices = NODE_NETWORK;
 CCriticalSection cs_mapLocalHost;
 map<CNetAddr, LocalServiceInfo> mapLocalHost;
-static bool vfReachable[NET_MAX] = {};
-static bool vfLimited[NET_MAX] = {}; // 网络限制集
+static bool vfReachable[NET_MAX] = {}; // 网络可达列表
+static bool vfLimited[NET_MAX] = {}; // 网络限制列表
 static CNode* pnodeLocalHost = NULL;
 uint64_t nLocalHostNonce = 0;
 static std::vector<ListenSocket> vhListenSocket;
@@ -226,13 +226,13 @@ void AdvertizeLocal(CNode *pnode)
 
 void SetReachable(enum Network net, bool fFlag)
 {
-    LOCK(cs_mapLocalHost);
-    vfReachable[net] = fFlag;
-    if (net == NET_IPV6 && fFlag)
-        vfReachable[NET_IPV4] = true;
+    LOCK(cs_mapLocalHost); // 上锁
+    vfReachable[net] = fFlag; // 默认为 true
+    if (net == NET_IPV6 && fFlag) // 若指定的是 NET_IPV6
+        vfReachable[NET_IPV4] = true; // 则 NET_IPV4 也设置为 true
 }
 
-// learn a new local address
+// learn a new local address // 了解一个新本地地址
 bool AddLocal(const CService& addr, int nScore)
 {
     if (!addr.IsRoutable())

@@ -47,8 +47,8 @@ static const unsigned int MAX_ADDR_TO_SEND = 1000;
 static const unsigned int MAX_PROTOCOL_MESSAGE_LENGTH = 2 * 1024 * 1024;
 /** Maximum length of strSubVer in `version` message */
 static const unsigned int MAX_SUBVERSION_LENGTH = 256;
-/** -listen default */
-static const bool DEFAULT_LISTEN = true;
+/** -listen default */ // -listen 设置默认值
+static const bool DEFAULT_LISTEN = true; // 默认开启
 /** -upnp default */
 #ifdef USE_UPNP
 static const bool DEFAULT_UPNP = USE_UPNP;
@@ -61,9 +61,9 @@ static const size_t MAPASKFOR_MAX_SZ = MAX_INV_SZ;
 static const size_t SETASKFOR_MAX_SZ = 2 * MAX_INV_SZ;
 /** The maximum number of peer connections to maintain. */ // 要维护的最大对端连接数
 static const unsigned int DEFAULT_MAX_PEER_CONNECTIONS = 125;
-/** The default for -maxuploadtarget. 0 = Unlimited */
+/** The default for -maxuploadtarget. 0 = Unlimited */ // 用 -maxuploadtarget 设置默认值。0 = 无限制的
 static const uint64_t DEFAULT_MAX_UPLOAD_TARGET = 0;
-/** Default for blocks only*/
+/** Default for blocks only*/ // 默认仅区块
 static const bool DEFAULT_BLOCKSONLY = false;
 
 static const bool DEFAULT_FORCEDNSSEED = false;
@@ -146,7 +146,7 @@ bool IsLocal(const CService& addr);
 bool GetLocal(CService &addr, const CNetAddr *paddrPeer = NULL);
 bool IsReachable(enum Network net);
 bool IsReachable(const CNetAddr &addr);
-void SetReachable(enum Network net, bool fFlag = true);
+void SetReachable(enum Network net, bool fFlag = true); // 设置网络可达
 CAddress GetLocalAddress(const CNetAddr *paddrPeer = NULL);
 
 
