@@ -94,10 +94,10 @@ size_t strnlen( const char *start, size_t max_len);
 #endif // HAVE_DECL_STRNLEN
 
 bool static inline IsSelectableSocket(SOCKET s) {
-#ifdef WIN32
-    return true;
-#else
-    return (s < FD_SETSIZE);
+#ifdef WIN32 // Windows
+    return true; // 直接返回 true
+#else // Unix/Linux
+    return (s < FD_SETSIZE); // 若文件描述符小于上限 1024，则返回 true
 #endif
 }
 

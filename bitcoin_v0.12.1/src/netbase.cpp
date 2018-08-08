@@ -35,11 +35,11 @@
 #define MSG_NOSIGNAL 0
 #endif
 
-// Settings
-static proxyType proxyInfo[NET_MAX];
-static proxyType nameProxy;
+// Settings // 设置
+static proxyType proxyInfo[NET_MAX]; // 代理列表（数组）
+static proxyType nameProxy; // 名字代理
 static CCriticalSection cs_proxyInfos;
-int nConnectTimeout = DEFAULT_CONNECT_TIMEOUT;
+int nConnectTimeout = DEFAULT_CONNECT_TIMEOUT; // 链接超时，默认 5s
 bool fNameLookup = DEFAULT_NAME_LOOKUP; // 默认 true
 
 static const unsigned char pchIPv4[12] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff };
@@ -86,7 +86,7 @@ void SplitHostPort(std::string in, int &portOut, std::string &hostOut) {
 
 bool static LookupIntern(const char *pszName, std::vector<CNetAddr>& vIP, unsigned int nMaxSolutions, bool fAllowLookup)
 {
-    vIP.clear();
+    vIP.clear(); // 清空 IP 地址列表
 
     {
         CNetAddr addr;
@@ -140,10 +140,10 @@ bool static LookupIntern(const char *pszName, std::vector<CNetAddr>& vIP, unsign
         return false;
 
     do {
-        // Should set the timeout limit to a resonable value to avoid
-        // generating unnecessary checking call during the polling loop,
-        // while it can still response to stop request quick enough.
-        // 2 seconds looks fine in our situation.
+        // Should set the timeout limit to a resonable value to avoid // 应该将超时限制设置为合理值以避免
+        // generating unnecessary checking call during the polling loop, // 轮询循环期间产生的不必要的检查调用，
+        // while it can still response to stop request quick enough. // 同时它仍可以足够快的响应来停止请求。
+        // 2 seconds looks fine in our situation. // 在我们的情况看来，2 秒很好。
         struct timespec ts = { 2, 0 };
         gai_suspend(&query, 1, &ts);
         boost::this_thread::interruption_point();
@@ -202,24 +202,24 @@ bool Lookup(const char *pszName, std::vector<CService>& vAddr, int portDefault, 
     std::string hostname = ""; // 保存主机名
     SplitHostPort(std::string(pszName), port, hostname); // 分离主机名和端口
 
-    std::vector<CNetAddr> vIP;
+    std::vector<CNetAddr> vIP; // IP 地址列表
     bool fRet = LookupIntern(hostname.c_str(), vIP, nMaxSolutions, fAllowLookup); // 发现内部
     if (!fRet)
         return false;
-    vAddr.resize(vIP.size());
-    for (unsigned int i = 0; i < vIP.size(); i++)
-        vAddr[i] = CService(vIP[i], port);
-    return true;
+    vAddr.resize(vIP.size()); // 预开辟同样个数的空间
+    for (unsigned int i = 0; i < vIP.size(); i++) // 遍历 IP 地址列表
+        vAddr[i] = CService(vIP[i], port); // 传入默认端口创建地址端口对象放入连接节点列表
+    return true; // 成功返回 true
 }
 
 bool Lookup(const char *pszName, CService& addr, int portDefault, bool fAllowLookup)
 {
-    std::vector<CService> vService;
-    bool fRet = Lookup(pszName, vService, portDefault, fAllowLookup, 1);
+    std::vector<CService> vService; // 创建连接节点列表
+    bool fRet = Lookup(pszName, vService, portDefault, fAllowLookup, 1); // 转调重载函数
     if (!fRet)
         return false;
-    addr = vService[0];
-    return true;
+    addr = vService[0]; // 取列表中的首个
+    return true; // 成功返回 true
 }
 
 bool LookupNumeric(const char *pszName, CService& addr, int portDefault)
@@ -516,12 +516,12 @@ bool static ConnectSocketDirectly(const CService &addrConnect, SOCKET& hSocketRe
 }
 
 bool SetProxy(enum Network net, const proxyType &addrProxy) {
-    assert(net >= 0 && net < NET_MAX);
-    if (!addrProxy.IsValid())
-        return false;
+    assert(net >= 0 && net < NET_MAX); // 验证网络类型
+    if (!addrProxy.IsValid()) // 若地址代理无效
+        return false; // 返回 false
     LOCK(cs_proxyInfos);
-    proxyInfo[net] = addrProxy;
-    return true;
+    proxyInfo[net] = addrProxy; // 放入代理列表（数组）
+    return true; // 设置成功返回 true
 }
 
 bool GetProxy(enum Network net, proxyType &proxyInfoOut) {
@@ -534,11 +534,11 @@ bool GetProxy(enum Network net, proxyType &proxyInfoOut) {
 }
 
 bool SetNameProxy(const proxyType &addrProxy) {
-    if (!addrProxy.IsValid())
-        return false;
+    if (!addrProxy.IsValid()) // 若地址代理无效
+        return false; // 返回 false
     LOCK(cs_proxyInfos);
-    nameProxy = addrProxy;
-    return true;
+    nameProxy = addrProxy; // 设置名字代理
+    return true; // 成功返回 true
 }
 
 bool GetNameProxy(proxyType &nameProxyOut) {
@@ -823,16 +823,16 @@ bool CNetAddr::IsValid() const
     if (memcmp(ip, pchIPv4+3, sizeof(pchIPv4)-3) == 0)
         return false;
 
-    // unspecified IPv6 address (::/128)
+    // unspecified IPv6 address (::/128) // 未指定的 IPv6 地址（::/128）
     unsigned char ipNone[16] = {};
     if (memcmp(ip, ipNone, 16) == 0)
         return false;
 
-    // documentation IPv6 address
+    // documentation IPv6 address // 文档 IPv6 地址
     if (IsRFC3849())
         return false;
 
-    if (IsIPv4())
+    if (IsIPv4()) // 若为 IPv4
     {
         // INADDR_NONE
         uint32_t ipNone = INADDR_NONE;
@@ -1172,7 +1172,7 @@ bool operator<(const CService& a, const CService& b)
 
 bool CService::GetSockAddr(struct sockaddr* paddr, socklen_t *addrlen) const
 {
-    if (IsIPv4()) {
+    if (IsIPv4()) { // IPv4
         if (*addrlen < (socklen_t)sizeof(struct sockaddr_in))
             return false;
         *addrlen = sizeof(struct sockaddr_in);
@@ -1184,7 +1184,7 @@ bool CService::GetSockAddr(struct sockaddr* paddr, socklen_t *addrlen) const
         paddrin->sin_port = htons(port);
         return true;
     }
-    if (IsIPv6()) {
+    if (IsIPv6()) { // IPv6
         if (*addrlen < (socklen_t)sizeof(struct sockaddr_in6))
             return false;
         *addrlen = sizeof(struct sockaddr_in6);
@@ -1196,7 +1196,7 @@ bool CService::GetSockAddr(struct sockaddr* paddr, socklen_t *addrlen) const
         paddrin6->sin6_port = htons(port);
         return true;
     }
-    return false;
+    return false; // 失败返回 false
 }
 
 std::vector<unsigned char> CService::GetKey() const
@@ -1425,42 +1425,42 @@ std::string NetworkErrorString(int err)
 
 bool CloseSocket(SOCKET& hSocket)
 {
-    if (hSocket == INVALID_SOCKET)
-        return false;
+    if (hSocket == INVALID_SOCKET) // 若套接字为 INVALID_SOCKET
+        return false; // 关闭失败返回 false
 #ifdef WIN32
     int ret = closesocket(hSocket);
 #else
     int ret = close(hSocket); // 关闭套接字
 #endif
     hSocket = INVALID_SOCKET; // 设置无效套接字
-    return ret != SOCKET_ERROR;
+    return ret != SOCKET_ERROR; // 关闭成功返回 true
 }
 
 bool SetSocketNonBlocking(SOCKET& hSocket, bool fNonBlocking)
 {
-    if (fNonBlocking) {
+    if (fNonBlocking) { // true
 #ifdef WIN32
         u_long nOne = 1;
         if (ioctlsocket(hSocket, FIONBIO, &nOne) == SOCKET_ERROR) {
 #else
         int fFlags = fcntl(hSocket, F_GETFL, 0);
-        if (fcntl(hSocket, F_SETFL, fFlags | O_NONBLOCK) == SOCKET_ERROR) {
+        if (fcntl(hSocket, F_SETFL, fFlags | O_NONBLOCK) == SOCKET_ERROR) { // 设置非阻塞
 #endif
             CloseSocket(hSocket);
             return false;
         }
-    } else {
+    } else { // false
 #ifdef WIN32
         u_long nZero = 0;
         if (ioctlsocket(hSocket, FIONBIO, &nZero) == SOCKET_ERROR) {
 #else
         int fFlags = fcntl(hSocket, F_GETFL, 0);
-        if (fcntl(hSocket, F_SETFL, fFlags & ~O_NONBLOCK) == SOCKET_ERROR) {
+        if (fcntl(hSocket, F_SETFL, fFlags & ~O_NONBLOCK) == SOCKET_ERROR) { // 开启套接字阻塞模式
 #endif
             CloseSocket(hSocket);
             return false;
         }
     }
 
-    return true;
+    return true; // 设置成功返回 true
 }

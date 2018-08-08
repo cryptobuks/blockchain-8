@@ -38,8 +38,8 @@
 
 #include <math.h>
 
-// Dump addresses to peers.dat every 15 minutes (900s)
-#define DUMP_ADDRESSES_INTERVAL 900
+// Dump addresses to peers.dat every 15 minutes (900s) // 每 15 分钟（900秒）导出地址到文件 peers.dat
+#define DUMP_ADDRESSES_INTERVAL 900 // s
 
 #if !defined(HAVE_MSG_NOSIGNAL) && !defined(MSG_NOSIGNAL)
 #define MSG_NOSIGNAL 0
@@ -59,11 +59,11 @@
 using namespace std;
 
 namespace {
-    const int MAX_OUTBOUND_CONNECTIONS = 8;
+    const int MAX_OUTBOUND_CONNECTIONS = 8; // 最大向外连接数为 8
 
-    struct ListenSocket {
-        SOCKET socket;
-        bool whitelisted;
+    struct ListenSocket { // 监听套接字结构体（套接字完成监听后创建）
+        SOCKET socket; // 套接字
+        bool whitelisted; // 是否加入白名单
 
         ListenSocket(SOCKET socket, bool whitelisted) : socket(socket), whitelisted(whitelisted) {}
     };
@@ -81,7 +81,7 @@ static bool vfReachable[NET_MAX] = {}; // 网络可达列表
 static bool vfLimited[NET_MAX] = {}; // 网络限制列表
 static CNode* pnodeLocalHost = NULL;
 uint64_t nLocalHostNonce = 0;
-static std::vector<ListenSocket> vhListenSocket;
+static std::vector<ListenSocket> vhListenSocket; // 监听套接字列表
 CAddrMan addrman;
 int nMaxConnections = DEFAULT_MAX_PEER_CONNECTIONS; // 125
 bool fAddressesInitialized = false;
@@ -121,7 +121,7 @@ void AddOneShot(const std::string& strDest)
 
 unsigned short GetListenPort()
 {
-    return (unsigned short)(GetArg("-port", Params().GetDefaultPort()));
+    return (unsigned short)(GetArg("-port", Params().GetDefaultPort())); // 返回链参数中设置的默认端口
 }
 
 // find 'best' local address for a particular peer
@@ -247,17 +247,17 @@ bool AddLocal(const CService& addr, int nScore)
     LogPrintf("AddLocal(%s,%i)\n", addr.ToString(), nScore);
 
     {
-        LOCK(cs_mapLocalHost);
-        bool fAlready = mapLocalHost.count(addr) > 0;
+        LOCK(cs_mapLocalHost); // 本地主机映射上锁
+        bool fAlready = mapLocalHost.count(addr) > 0; // 是否在本地主机映射列表中
         LocalServiceInfo &info = mapLocalHost[addr];
-        if (!fAlready || nScore >= info.nScore) {
-            info.nScore = nScore + (fAlready ? 1 : 0);
-            info.nPort = addr.GetPort();
+        if (!fAlready || nScore >= info.nScore) { // 若不在该列表，或列表中的分数小于等于设置的分数
+            info.nScore = nScore + (fAlready ? 1 : 0); // 计算分数
+            info.nPort = addr.GetPort(); // 获取并设置端口
         }
-        SetReachable(addr.GetNetwork());
+        SetReachable(addr.GetNetwork()); // 设置网络可达
     }
 
-    return true;
+    return true; // 成功返回 true
 }
 
 bool AddLocal(const CNetAddr &addr, int nScore)
@@ -1778,27 +1778,27 @@ void ThreadMessageHandler() // 线程消息处理函数
 
 bool BindListenPort(const CService &addrBind, string& strError, bool fWhitelisted)
 {
-    strError = "";
+    strError = ""; // 错误信息
     int nOne = 1;
 
-    // Create socket for listening for incoming connections
+    // Create socket for listening for incoming connections // 创建套接字用于监听接入的连接
     struct sockaddr_storage sockaddr;
     socklen_t len = sizeof(sockaddr);
-    if (!addrBind.GetSockAddr((struct sockaddr*)&sockaddr, &len))
+    if (!addrBind.GetSockAddr((struct sockaddr*)&sockaddr, &len)) // 获取套接字地址
     {
         strError = strprintf("Error: Bind address family for %s not supported", addrBind.ToString());
         LogPrintf("%s\n", strError);
         return false;
     }
 
-    SOCKET hListenSocket = socket(((struct sockaddr*)&sockaddr)->sa_family, SOCK_STREAM, IPPROTO_TCP);
-    if (hListenSocket == INVALID_SOCKET)
+    SOCKET hListenSocket = socket(((struct sockaddr*)&sockaddr)->sa_family, SOCK_STREAM, IPPROTO_TCP); // 创建监听套接字，typedef u_int SOCKET; 定义在 compat.h
+    if (hListenSocket == INVALID_SOCKET) // (SOCKET)(~0) 定义在 compat.h
     {
         strError = strprintf("Error: Couldn't open socket for incoming connections (socket returned error %s)", NetworkErrorString(WSAGetLastError()));
         LogPrintf("%s\n", strError);
         return false;
     }
-    if (!IsSelectableSocket(hListenSocket))
+    if (!IsSelectableSocket(hListenSocket)) // 若该套接字为不可选 socket
     {
         strError = "Error: Couldn't create a listenable socket for incoming connections";
         LogPrintf("%s\n", strError);
@@ -1806,31 +1806,31 @@ bool BindListenPort(const CService &addrBind, string& strError, bool fWhiteliste
     }
 
 
-#ifndef WIN32
-#ifdef SO_NOSIGPIPE
-    // Different way of disabling SIGPIPE on BSD
+#ifndef WIN32 // Unix/Linux
+#ifdef SO_NOSIGPIPE // BSD
+    // Different way of disabling SIGPIPE on BSD // 在 BSD 使用不同的方式禁止 SIGPIPE 信号
     setsockopt(hListenSocket, SOL_SOCKET, SO_NOSIGPIPE, (void*)&nOne, sizeof(int));
 #endif
-    // Allow binding if the port is still in TIME_WAIT state after
-    // the program was closed and restarted.
+    // Allow binding if the port is still in TIME_WAIT state after // 如果端口在该程序关闭并重启后
+    // the program was closed and restarted. // 仍处于 TIME_WAIT 状态，允许绑定。（设置端口重用）
     setsockopt(hListenSocket, SOL_SOCKET, SO_REUSEADDR, (void*)&nOne, sizeof(int));
-    // Disable Nagle's algorithm
+    // Disable Nagle's algorithm // 禁用 Nagle 算法
     setsockopt(hListenSocket, IPPROTO_TCP, TCP_NODELAY, (void*)&nOne, sizeof(int));
 #else
     setsockopt(hListenSocket, SOL_SOCKET, SO_REUSEADDR, (const char*)&nOne, sizeof(int));
     setsockopt(hListenSocket, IPPROTO_TCP, TCP_NODELAY, (const char*)&nOne, sizeof(int));
 #endif
 
-    // Set to non-blocking, incoming connections will also inherit this
-    if (!SetSocketNonBlocking(hListenSocket, true)) {
+    // Set to non-blocking, incoming connections will also inherit this // 设置非阻塞，接入连接将继承该特性
+    if (!SetSocketNonBlocking(hListenSocket, true)) { // 对套接字设置非阻塞
         strError = strprintf("BindListenPort: Setting listening socket to non-blocking failed, error %s\n", NetworkErrorString(WSAGetLastError()));
         LogPrintf("%s\n", strError);
         return false;
     }
 
-    // some systems don't have IPV6_V6ONLY but are always v6only; others do have the option
-    // and enable it by default or not. Try to enable it, if possible.
-    if (addrBind.IsIPv6()) {
+    // some systems don't have IPV6_V6ONLY but are always v6only; others do have the option // 一些系统没有 IPV6_V6ONLY 但总是开启 v6only 模式；
+    // and enable it by default or not. Try to enable it, if possible. // 其它有选项默认开启或关闭它。如果可能，则尝试开启。
+    if (addrBind.IsIPv6()) { // 若为 IPv6
 #ifdef IPV6_V6ONLY
 #ifdef WIN32
         setsockopt(hListenSocket, IPPROTO_IPV6, IPV6_V6ONLY, (const char*)&nOne, sizeof(int));
@@ -1844,7 +1844,7 @@ bool BindListenPort(const CService &addrBind, string& strError, bool fWhiteliste
 #endif
     }
 
-    if (::bind(hListenSocket, (struct sockaddr*)&sockaddr, len) == SOCKET_ERROR)
+    if (::bind(hListenSocket, (struct sockaddr*)&sockaddr, len) == SOCKET_ERROR) // bind
     {
         int nErr = WSAGetLastError();
         if (nErr == WSAEADDRINUSE)
@@ -1857,21 +1857,21 @@ bool BindListenPort(const CService &addrBind, string& strError, bool fWhiteliste
     }
     LogPrintf("Bound to %s\n", addrBind.ToString());
 
-    // Listen for incoming connections
-    if (listen(hListenSocket, SOMAXCONN) == SOCKET_ERROR)
+    // Listen for incoming connections // 监听接入连接
+    if (listen(hListenSocket, SOMAXCONN) == SOCKET_ERROR) // listen SOMAXCONN 128?
     {
         strError = strprintf(_("Error: Listening for incoming connections failed (listen returned error %s)"), NetworkErrorString(WSAGetLastError()));
         LogPrintf("%s\n", strError);
-        CloseSocket(hListenSocket);
-        return false;
-    }
+        CloseSocket(hListenSocket); // 监听失败关闭该套接字
+        return false; // 失败返回 false
+    } // 监听成功
 
-    vhListenSocket.push_back(ListenSocket(hListenSocket, fWhitelisted));
+    vhListenSocket.push_back(ListenSocket(hListenSocket, fWhitelisted)); // 加入监听的套接字列表
 
-    if (addrBind.IsRoutable() && fDiscover && !fWhitelisted)
-        AddLocal(addrBind, LOCAL_BIND);
+    if (addrBind.IsRoutable() && fDiscover && !fWhitelisted) // 若绑定地址端口可达，发现标志开启，且未加入白名单
+        AddLocal(addrBind, LOCAL_BIND); // 加入本地主机映射列表
 
-    return true;
+    return true; // 绑定，监听套接字成功返回 true
 }
 
 void static Discover(boost::thread_group& threadGroup)

@@ -85,8 +85,8 @@ CNode* FindNode(const CService& ip);
 CNode* ConnectNode(CAddress addrConnect, const char *pszDest = NULL);
 bool OpenNetworkConnection(const CAddress& addrConnect, CSemaphoreGrant *grantOutbound = NULL, const char *strDest = NULL, bool fOneShot = false); // 打开网络连接
 void MapPort(bool fUseUPnP);
-unsigned short GetListenPort();
-bool BindListenPort(const CService &bindAddr, std::string& strError, bool fWhitelisted = false);
+unsigned short GetListenPort(); // 获取监听端口
+bool BindListenPort(const CService &bindAddr, std::string& strError, bool fWhitelisted = false); // 绑定并监听端口
 void StartNode(boost::thread_group& threadGroup, CScheduler& scheduler); // 启动各种线程
 bool StopNode(); // 停止启动的线程
 void SocketSendData(CNode *pnode); // 通过套接字发送数据
@@ -124,13 +124,13 @@ CNodeSignals& GetNodeSignals(); // 获取节点信号全局对象的引用
 
 enum
 {
-    LOCAL_NONE,   // unknown // 未知
-    LOCAL_IF,     // address a local interface listens on // 本地接口侦听地址
-    LOCAL_BIND,   // address explicit bound to // 显示绑定到的地址
-    LOCAL_UPNP,   // address reported by UPnP // UPnP 报告的地址
-    LOCAL_MANUAL, // address explicitly specified (-externalip=) // 显示指定的地址（-externalip=）
+    LOCAL_NONE,   // unknown // 未知 0
+    LOCAL_IF,     // address a local interface listens on // 本地接口侦听地址 1
+    LOCAL_BIND,   // address explicit bound to // 显示绑定到的地址 2
+    LOCAL_UPNP,   // address reported by UPnP // UPnP 报告的地址 3
+    LOCAL_MANUAL, // address explicitly specified (-externalip=) // 显示指定的地址（-externalip=）4
 
-    LOCAL_MAX
+    LOCAL_MAX // 5
 };
 
 bool IsPeerAddrLocalGood(CNode *pnode);
@@ -175,9 +175,9 @@ extern CCriticalSection cs_nLastNodeId;
 /** Subversion as sent to the P2P network in `version` messages */
 extern std::string strSubVersion; // Subversion 在 `version` 消息中发送到 P2P 网络
 
-struct LocalServiceInfo {
-    int nScore;
-    int nPort;
+struct LocalServiceInfo { // 本地服务信息结构体
+    int nScore; // 分数？
+    int nPort; // 端口
 };
 
 extern CCriticalSection cs_mapLocalHost;

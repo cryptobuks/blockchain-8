@@ -280,11 +280,11 @@ bool static InitWarning(const std::string &str)
     return true;
 }
 
-bool static Bind(const CService &addr, unsigned int flags) {
+bool static Bind(const CService &addr, unsigned int flags) { // 绑定并获取状态
     if (!(flags & BF_EXPLICIT) && IsLimited(addr))
         return false;
     std::string strError;
-    if (!BindListenPort(addr, strError, (flags & BF_WHITELIST) != 0)) {
+    if (!BindListenPort(addr, strError, (flags & BF_WHITELIST) != 0)) { // 绑定并监听端口
         if (flags & BF_REPORT_ERROR)
             return InitError(strError);
         return false;
@@ -1174,16 +1174,16 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
     bool proxyRandomize = GetBoolArg("-proxyrandomize", DEFAULT_PROXYRANDOMIZE); // 5.代理随机化选项，默认开启
     // -proxy sets a proxy for all outgoing network traffic // -proxy 设置全部向外网络流量的代理
     // -noproxy (or -proxy=0) as well as the empty string can be used to not set a proxy, this is the default // -noproxy（或 -proxy=0）以及空字符串用于不设置代理，这是默认值
-    std::string proxyArg = GetArg("-proxy", ""); // 代理选项
+    std::string proxyArg = GetArg("-proxy", ""); // 代理选项，指定代理地址，默认为 ""
     if (proxyArg != "" && proxyArg != "0") { // 值非 0 且 非空表示设置了代理
-        proxyType addrProxy = proxyType(CService(proxyArg, 9050), proxyRandomize); // 设置代理地址和端口
+        proxyType addrProxy = proxyType(CService(proxyArg, 9050), proxyRandomize); // 设置代理地址和端口，端口默认为 9050
         if (!addrProxy.IsValid()) // 验证代理地址的有效性
             return InitError(strprintf(_("Invalid -proxy address: '%s'"), proxyArg));
 
         SetProxy(NET_IPV4, addrProxy); // 设置 IPV4 代理
         SetProxy(NET_IPV6, addrProxy); // 设置 IPV6 代理
         SetProxy(NET_TOR, addrProxy); // 设置 TOR 洋葱路由代理
-        SetNameProxy(addrProxy); // 设置代理名
+        SetNameProxy(addrProxy); // 设置名字代理
         SetReachable(NET_TOR); // by default, -proxy sets onion as reachable, unless -noonion later
     }
 
@@ -1208,16 +1208,16 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
     fDiscover = GetBoolArg("-discover", true); // 发现选项，默认开启
     fNameLookup = GetBoolArg("-dns", DEFAULT_NAME_LOOKUP); // dns 名字发现，默认打开
 
-    bool fBound = false;
+    bool fBound = false; // 绑定状态，初始化为 false
     if (fListen) { // 默认 true
-        if (mapArgs.count("-bind") || mapArgs.count("-whitebind")) { // 指定了 bind 选项
+        if (mapArgs.count("-bind") || mapArgs.count("-whitebind")) { // 指定了 -bind 选项或 -whitebind
             BOOST_FOREACH(const std::string& strBind, mapMultiArgs["-bind"]) { // 遍历 bind 地址
                 CService addrBind;
                 if (!Lookup(strBind.c_str(), addrBind, GetListenPort(), false)) // 解析 bind 地址
                     return InitError(strprintf(_("Cannot resolve -bind address: '%s'"), strBind));
                 fBound |= Bind(addrBind, (BF_EXPLICIT | BF_REPORT_ERROR)); // bind 绑定指定地址
             }
-            BOOST_FOREACH(const std::string& strBind, mapMultiArgs["-whitebind"]) {
+            BOOST_FOREACH(const std::string& strBind, mapMultiArgs["-whitebind"]) { // 遍历待绑定的白名单
                 CService addrBind;
                 if (!Lookup(strBind.c_str(), addrBind, 0, false))
                     return InitError(strprintf(_("Cannot resolve -whitebind address: '%s'"), strBind));
@@ -1228,7 +1228,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
         }
         else { // 未设置 bind
             struct in_addr inaddr_any;
-            inaddr_any.s_addr = INADDR_ANY;
+            inaddr_any.s_addr = INADDR_ANY; // 则绑定任意地址类型
             fBound |= Bind(CService(in6addr_any, GetListenPort()), BF_NONE); // 绑定本地 ipv6
             fBound |= Bind(CService(inaddr_any, GetListenPort()), !fBound ? BF_REPORT_ERROR : BF_NONE); // 绑定本地 ipv4，0.0.0.0:port 表示所有地址 或 任意地址
         }
@@ -1437,8 +1437,8 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
         LogPrintf("Wallet disabled!\n");
     } else {
 
-        // needed to restore wallet transaction meta data after -zapwallettxes
-        std::vector<CWalletTx> vWtx; // 用于在 -zapwalettxes 选项后存储钱包交易元数据
+        // needed to restore wallet transaction meta data after -zapwallettxes // 需要在 -zapwallettxes 后恢复钱包交易元数据
+        std::vector<CWalletTx> vWtx; // 钱包交易列表
 
         if (GetBoolArg("-zapwallettxes", false)) { // 分离钱包交易选项，默认关闭
             uiInterface.InitMessage(_("Zapping all transactions from wallet..."));

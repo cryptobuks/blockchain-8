@@ -142,8 +142,8 @@ class CSubNet // 子网类
         }
 };
 
-/** A combination of a network address (CNetAddr) and a (TCP) port */
-class CService : public CNetAddr
+/** A combination of a network address (CNetAddr) and a (TCP) port */ // 网络地址（CNetAddr）和（TCP）端口的组合
+class CService : public CNetAddr // 包含 IP 和 Port 的类
 {
     protected:
         unsigned short port; // host order
@@ -160,7 +160,7 @@ class CService : public CNetAddr
         void Init();
         void SetPort(unsigned short portIn);
         unsigned short GetPort() const;
-        bool GetSockAddr(struct sockaddr* paddr, socklen_t *addrlen) const;
+        bool GetSockAddr(struct sockaddr* paddr, socklen_t *addrlen) const; // 获取套接字地址
         bool SetSockAddr(const struct sockaddr* paddr);
         friend bool operator==(const CService& a, const CService& b);
         friend bool operator!=(const CService& a, const CService& b);
@@ -185,25 +185,25 @@ class CService : public CNetAddr
         }
 };
 
-class proxyType
+class proxyType // 代理类型
 {
 public:
-    proxyType(): randomize_credentials(false) {}
+    proxyType(): randomize_credentials(false) {} // 随机化凭证初始化为 false
     proxyType(const CService &proxy, bool randomize_credentials=false): proxy(proxy), randomize_credentials(randomize_credentials) {}
 
-    bool IsValid() const { return proxy.IsValid(); }
+    bool IsValid() const { return proxy.IsValid(); } // 判断该地址是否有效
 
-    CService proxy;
-    bool randomize_credentials;
+    CService proxy; // 代理地址和端口对象
+    bool randomize_credentials; // 随机化凭证
 };
 
 enum Network ParseNetwork(std::string net);
 std::string GetNetworkName(enum Network net);
 void SplitHostPort(std::string in, int &portOut, std::string &hostOut);
-bool SetProxy(enum Network net, const proxyType &addrProxy);
-bool GetProxy(enum Network net, proxyType &proxyInfoOut);
-bool IsProxy(const CNetAddr &addr);
-bool SetNameProxy(const proxyType &addrProxy);
+bool SetProxy(enum Network net, const proxyType &addrProxy); // 设置代理
+bool GetProxy(enum Network net, proxyType &proxyInfoOut); // 获取代理
+bool IsProxy(const CNetAddr &addr); // 判断某 IP 是否为代理
+bool SetNameProxy(const proxyType &addrProxy); // 设置名字代理
 bool HaveNameProxy();
 bool LookupHost(const char *pszName, std::vector<CNetAddr>& vIP, unsigned int nMaxSolutions = 0, bool fAllowLookup = true);
 bool Lookup(const char *pszName, CService& addr, int portDefault = 0, bool fAllowLookup = true);
@@ -214,12 +214,12 @@ bool ConnectSocketByName(CService &addr, SOCKET& hSocketRet, const char *pszDest
 /** Return readable error string for a network error code */
 std::string NetworkErrorString(int err);
 /** Close socket and set hSocket to INVALID_SOCKET */
-bool CloseSocket(SOCKET& hSocket);
-/** Disable or enable blocking-mode for a socket */
+bool CloseSocket(SOCKET& hSocket); // 关闭套接字并设置 hSocket 为 INVALID_SOCKET
+/** Disable or enable blocking-mode for a socket */ //禁用或开启套接字的阻塞模式
 bool SetSocketNonBlocking(SOCKET& hSocket, bool fNonBlocking);
 /**
  * Convert milliseconds to a struct timeval for e.g. select.
- */
+ */ // 转换毫秒到结构体时间间隔，例如：select。
 struct timeval MillisToTimeval(int64_t nTimeout);
 
 #endif // BITCOIN_NETBASE_H
