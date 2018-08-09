@@ -76,7 +76,7 @@ static const unsigned int DEFAULT_MISBEHAVING_BANTIME = 60 * 60 * 24;  // Defaul
 unsigned int ReceiveFloodSize(); // 获取接收缓冲区阈值
 unsigned int SendBufferSize(); // 获取发送缓冲区阈值
 
-void AddOneShot(const std::string& strDest);
+void AddOneShot(const std::string& strDest); // 添加到双端队列 vOneShots
 void AddressCurrentlyConnected(const CService& addr);
 CNode* FindNode(const CNetAddr& ip);
 CNode* FindNode(const CSubNet& subNet);
@@ -736,7 +736,7 @@ public:
     static uint64_t GetTotalBytesRecv();
     static uint64_t GetTotalBytesSent();
 
-    //!set the max outbound target in bytes
+    //!set the max outbound target in bytes // 以字节为单位设置最大向外目标值（发送流量阈值）
     static void SetMaxOutboundTarget(uint64_t limit);
     static uint64_t GetMaxOutboundTarget();
 

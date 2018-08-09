@@ -32,16 +32,16 @@ static const bool DEFAULT_LOGTIMEMICROS = false; // 时间戳微秒，默认为 false
 static const bool DEFAULT_LOGIPS        = false; // 记录 IPs，默认关闭
 static const bool DEFAULT_LOGTIMESTAMPS = true; // 记录时间戳，默认为 true
 
-/** Signals for translation. */
+/** Signals for translation. */ // 用于交易的信号。
 class CTranslationInterface
 {
 public:
-    /** Translate a message to the native language of the user. */
+    /** Translate a message to the native language of the user. */ // 转换消息到用户的本地语言。
     boost::signals2::signal<std::string (const char* psz)> Translate;
 };
 
-extern std::map<std::string, std::string> mapArgs;
-extern std::map<std::string, std::vector<std::string> > mapMultiArgs;
+extern std::map<std::string, std::string> mapArgs; // 启动选项单值映射列表
+extern std::map<std::string, std::vector<std::string> > mapMultiArgs; // 启动选项多值映射列表
 extern bool fDebug;
 extern bool fPrintToConsole;
 extern bool fPrintToDebugLog;

@@ -206,7 +206,7 @@ bool IsProxy(const CNetAddr &addr); // 判断某 IP 是否为代理
 bool SetNameProxy(const proxyType &addrProxy); // 设置名字代理
 bool HaveNameProxy();
 bool LookupHost(const char *pszName, std::vector<CNetAddr>& vIP, unsigned int nMaxSolutions = 0, bool fAllowLookup = true);
-bool Lookup(const char *pszName, CService& addr, int portDefault = 0, bool fAllowLookup = true);
+bool Lookup(const char *pszName, CService& addr, int portDefault = 0, bool fAllowLookup = true); // 转调下面的重载函数
 bool Lookup(const char *pszName, std::vector<CService>& vAddr, int portDefault = 0, bool fAllowLookup = true, unsigned int nMaxSolutions = 0);
 bool LookupNumeric(const char *pszName, CService& addr, int portDefault = 0);
 bool ConnectSocket(const CService &addr, SOCKET& hSocketRet, int nTimeout, bool *outProxyConnectionFailed = 0); // 连接套接字

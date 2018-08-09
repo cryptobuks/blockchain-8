@@ -38,7 +38,7 @@
 // Settings // 设置
 static proxyType proxyInfo[NET_MAX]; // 代理列表（数组）
 static proxyType nameProxy; // 名字代理
-static CCriticalSection cs_proxyInfos;
+static CCriticalSection cs_proxyInfos; // 代理信息列表锁
 int nConnectTimeout = DEFAULT_CONNECT_TIMEOUT; // 链接超时，默认 5s
 bool fNameLookup = DEFAULT_NAME_LOOKUP; // 默认 true
 
@@ -519,7 +519,7 @@ bool SetProxy(enum Network net, const proxyType &addrProxy) {
     assert(net >= 0 && net < NET_MAX); // 验证网络类型
     if (!addrProxy.IsValid()) // 若地址代理无效
         return false; // 返回 false
-    LOCK(cs_proxyInfos);
+    LOCK(cs_proxyInfos); // 代理信息上锁
     proxyInfo[net] = addrProxy; // 放入代理列表（数组）
     return true; // 设置成功返回 true
 }
@@ -536,7 +536,7 @@ bool GetProxy(enum Network net, proxyType &proxyInfoOut) {
 bool SetNameProxy(const proxyType &addrProxy) {
     if (!addrProxy.IsValid()) // 若地址代理无效
         return false; // 返回 false
-    LOCK(cs_proxyInfos);
+    LOCK(cs_proxyInfos); // 代理信息上锁
     nameProxy = addrProxy; // 设置名字代理
     return true; // 成功返回 true
 }

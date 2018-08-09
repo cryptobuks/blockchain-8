@@ -75,7 +75,7 @@ namespace {
 bool fDiscover = true;
 bool fListen = true;
 uint64_t nLocalServices = NODE_NETWORK;
-CCriticalSection cs_mapLocalHost;
+CCriticalSection cs_mapLocalHost; // ±¾µØÖ÷»úÓ³ÉäËø
 map<CNetAddr, LocalServiceInfo> mapLocalHost;
 static bool vfReachable[NET_MAX] = {}; // ÍøÂç¿É´ïÁĞ±í
 static bool vfLimited[NET_MAX] = {}; // ÍøÂçÏŞÖÆÁĞ±í
@@ -94,8 +94,8 @@ deque<pair<int64_t, CInv> > vRelayExpiration; // ÖĞ¼Ìµ½ÆÚ¶ÓÁĞ <¹ıÆÚÊ±¼ä£¬ÏûÏ¢¿â´
 CCriticalSection cs_mapRelay; // ÖĞ¼ÌÓ³ÉäÁĞ±íËø
 limitedmap<CInv, int64_t> mapAlreadyAskedFor(MAX_INV_SZ);
 
-static deque<string> vOneShots; // ÒâÎ¶²»Ã÷ pending
-CCriticalSection cs_vOneShots;
+static deque<string> vOneShots; // ×Ö·û´®Ë«¶Ë¶ÓÁĞ
+CCriticalSection cs_vOneShots; // vOneShots Ëø
 
 set<CNetAddr> setservAddNodeAddresses;
 CCriticalSection cs_setservAddNodeAddresses;
@@ -115,8 +115,8 @@ CNodeSignals& GetNodeSignals() { return g_signals; } // »ñÈ¡½ÚµãĞÅºÅÈ«¾Ö¶ÔÏóµÄÒı
 
 void AddOneShot(const std::string& strDest)
 {
-    LOCK(cs_vOneShots);
-    vOneShots.push_back(strDest);
+    LOCK(cs_vOneShots); // ÉÏËø
+    vOneShots.push_back(strDest); // Ìí¼Óµ½Ë«¶Ë¶ÓÁĞ vOneShots
 }
 
 unsigned short GetListenPort()
@@ -232,7 +232,7 @@ void SetReachable(enum Network net, bool fFlag)
         vfReachable[NET_IPV4] = true; // Ôò NET_IPV4 Ò²ÉèÖÃÎª true
 }
 
-// learn a new local address // ÁË½âÒ»¸öĞÂ±¾µØµØÖ·
+// learn a new local address // ÁË½âÒ»¸öĞÂ±¾µØµØÖ·£¨¸üĞÂ±¾µØÖ÷»úÓ³ÉäÁĞ±í£©
 bool AddLocal(const CService& addr, int nScore)
 {
     if (!addr.IsRoutable())
@@ -333,10 +333,10 @@ void AddressCurrentlyConnected(const CService& addr)
 }
 
 
-uint64_t CNode::nTotalBytesRecv = 0;
-uint64_t CNode::nTotalBytesSent = 0;
-CCriticalSection CNode::cs_totalBytesRecv;
-CCriticalSection CNode::cs_totalBytesSent;
+uint64_t CNode::nTotalBytesRecv = 0; // ½ÓÊÕ×Ü×Ö½ÚÊı×î´óÖµ
+uint64_t CNode::nTotalBytesSent = 0; // ·¢ËÍ×Ü×Ö½ÚÊı×î´óÖµ
+CCriticalSection CNode::cs_totalBytesRecv; // ½ÓÊÕ×Ü×Ö½ÚÊıËø
+CCriticalSection CNode::cs_totalBytesSent; // ·¢ËÍ×Ü×Ö½ÚÊıËø
 
 uint64_t CNode::nMaxOutboundLimit = 0;
 uint64_t CNode::nMaxOutboundTotalBytesSentInCycle = 0;
@@ -2113,11 +2113,11 @@ void CNode::RecordBytesSent(uint64_t bytes)
 
 void CNode::SetMaxOutboundTarget(uint64_t limit)
 {
-    LOCK(cs_totalBytesSent);
-    uint64_t recommendedMinimum = (nMaxOutboundTimeframe / 600) * MAX_BLOCK_SIZE;
-    nMaxOutboundLimit = limit;
+    LOCK(cs_totalBytesSent); // ×Ü·¢ËÍ×Ö½ÚÉÏËø
+    uint64_t recommendedMinimum = (nMaxOutboundTimeframe / 600) * MAX_BLOCK_SIZE; // ÉèÖÃÍÆ¼öµÄ×îĞ¡Öµ
+    nMaxOutboundLimit = limit; // ÉèÖÃ×î´óÖµ
 
-    if (limit > 0 && limit < recommendedMinimum)
+    if (limit > 0 && limit < recommendedMinimum) // Èô×î´óÖµ´óÓÚ 0£¬Ôò×î´óÖµ²»ÄÜµÍÓÚ×îĞ¡Öµ
         LogPrintf("Max outbound target is very small (%s bytes) and will be overshot. Recommended minimum is %s bytes.\n", nMaxOutboundLimit, recommendedMinimum);
 }
 

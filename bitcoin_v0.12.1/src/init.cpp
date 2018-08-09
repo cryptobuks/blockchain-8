@@ -86,8 +86,8 @@ static CZMQNotificationInterface* pzmqNotificationInterface = NULL;
 #define MIN_CORE_FILEDESCRIPTORS 150 // Unix/Linux
 #endif
 
-/** Used to pass flags to the Bind() function */
-enum BindFlags {
+/** Used to pass flags to the Bind() function */ // 用于 Bind() 函数的标志
+enum BindFlags { // 绑定标志枚举
     BF_NONE         = 0,
     BF_EXPLICIT     = (1U << 0),
     BF_REPORT_ERROR = (1U << 1),
@@ -289,7 +289,7 @@ bool static Bind(const CService &addr, unsigned int flags) { // 绑定并获取状态
             return InitError(strError);
         return false;
     }
-    return true;
+    return true; // 成功返回 true
 }
 
 void OnRPCStopped()
@@ -1238,10 +1238,10 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
 
     if (mapArgs.count("-externalip")) { // 外部的 ip 地址选项
         BOOST_FOREACH(const std::string& strAddr, mapMultiArgs["-externalip"]) { // 遍历指定的外部 ip 地址
-            CService addrLocal(strAddr, GetListenPort(), fNameLookup); // pending
+            CService addrLocal(strAddr, GetListenPort(), fNameLookup); // 创建一个连接（地址和端口）对象
             if (!addrLocal.IsValid()) // 验证地址有效性
                 return InitError(strprintf(_("Cannot resolve -externalip address: '%s'"), strAddr));
-            AddLocal(CService(strAddr, GetListenPort(), fNameLookup), LOCAL_MANUAL); // 添加本地地址 pending
+            AddLocal(CService(strAddr, GetListenPort(), fNameLookup), LOCAL_MANUAL); // 添加到本地主机映射列表
         }
     }
 
@@ -1249,7 +1249,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
         AddOneShot(strDest); // 加入双端队列 vOneShots
 
 #if ENABLE_ZMQ // 7.开启 ZeroMQ 选项，一套嵌入式的网络链接库，类似于 Socket 的一系列接口
-    pzmqNotificationInterface = CZMQNotificationInterface::CreateWithArguments(mapArgs);
+    pzmqNotificationInterface = CZMQNotificationInterface::CreateWithArguments(mapArgs); // 初始化
 
     if (pzmqNotificationInterface) {
         RegisterValidationInterface(pzmqNotificationInterface); // 注册 zmq 通知接口
