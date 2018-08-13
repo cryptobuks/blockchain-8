@@ -78,7 +78,7 @@ bool CBlockTreeDB::ReadBlockFileInfo(int nFile, CBlockFileInfo &info) {
     return Read(make_pair(DB_BLOCK_FILES, nFile), info);
 }
 
-bool CBlockTreeDB::WriteReindexing(bool fReindexing) {
+bool CBlockTreeDB::WriteReindexing(bool fReindexing) { // true
     if (fReindexing)
         return Write(DB_REINDEX_FLAG, '1'); // 'R'
     else

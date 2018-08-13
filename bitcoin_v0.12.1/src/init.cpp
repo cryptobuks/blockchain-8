@@ -560,40 +560,40 @@ struct CImportingNow
 // is missing, do the same here to delete any later block files after a gap.  Also delete all
 // rev files since they'll be rewritten by the reindex anyway.  This ensures that vinfoBlockFile
 // is in sync with what's actually on disk by the time we start downloading, so that pruning
-// works correctly.
+// works correctly. // 如果我们同时使用 -prune 和 -reindex，然后删除将被再索引忽略的区块文件。因为再索引的工作原理是从区块文件 0 开始循环知道一个区块文件丢失，所以在此执行相同的操作来删除丢失文件后续的区块文件。同时删除所有恢复文件，因为它们将通过再索引重写。这确保了区块文件与我们开始下载时实际在磁盘上的内容同步，因此修剪工作正常。
 void CleanupBlockRevFiles() // 删除某个缺失区块之后的所有区块数据，和前缀为 rev 的文件
 {
     using namespace boost::filesystem;
-    map<string, path> mapBlockFiles; // <?????, path>
+    map<string, path> mapBlockFiles; // <区块文件索引（?????）, 区块文件路径（path）>
 
-    // Glob all blk?????.dat and rev?????.dat files from the blocks directory.
-    // Remove the rev files immediately and insert the blk file paths into an
-    // ordered map keyed by block file index.
+    // Glob all blk?????.dat and rev?????.dat files from the blocks directory. // 从区块目录全部区块和恢复数据文件。
+    // Remove the rev files immediately and insert the blk file paths into an // 立刻移除恢复文件并把区块文件路径
+    // ordered map keyed by block file index. // 插入一个键为区块文件索引的有序映射列表中。
     LogPrintf("Removing unusable blk?????.dat and rev?????.dat files for -reindex with -prune\n");
-    path blocksdir = GetDataDir() / "blocks";
-    for (directory_iterator it(blocksdir); it != directory_iterator(); it++) { // directory_iterator 默认构造函数，指向目录尾部
-        if (is_regular_file(*it) &&
-            it->path().filename().string().length() == 12 &&
-            it->path().filename().string().substr(8,4) == ".dat")
-        { // 文件校验（包括文件名）
-            if (it->path().filename().string().substr(0,3) == "blk")
-                mapBlockFiles[it->path().filename().string().substr(3,5)] = it->path();
-            else if (it->path().filename().string().substr(0,3) == "rev")
-                remove(it->path()); // 移除所有 rev 文件
+    path blocksdir = GetDataDir() / "blocks"; // 拼接区块数据目录
+    for (directory_iterator it(blocksdir); it != directory_iterator(); it++) { // 遍历区块目录下的文件（directory_iterator 默认构造函数，指向目录尾部）
+        if (is_regular_file(*it) && // 如果是普通文件，且
+            it->path().filename().string().length() == 12 && // 文件名的长度为 12，且
+            it->path().filename().string().substr(8,4) == ".dat") // 后 4 个字符为 ".dat"
+        { // 文件校验（包括文件名，文件格式）
+            if (it->path().filename().string().substr(0,3) == "blk") // 若为区块文件
+                mapBlockFiles[it->path().filename().string().substr(3,5)] = it->path();  // 把区块文件索引与该文件路径配对插入去快文件映射列表中
+            else if (it->path().filename().string().substr(0,3) == "rev") // 若为恢复文件
+                remove(it->path()); // 移除 rev 文件
         }
     }
 
-    // Remove all block files that aren't part of a contiguous set starting at
-    // zero by walking the ordered map (keys are block file indices) by
-    // keeping a separate counter.  Once we hit a gap (or if 0 doesn't exist)
-    // start removing block files.
+    // Remove all block files that aren't part of a contiguous set starting at // 通过维持单独的计数器，
+    // zero by walking the ordered map (keys are block file indices) by // 遍历有序映射列表（键为区块文件索引）
+    // keeping a separate counter.  Once we hit a gap (or if 0 doesn't exist) // 删除所有不属于从 0 开始的连续块文件
+    // start removing block files. // 一旦我们抵达间断的区块（或 0 不存在），则开始删除区块文件。
     int nContigCounter = 0; // 检查缺失的 blk 文件，删除缺失的 blk 后的所有 blk 文件
     BOOST_FOREACH(const PAIRTYPE(string, path)& item, mapBlockFiles) {
-        if (atoi(item.first) == nContigCounter) {
-            nContigCounter++;
-            continue;
-        }
-        remove(item.second);
+        if (atoi(item.first) == nContigCounter) { // 从 0 开始
+            nContigCounter++; // 若文件连续，计数器加 1
+            continue; // 跳过该文件，比较下一个文件
+        } // 否则
+        remove(item.second); // 从该文件开始删除后面所有的文件
     }
 }
 
@@ -1259,11 +1259,11 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
         CNode::SetMaxOutboundTarget(GetArg("-maxuploadtarget", DEFAULT_MAX_UPLOAD_TARGET)*1024*1024); // 默认为 0 表示无限制
     }
 
-    // ********************************************************* Step 7: load block chain // 加载区块链数据，区块数据目录 blocks
+    // ********************************************************* Step 7: load block chain // 加载区块链数据（区块数据目录 .bitcoin/blocks/）
 
     fReindex = GetBoolArg("-reindex", false); // 再索引标志（重新生成 rev 文件），默认关闭
 
-    // Upgrading to 0.8; hard-link the old blknnnn.dat files into /blocks/ // 升级到 0.8；硬链接旧的区块数据文件 blknnnn.dat 到 /blocks/ 目录下
+    // Upgrading to 0.8; hard-link the old blknnnn.dat files into /blocks/ // 1.升级到 0.8；硬链接旧的区块数据文件 blknnnn.dat 到 /blocks/ 目录下
     boost::filesystem::path blocksDir = GetDataDir() / "blocks"; // 兼容老版的区块格式，区块文件扩容
     if (!boost::filesystem::exists(blocksDir)) // 若该目录不存在
     {
@@ -1290,7 +1290,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
         }
     }
 
-    // cache size calculations // 缓存大小计算
+    // cache size calculations // 2.缓存大小计算
     int64_t nTotalCache = (GetArg("-dbcache", nDefaultDbCache) << 20); // 总缓存大小
     nTotalCache = std::max(nTotalCache, nMinDbCache << 20); // total cache cannot be less than nMinDbCache // 总缓存不能低于 nMinDbCache
     nTotalCache = std::min(nTotalCache, nMaxDbCache << 20); // total cache cannot be greated than nMaxDbcache // 总缓存不能高于 nMaxDbcache
@@ -1307,7 +1307,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
     LogPrintf("* Using %.1fMiB for in-memory UTXO set\n", nCoinCacheUsage * (1.0 / 1024 / 1024));
 
     bool fLoaded = false; // 加载标志，表示加载区块索引是否成功，初始为 false
-    while (!fLoaded) { // 若第一次没有加载成功，再加载一遍
+    while (!fLoaded) { // 3.若第一次没有加载成功，再加载一遍
         bool fReset = fReindex;
         std::string strLoadError;
 
@@ -1328,9 +1328,9 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
                 pcoinsTip = new CCoinsViewCache(pcoinscatcher);
 
                 if (fReindex) { // 默认 false
-                    pblocktree->WriteReindexing(true); // 写入再索引，区块数据库 leveldb
+                    pblocktree->WriteReindexing(true); // 写入再索引标志为 true（区块数据库 leveldb）
                     //If we're reindexing in prune mode, wipe away unusable block files and all undo data files
-                    if (fPruneMode) // 如果我们在修剪模式（修剪已确认的区块）中再索引，
+                    if (fPruneMode) // 如果我们在修剪模式（修剪已确认的区块）下进行再索引，
                         CleanupBlockRevFiles(); // 清空无用的块文件（blk）和所有恢复数据文件（rev）
                 }
 
@@ -1395,8 +1395,8 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
         } while(false);
 
         if (!fLoaded) { // 若加载失败
-            // first suggest a reindex
-            if (!fReset) { // =fReindex 首次建议再索引
+            // first suggest a reindex // 首次建议再索引
+            if (!fReset) { // =fReindex
                 bool fRet = uiInterface.ThreadSafeMessageBox(
                     strLoadError + ".\n\n" + _("Do you want to rebuild the block database now?"),
                     "", CClientUIInterface::MSG_ERROR | CClientUIInterface::BTN_ABORT); // 弹出交互框，针对 qt

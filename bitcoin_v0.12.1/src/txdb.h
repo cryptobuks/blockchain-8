@@ -41,8 +41,8 @@ public:
     bool GetStats(CCoinsStats &stats) const;
 };
 
-/** Access to the block database (blocks/index/) */
-class CBlockTreeDB : public CDBWrapper // 读写目录 blocks/index/ 下的文件
+/** Access to the block database (blocks/index/) */ // 访问区块数据库（/blocks/index）
+class CBlockTreeDB : public CDBWrapper
 {
 public:
     CBlockTreeDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false);
@@ -53,7 +53,7 @@ public:
     bool WriteBatchSync(const std::vector<std::pair<int, const CBlockFileInfo*> >& fileInfo, int nLastFile, const std::vector<const CBlockIndex*>& blockinfo);
     bool ReadBlockFileInfo(int nFile, CBlockFileInfo &fileinfo);
     bool ReadLastBlockFile(int &nFile);
-    bool WriteReindexing(bool fReindex);
+    bool WriteReindexing(bool fReindex); // 写入再索引标志
     bool ReadReindexing(bool &fReindex);
     bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
     bool WriteTxIndex(const std::vector<std::pair<uint256, CDiskTxPos> > &list);

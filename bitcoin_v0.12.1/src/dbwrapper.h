@@ -132,7 +132,7 @@ public:
 
 };
 
-class CDBWrapper
+class CDBWrapper // （区块）数据库包装器 leveldb
 {
 private:
     //! custom environment this database is using (may be NULL in case of default environment)

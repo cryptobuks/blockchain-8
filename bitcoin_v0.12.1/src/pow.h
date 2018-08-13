@@ -20,7 +20,7 @@ unsigned int CalculateNextWorkRequired(const CBlockIndex* pindexLast, int64_t nF
 
 /** Check whether a block hash satisfies the proof-of-work requirement specified by nBits */ // 检查一个区块哈希是否满足特定难度的工作量证明
 bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params&);
-arith_uint256 GetBlockProof(const CBlockIndex& block);
+arith_uint256 GetBlockProof(const CBlockIndex& block); // 计算某区块的工作量证明
 
 /** Return the time it would take to redo the work difference between from and to, assuming the current hashrate corresponds to the difficulty at tip, in seconds. */
 int64_t GetBlockProofEquivalentTime(const CBlockIndex& to, const CBlockIndex& from, const CBlockIndex& tip, const Consensus::Params&);

@@ -103,31 +103,31 @@ CScript COINBASE_FLAGS;
 
 const string strMessageMagic = "Bitcoin Signed Message:\n"; // 字符串类型的消息魔术头
 
-// Internal stuff
+// Internal stuff // 内部事务
 namespace {
 
-    struct CBlockIndexWorkComparator
+    struct CBlockIndexWorkComparator // 区块索引工作量比较器（函数对象）
     {
         bool operator()(CBlockIndex *pa, CBlockIndex *pb) const {
-            // First sort by most total work, ...
+            // First sort by most total work, ... // 首先通过总工作量排序
             if (pa->nChainWork > pb->nChainWork) return false;
             if (pa->nChainWork < pb->nChainWork) return true;
 
-            // ... then by earliest time received, ...
+            // ... then by earliest time received, ... // 然后通过最早的接收时间排序
             if (pa->nSequenceId < pb->nSequenceId) return false;
             if (pa->nSequenceId > pb->nSequenceId) return true;
 
-            // Use pointer address as tie breaker (should only happen with blocks
-            // loaded from disk, as those all have id 0).
+            // Use pointer address as tie breaker (should only happen with blocks // 最后使用索引指针地址排序
+            // loaded from disk, as those all have id 0). // （应该只发生在从磁盘加载区块时，因为它们的 id 全为 0）
             if (pa < pb) return false;
             if (pa > pb) return true;
 
-            // Identical blocks.
-            return false;
+            // Identical blocks. // 相同的区块。
+            return false; // 返回 false
         }
     };
 
-    CBlockIndex *pindexBestInvalid;
+    CBlockIndex *pindexBestInvalid; // 最佳无效区块索引
 
     /**
      * The set of all CBlockIndex entries with BLOCK_VALID_TRANSACTIONS (for itself and all ancestors) and
@@ -139,11 +139,11 @@ namespace {
     int nSyncStarted = 0; // 节点的数量
     /** All pairs A->B, where A (or one of its ancestors) misses transactions, but B has transactions.
      * Pruned nodes may have entries where B is missing data.
-     */
+     */ // 全部的对 A->B，其中 A（或其祖先块）丢失了交易，但 B 有交易。修剪的节点可能具有 B 区块丢失的数据的条目。
     multimap<CBlockIndex*, CBlockIndex*> mapBlocksUnlinked;
 
     CCriticalSection cs_LastBlockFile;
-    std::vector<CBlockFileInfo> vinfoBlockFile;
+    std::vector<CBlockFileInfo> vinfoBlockFile; // 区块文件信息列表
     int nLastBlockFile = 0;
     /** Global flag to indicate we should check to see if there are
      *  block/undo files that should be deleted.  Set on startup
@@ -594,12 +594,12 @@ CBlockIndex* FindForkInGlobalIndex(const CChain& chain, const CBlockLocator& loc
 }
 
 CCoinsViewCache *pcoinsTip = NULL;
-CBlockTreeDB *pblocktree = NULL;
+CBlockTreeDB *pblocktree = NULL; // 区块树数据库指针
 
 //////////////////////////////////////////////////////////////////////////////
 //
 // mapOrphanTransactions
-//
+// // 孤儿交易映射列表
 
 bool AddOrphanTx(const CTransaction& tx, NodeId peer) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
@@ -3721,50 +3721,50 @@ CBlockIndex * InsertBlockIndex(uint256 hash)
 
 bool static LoadBlockIndexDB()
 {
-    const CChainParams& chainparams = Params(); // 获取网络参数
+    const CChainParams& chainparams = Params(); // 获取网络链参数
     if (!pblocktree->LoadBlockIndexGuts())
         return false;
 
-    boost::this_thread::interruption_point(); // 断点
+    boost::this_thread::interruption_point(); // 打个断点
 
-    // Calculate nChainWork
-    vector<pair<int, CBlockIndex*> > vSortedByHeight;
-    vSortedByHeight.reserve(mapBlockIndex.size());
-    BOOST_FOREACH(const PAIRTYPE(uint256, CBlockIndex*)& item, mapBlockIndex)
+    // Calculate nChainWork // 计算链工作量
+    vector<pair<int, CBlockIndex*> > vSortedByHeight; // 通过高度排序的有序区块高度索引映射列表
+    vSortedByHeight.reserve(mapBlockIndex.size()); // 预开辟与区块索引映射列表等大的空间
+    BOOST_FOREACH(const PAIRTYPE(uint256, CBlockIndex*)& item, mapBlockIndex) // 遍历区块索引映射列表
     {
-        CBlockIndex* pindex = item.second;
-        vSortedByHeight.push_back(make_pair(pindex->nHeight, pindex));
+        CBlockIndex* pindex = item.second; // 获取区块索引
+        vSortedByHeight.push_back(make_pair(pindex->nHeight, pindex)); // 与区块高度配对加入待排序列表
     }
-    sort(vSortedByHeight.begin(), vSortedByHeight.end());
-    BOOST_FOREACH(const PAIRTYPE(int, CBlockIndex*)& item, vSortedByHeight)
+    sort(vSortedByHeight.begin(), vSortedByHeight.end()); // 按高度排序
+    BOOST_FOREACH(const PAIRTYPE(int, CBlockIndex*)& item, vSortedByHeight) // 遍历有序的区块索引映射列表
     {
-        CBlockIndex* pindex = item.second;
-        pindex->nChainWork = (pindex->pprev ? pindex->pprev->nChainWork : 0) + GetBlockProof(*pindex);
-        // We can link the chain of blocks for which we've received transactions at some point.
-        // Pruned nodes may have deleted the block.
-        if (pindex->nTx > 0) {
+        CBlockIndex* pindex = item.second; // 获取区块索引
+        pindex->nChainWork = (pindex->pprev ? pindex->pprev->nChainWork : 0) + GetBlockProof(*pindex); // 若该区块的前一个区块存在，则获取前一个区块的链工作量，再加上该区块的工作量证明
+        // We can link the chain of blocks for which we've received transactions at some point. // 我们可以连接到区块链用于接收某些节点的交易。
+        // Pruned nodes may have deleted the block. // 修剪节点可能会删除区块。
+        if (pindex->nTx > 0) { // 若该区块的交易数大于 0
             if (pindex->pprev) {
-                if (pindex->pprev->nChainTx) {
-                    pindex->nChainTx = pindex->pprev->nChainTx + pindex->nTx;
-                } else {
-                    pindex->nChainTx = 0;
-                    mapBlocksUnlinked.insert(std::make_pair(pindex->pprev, pindex));
+                if (pindex->pprev->nChainTx) { // 如果前一个区块存在链交易
+                    pindex->nChainTx = pindex->pprev->nChainTx + pindex->nTx; // 用前一个区块的链交易 + 该区块的交易 得到该区块的链交易
+                } else { // 否则
+                    pindex->nChainTx = 0; // 该区块的链交易为 0
+                    mapBlocksUnlinked.insert(std::make_pair(pindex->pprev, pindex)); // 与前一个区块的索引配对插入未连接的区块映射列表
                 }
-            } else {
-                pindex->nChainTx = pindex->nTx;
+            } else { // 否则
+                pindex->nChainTx = pindex->nTx; // 区块的链交易数等于区块的交易数
             }
         }
-        if (pindex->IsValid(BLOCK_VALID_TRANSACTIONS) && (pindex->nChainTx || pindex->pprev == NULL))
-            setBlockIndexCandidates.insert(pindex);
-        if (pindex->nStatus & BLOCK_FAILED_MASK && (!pindexBestInvalid || pindex->nChainWork > pindexBestInvalid->nChainWork))
-            pindexBestInvalid = pindex;
-        if (pindex->pprev)
+        if (pindex->IsValid(BLOCK_VALID_TRANSACTIONS) && (pindex->nChainTx || pindex->pprev == NULL)) // 若该区块交易有效，且有链交易，或前一个区块不存在
+            setBlockIndexCandidates.insert(pindex); // 插入区块索引候选集
+        if (pindex->nStatus & BLOCK_FAILED_MASK && (!pindexBestInvalid || pindex->nChainWork > pindexBestInvalid->nChainWork)) // 
+            pindexBestInvalid = pindex; // 该区块为最佳无效区块
+        if (pindex->pprev) // 若前一个区块存在
             pindex->BuildSkip();
         if (pindex->IsValid(BLOCK_VALID_TREE) && (pindexBestHeader == NULL || CBlockIndexWorkComparator()(pindexBestHeader, pindex)))
-            pindexBestHeader = pindex;
+            pindexBestHeader = pindex; // 该区块索引为最佳区块头索引
     }
 
-    // Load block file info
+    // Load block file info // 加载区块文件信息
     pblocktree->ReadLastBlockFile(nLastBlockFile);
     vinfoBlockFile.resize(nLastBlockFile + 1);
     LogPrintf("%s: last block file = %i\n", __func__, nLastBlockFile);
@@ -3781,7 +3781,7 @@ bool static LoadBlockIndexDB()
         }
     }
 
-    // Check presence of blk files
+    // Check presence of blk files // 检查区块文件是否存在
     LogPrintf("Checking all blk files are present...\n");
     set<int> setBlkDataFiles;
     BOOST_FOREACH(const PAIRTYPE(uint256, CBlockIndex*)& item, mapBlockIndex)
@@ -3799,21 +3799,21 @@ bool static LoadBlockIndexDB()
         }
     }
 
-    // Check whether we have ever pruned block & undo files
+    // Check whether we have ever pruned block & undo files // 检查我们是否曾修剪过区块和恢复文件
     pblocktree->ReadFlag("prunedblockfiles", fHavePruned);
     if (fHavePruned)
         LogPrintf("LoadBlockIndexDB(): Block files have previously been pruned\n");
 
-    // Check whether we need to continue reindexing
+    // Check whether we need to continue reindexing // 检查我们是否需要继续再索引
     bool fReindexing = false;
     pblocktree->ReadReindexing(fReindexing);
     fReindex |= fReindexing;
 
-    // Check whether we have a transaction index
+    // Check whether we have a transaction index // 检查我们是否有交易索引
     pblocktree->ReadFlag("txindex", fTxIndex);
     LogPrintf("%s: transaction index %s\n", __func__, fTxIndex ? "enabled" : "disabled");
 
-    // Load pointer to end of best chain
+    // Load pointer to end of best chain // 加载指向最佳链尾部的指针
     BlockMap::iterator it = mapBlockIndex.find(pcoinsTip->GetBestBlock());
     if (it == mapBlockIndex.end())
         return true;
@@ -3826,7 +3826,7 @@ bool static LoadBlockIndexDB()
         DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()),
         Checkpoints::GuessVerificationProgress(chainparams.Checkpoints(), chainActive.Tip()));
 
-    return true;
+    return true; // 加载成功返回 true
 }
 
 CVerifyDB::CVerifyDB()
@@ -3953,10 +3953,10 @@ void UnloadBlockIndex()
 
 bool LoadBlockIndex()
 {
-    // Load block index from databases
-    if (!fReindex && !LoadBlockIndexDB()) // 若 fReindex 没有设置，则加载区块索引数据库，否则不加载，在后面会重新索引
+    // Load block index from databases // 从数据库加载区块索引
+    if (!fReindex && !LoadBlockIndexDB()) // 若未开启再索引，则加载区块索引数据库，否则不加载，在后面会重新索引
         return false;
-    return true;
+    return true; // 加载成功返回 true
 }
 
 bool InitBlockIndex(const CChainParams& chainparams) 

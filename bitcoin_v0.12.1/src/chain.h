@@ -136,15 +136,15 @@ public:
     //! Verification status of this block. See enum BlockStatus
     unsigned int nStatus; // 该区块的验证状态
 
-    //! block header
-    int nVersion;
-    uint256 hashMerkleRoot;
-    unsigned int nTime;
-    unsigned int nBits;
-    unsigned int nNonce;
+    //! block header // 区块头
+    int nVersion; // 版本号
+    uint256 hashMerkleRoot; // 默尔克树根哈希值
+    unsigned int nTime; // 生成时间
+    unsigned int nBits; // 难度
+    unsigned int nNonce; // 随机数
 
     //! (memory only) Sequential id assigned to distinguish order in which blocks are received.
-    uint32_t nSequenceId;
+    uint32_t nSequenceId; // （仅在内存中）分配有序的 id 来区分接收区块的顺序。
 
     void SetNull()
     {
@@ -273,7 +273,7 @@ public:
     }
 
     //! Build the skiplist pointer for this entry.
-    void BuildSkip();
+    void BuildSkip(); // 为该条目构建跳表指针。
 
     //! Efficiently find an ancestor of this block.
     CBlockIndex* GetAncestor(int height); // 有效找到该块的祖先

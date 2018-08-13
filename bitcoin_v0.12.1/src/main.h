@@ -209,7 +209,7 @@ bool LoadExternalBlockFile(const CChainParams& chainparams, FILE* fileIn, CDiskB
 /** Initialize a new block tree database + block data on disk */
 bool InitBlockIndex(const CChainParams& chainparams);
 /** Load the block tree and coins database from disk */
-bool LoadBlockIndex();
+bool LoadBlockIndex(); // 从磁盘加载区块树和币的数据库
 /** Unload database information */
 void UnloadBlockIndex(); // 卸载加载到内存中的数据库信息
 /** Process protocol messages received from a given node */
