@@ -51,10 +51,10 @@ private:
     void operator=(const CBlockTreeDB&);
 public:
     bool WriteBatchSync(const std::vector<std::pair<int, const CBlockFileInfo*> >& fileInfo, int nLastFile, const std::vector<const CBlockIndex*>& blockinfo);
-    bool ReadBlockFileInfo(int nFile, CBlockFileInfo &fileinfo);
-    bool ReadLastBlockFile(int &nFile);
+    bool ReadBlockFileInfo(int nFile, CBlockFileInfo &fileinfo); // 读区块文件信息
+    bool ReadLastBlockFile(int &nFile); // 读取最后的区块文件
     bool WriteReindexing(bool fReindex); // 写入再索引标志
-    bool ReadReindexing(bool &fReindex);
+    bool ReadReindexing(bool &fReindex); // 读取再索引标志
     bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
     bool WriteTxIndex(const std::vector<std::pair<uint256, CDiskTxPos> > &list);
     bool WriteFlag(const std::string &name, bool fValue);

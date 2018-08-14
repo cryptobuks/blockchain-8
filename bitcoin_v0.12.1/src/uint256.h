@@ -109,7 +109,7 @@ public:
  * @note This type is called uint256 for historical reasons only. It is an
  * opaque blob of 256 bits and has no integer operations. Use arith_uint256 if
  * those are required.
- */
+ */ // 256 位的不透明 blob。
 class uint256 : public base_blob<256> {
 public:
     uint256() {}

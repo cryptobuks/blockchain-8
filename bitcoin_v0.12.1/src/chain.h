@@ -61,8 +61,8 @@ enum BlockStatus { // 区块状态枚举
     //! Parsed, version ok, hash satisfies claimed PoW, 1 <= vtx count <= max, timestamp not in future
     BLOCK_VALID_HEADER       =    1, // 解析过的，版本正确，哈希满足工作量证明，交易数(1, max)，时间戳在过去
 
-    //! All parent headers found, difficulty matches, timestamp >= median previous, checkpoint. Implies all parents
-    //! are also at least TREE.
+    //! All parent headers found, difficulty matches, timestamp >= median previous, checkpoint. Implies all parents // 全部双亲均有头，难度匹配，时间戳大于等于前一个区块，检测点。
+    //! are also at least TREE. // 表明全部双亲至少也是树。
     BLOCK_VALID_TREE         =    2,
 
     /**
@@ -258,8 +258,8 @@ public:
         return ((nStatus & BLOCK_VALID_MASK) >= nUpTo);
     }
 
-    //! Raise the validity level of this block index entry.
-    //! Returns true if the validity was changed.
+    //! Raise the validity level of this block index entry. // 提升该区块索引条目的有效级别。
+    //! Returns true if the validity was changed. // 如果有效性改变则返回 true。
     bool RaiseValidity(enum BlockStatus nUpTo)
     {
         assert(!(nUpTo & ~BLOCK_VALID_MASK)); // Only validity flags allowed.
@@ -280,7 +280,7 @@ public:
     const CBlockIndex* GetAncestor(int height) const;
 };
 
-/** Used to marshal pointers into hashes for db storage. */
+/** Used to marshal pointers into hashes for db storage. */ // 用于把指针编组为数据库存储的哈希值
 class CDiskBlockIndex : public CBlockIndex
 {
 public:
@@ -311,7 +311,7 @@ public:
         if (nStatus & BLOCK_HAVE_UNDO)
             READWRITE(VARINT(nUndoPos));
 
-        // block header
+        // block header // 区块头
         READWRITE(this->nVersion);
         READWRITE(hashPrev);
         READWRITE(hashMerkleRoot);
@@ -392,7 +392,7 @@ public:
     }
 
     /** Set/initialize a chain with a given tip. */
-    void SetTip(CBlockIndex *pindex);
+    void SetTip(CBlockIndex *pindex); // 使用给定链尖设置/初始化一个链
 
     /** Return a CBlockLocator that refers to a block in this chain (by default the tip). */
     CBlockLocator GetLocator(const CBlockIndex *pindex = NULL) const; // 返回一个链上区块的 CBlockLocator，通常为链尖

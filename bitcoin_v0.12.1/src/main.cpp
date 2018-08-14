@@ -144,11 +144,11 @@ namespace {
 
     CCriticalSection cs_LastBlockFile;
     std::vector<CBlockFileInfo> vinfoBlockFile; // 区块文件信息列表
-    int nLastBlockFile = 0;
+    int nLastBlockFile = 0; // 最后一个文件号
     /** Global flag to indicate we should check to see if there are
      *  block/undo files that should be deleted.  Set on startup
      *  or if we allocate more file space when we're in prune mode
-     */
+     */ // 全局标志，表示我们应检查是否存在应删除的区块/恢复文件。在启动时设置，或处于修剪模式时分配更多的文件空间。
     bool fCheckForPruning = false;
 
     /**
@@ -201,10 +201,10 @@ namespace {
     int nPreferredDownload = 0; // 优先去快下载的对端数
 
     /** Dirty block index entries. */
-    set<CBlockIndex*> setDirtyBlockIndex; // 无效区块索引条目集合
+    set<CBlockIndex*> setDirtyBlockIndex; // 脏掉的区块索引条目集合
 
     /** Dirty block file entries. */
-    set<int> setDirtyFileInfo; // 无效区块文件条目
+    set<int> setDirtyFileInfo; //  脏掉的区块文件条目
 
     /** Number of peers from which we're downloading blocks. */
     int nPeersWithValidatedDownloads = 0; // 我们正在下载区块的对端数
@@ -2793,15 +2793,15 @@ static CBlockIndex* FindMostWorkChain() {
 }
 
 /** Delete all entries in setBlockIndexCandidates that are worse than the current tip. */
-static void PruneBlockIndexCandidates() {
+static void PruneBlockIndexCandidates() { // 删除区块索引候选集合中币当前链尖差的全部条目。
     // Note that we can't delete the current block itself, as we may need to return to it later in case a
-    // reorganization to a better block fails.
+    // reorganization to a better block fails. // 注：我们不删除当前区块本身，因为我们可能需要稍后返回它以防重组更好的区块失败。
     std::set<CBlockIndex*, CBlockIndexWorkComparator>::iterator it = setBlockIndexCandidates.begin();
-    while (it != setBlockIndexCandidates.end() && setBlockIndexCandidates.value_comp()(*it, chainActive.Tip())) {
-        setBlockIndexCandidates.erase(it++);
+    while (it != setBlockIndexCandidates.end() && setBlockIndexCandidates.value_comp()(*it, chainActive.Tip())) { // 遍历区块候选集合
+        setBlockIndexCandidates.erase(it++); // 移除每个候选元素
     }
     // Either the current tip or a successor of it we're working towards is left in setBlockIndexCandidates.
-    assert(!setBlockIndexCandidates.empty());
+    assert(!setBlockIndexCandidates.empty()); // 我们正努力把当前链尖和其后继留在区块索引候选集合中。
 }
 
 /**
@@ -3037,68 +3037,68 @@ bool ReconsiderBlock(CValidationState& state, CBlockIndex *pindex) {
 
 CBlockIndex* AddToBlockIndex(const CBlockHeader& block)
 {
-    // Check for duplicate
-    uint256 hash = block.GetHash();
-    BlockMap::iterator it = mapBlockIndex.find(hash);
-    if (it != mapBlockIndex.end())
-        return it->second;
+    // Check for duplicate // 查重
+    uint256 hash = block.GetHash(); // 获取区块哈希
+    BlockMap::iterator it = mapBlockIndex.find(hash); // 从区块索引映射列表中查找
+    if (it != mapBlockIndex.end()) // 若找到（已存在）
+        return it->second; // 直接返回该区块索引
 
-    // Construct new block index object
+    // Construct new block index object // 构造新的区块索引对象
     CBlockIndex* pindexNew = new CBlockIndex(block);
     assert(pindexNew);
-    // We assign the sequence id to blocks only when the full data is available,
-    // to avoid miners withholding blocks but broadcasting headers, to get a
-    // competitive advantage.
+    // We assign the sequence id to blocks only when the full data is available, // 我们只在完整数据可用时给区块分配序列号
+    // to avoid miners withholding blocks but broadcasting headers, to get a // 避免矿工扣留块只广播区块头，
+    // competitive advantage. // 以获取竞争优势。
     pindexNew->nSequenceId = 0;
-    BlockMap::iterator mi = mapBlockIndex.insert(make_pair(hash, pindexNew)).first;
-    pindexNew->phashBlock = &((*mi).first);
-    BlockMap::iterator miPrev = mapBlockIndex.find(block.hashPrevBlock);
-    if (miPrev != mapBlockIndex.end())
+    BlockMap::iterator mi = mapBlockIndex.insert(make_pair(hash, pindexNew)).first; // 插入区块索引映射列表并获取并获取其迭代器
+    pindexNew->phashBlock = &((*mi).first); // 获取区块哈希
+    BlockMap::iterator miPrev = mapBlockIndex.find(block.hashPrevBlock); // 在区块索引映射列表中查找前一个区块
+    if (miPrev != mapBlockIndex.end()) // 若找到
     {
-        pindexNew->pprev = (*miPrev).second;
-        pindexNew->nHeight = pindexNew->pprev->nHeight + 1;
-        pindexNew->BuildSkip();
+        pindexNew->pprev = (*miPrev).second; // 获取其索引作为当前区块的前一个区块
+        pindexNew->nHeight = pindexNew->pprev->nHeight + 1; // 计算当前区块的高度（前一区块高度加 1）
+        pindexNew->BuildSkip(); // 构建跳表
     }
-    pindexNew->nChainWork = (pindexNew->pprev ? pindexNew->pprev->nChainWork : 0) + GetBlockProof(*pindexNew);
-    pindexNew->RaiseValidity(BLOCK_VALID_TREE);
-    if (pindexBestHeader == NULL || pindexBestHeader->nChainWork < pindexNew->nChainWork)
-        pindexBestHeader = pindexNew;
+    pindexNew->nChainWork = (pindexNew->pprev ? pindexNew->pprev->nChainWork : 0) + GetBlockProof(*pindexNew); // 计算当前区块的链工作量
+    pindexNew->RaiseValidity(BLOCK_VALID_TREE); // 提升该区块索引的有效等级
+    if (pindexBestHeader == NULL || pindexBestHeader->nChainWork < pindexNew->nChainWork) // 最佳区块头索引为空，或最佳区块链工作量小于当前区块
+        pindexBestHeader = pindexNew; // 当前区块成为新的最佳区块头
 
-    setDirtyBlockIndex.insert(pindexNew);
+    setDirtyBlockIndex.insert(pindexNew); // 插入脏掉的区块索引集合
 
-    return pindexNew;
+    return pindexNew; // 返回新区块的索引
 }
 
-/** Mark a block as having its data received and checked (up to BLOCK_VALID_TRANSACTIONS). */ // 标记一个区块为已接收和检查（）
+/** Mark a block as having its data received and checked (up to BLOCK_VALID_TRANSACTIONS). */ // 标记一个区块其数据为已接收和检查（直到 BLOCK_VALID_TRANSACTIONS）
 bool ReceivedBlockTransactions(const CBlock &block, CValidationState& state, CBlockIndex *pindexNew, const CDiskBlockPos& pos)
 {
-    pindexNew->nTx = block.vtx.size();
+    pindexNew->nTx = block.vtx.size(); // 获取交易数
     pindexNew->nChainTx = 0;
-    pindexNew->nFile = pos.nFile;
-    pindexNew->nDataPos = pos.nPos;
+    pindexNew->nFile = pos.nFile; // 所在区块文件号
+    pindexNew->nDataPos = pos.nPos; // 所在文件中的位移
     pindexNew->nUndoPos = 0;
-    pindexNew->nStatus |= BLOCK_HAVE_DATA;
-    pindexNew->RaiseValidity(BLOCK_VALID_TRANSACTIONS);
-    setDirtyBlockIndex.insert(pindexNew);
+    pindexNew->nStatus |= BLOCK_HAVE_DATA; // 区块状态
+    pindexNew->RaiseValidity(BLOCK_VALID_TRANSACTIONS); // 提升区块索引的有效性
+    setDirtyBlockIndex.insert(pindexNew); // 插入脏的区块索引集合
 
-    if (pindexNew->pprev == NULL || pindexNew->pprev->nChainTx) {
-        // If pindexNew is the genesis block or all parents are BLOCK_VALID_TRANSACTIONS.
-        deque<CBlockIndex*> queue;
-        queue.push_back(pindexNew);
+    if (pindexNew->pprev == NULL || pindexNew->pprev->nChainTx) { // 若区块前一个区块为空，或前一个区块的链交易非 0
+        // If pindexNew is the genesis block or all parents are BLOCK_VALID_TRANSACTIONS. // pindexNew 是创世区块，或其全部双亲为 BLOCK_VALID_TRANSACTIONS
+        deque<CBlockIndex*> queue; // 区块索引双端队列
+        queue.push_back(pindexNew); // 加入索引队列
 
-        // Recursively process any descendant blocks that now may be eligible to be connected.
-        while (!queue.empty()) {
-            CBlockIndex *pindex = queue.front();
-            queue.pop_front();
-            pindex->nChainTx = (pindex->pprev ? pindex->pprev->nChainTx : 0) + pindex->nTx;
+        // Recursively process any descendant blocks that now may be eligible to be connected. // 递归处理现在有资格连接的任何后代区块。
+        while (!queue.empty()) { // 当队列非空时
+            CBlockIndex *pindex = queue.front(); // 获取队头区块索引
+            queue.pop_front(); // 队头索引出队
+            pindex->nChainTx = (pindex->pprev ? pindex->pprev->nChainTx : 0) + pindex->nTx; // 计算该区块的链交易
             {
                 LOCK(cs_nBlockSequenceId);
-                pindex->nSequenceId = nBlockSequenceId++;
+                pindex->nSequenceId = nBlockSequenceId++; // 区块序列号
             }
-            if (chainActive.Tip() == NULL || !setBlockIndexCandidates.value_comp()(pindex, chainActive.Tip())) {
-                setBlockIndexCandidates.insert(pindex);
+            if (chainActive.Tip() == NULL || !setBlockIndexCandidates.value_comp()(pindex, chainActive.Tip())) { // 若激活的链尖为空，或当前区块非激活链尖
+                setBlockIndexCandidates.insert(pindex); // 插入区块索引候选集
             }
-            std::pair<std::multimap<CBlockIndex*, CBlockIndex*>::iterator, std::multimap<CBlockIndex*, CBlockIndex*>::iterator> range = mapBlocksUnlinked.equal_range(pindex);
+            std::pair<std::multimap<CBlockIndex*, CBlockIndex*>::iterator, std::multimap<CBlockIndex*, CBlockIndex*>::iterator> range = mapBlocksUnlinked.equal_range(pindex); // 
             while (range.first != range.second) {
                 std::multimap<CBlockIndex*, CBlockIndex*>::iterator it = range.first;
                 queue.push_back(it->second);
@@ -3106,13 +3106,13 @@ bool ReceivedBlockTransactions(const CBlock &block, CValidationState& state, CBl
                 mapBlocksUnlinked.erase(it);
             }
         }
-    } else {
-        if (pindexNew->pprev && pindexNew->pprev->IsValid(BLOCK_VALID_TREE)) {
-            mapBlocksUnlinked.insert(std::make_pair(pindexNew->pprev, pindexNew));
+    } else { // 否则
+        if (pindexNew->pprev && pindexNew->pprev->IsValid(BLOCK_VALID_TREE)) { // 如果前一个区块存在，且前一个区块状态为 BLOCK_VALID_TREE
+            mapBlocksUnlinked.insert(std::make_pair(pindexNew->pprev, pindexNew)); // 则与前一个区块索引配对插入区块未连接映射列表中
         }
     }
 
-    return true;
+    return true; // 成功返回 true
 }
 
 bool FindBlockPos(CValidationState &state, CDiskBlockPos &pos, unsigned int nAddSize, unsigned int nHeight, uint64_t nTime, bool fKnown = false)
@@ -3704,25 +3704,25 @@ CBlockIndex * InsertBlockIndex(uint256 hash)
     if (hash.IsNull()) // 哈希非空
         return NULL;
 
-    // Return existing
-    BlockMap::iterator mi = mapBlockIndex.find(hash);
+    // Return existing // 返回已存在的
+    BlockMap::iterator mi = mapBlockIndex.find(hash); // 在区块索引映射列表中查找
     if (mi != mapBlockIndex.end()) // 若存在该哈希的索引
-        return (*mi).second; // 直接返回
+        return (*mi).second; // 直接返回对应的区块索引
 
-    // Create new
-    CBlockIndex* pindexNew = new CBlockIndex();
+    // Create new // 创建新的
+    CBlockIndex* pindexNew = new CBlockIndex(); // 新建区块索引对象
     if (!pindexNew)
         throw runtime_error("LoadBlockIndex(): new CBlockIndex failed");
-    mi = mapBlockIndex.insert(make_pair(hash, pindexNew)).first;
-    pindexNew->phashBlock = &((*mi).first);
+    mi = mapBlockIndex.insert(make_pair(hash, pindexNew)).first; // 与区块哈希配对后插入区块索引映射列表，并获取对应位置的迭代器
+    pindexNew->phashBlock = &((*mi).first); // 获取其哈希值
 
-    return pindexNew;
+    return pindexNew; // 返回新的区块索引
 }
 
 bool static LoadBlockIndexDB()
 {
     const CChainParams& chainparams = Params(); // 获取网络链参数
-    if (!pblocktree->LoadBlockIndexGuts())
+    if (!pblocktree->LoadBlockIndexGuts()) // 区块树加载区块索引框架
         return false;
 
     boost::this_thread::interruption_point(); // 打个断点
@@ -3756,7 +3756,7 @@ bool static LoadBlockIndexDB()
         }
         if (pindex->IsValid(BLOCK_VALID_TRANSACTIONS) && (pindex->nChainTx || pindex->pprev == NULL)) // 若该区块交易有效，且有链交易，或前一个区块不存在
             setBlockIndexCandidates.insert(pindex); // 插入区块索引候选集
-        if (pindex->nStatus & BLOCK_FAILED_MASK && (!pindexBestInvalid || pindex->nChainWork > pindexBestInvalid->nChainWork)) // 
+        if (pindex->nStatus & BLOCK_FAILED_MASK && (!pindexBestInvalid || pindex->nChainWork > pindexBestInvalid->nChainWork)) // 若区块状态为 BLOCK_FAILED_MASK，且最佳无效区块为空，或链工作大于最佳无效区块
             pindexBestInvalid = pindex; // 该区块为最佳无效区块
         if (pindex->pprev) // 若前一个区块存在
             pindex->BuildSkip();
@@ -3765,61 +3765,61 @@ bool static LoadBlockIndexDB()
     }
 
     // Load block file info // 加载区块文件信息
-    pblocktree->ReadLastBlockFile(nLastBlockFile);
-    vinfoBlockFile.resize(nLastBlockFile + 1);
+    pblocktree->ReadLastBlockFile(nLastBlockFile); // 读取最后一个区块文件
+    vinfoBlockFile.resize(nLastBlockFile + 1); // 预开辟相同的空间
     LogPrintf("%s: last block file = %i\n", __func__, nLastBlockFile);
-    for (int nFile = 0; nFile <= nLastBlockFile; nFile++) {
-        pblocktree->ReadBlockFileInfo(nFile, vinfoBlockFile[nFile]);
+    for (int nFile = 0; nFile <= nLastBlockFile; nFile++) { // 遍历区块文件
+        pblocktree->ReadBlockFileInfo(nFile, vinfoBlockFile[nFile]); // 读区块文件信息
     }
     LogPrintf("%s: last block file info: %s\n", __func__, vinfoBlockFile[nLastBlockFile].ToString());
-    for (int nFile = nLastBlockFile + 1; true; nFile++) {
+    for (int nFile = nLastBlockFile + 1; true; nFile++) { // 从最后一个文件号加 1 开始
         CBlockFileInfo info;
-        if (pblocktree->ReadBlockFileInfo(nFile, info)) {
-            vinfoBlockFile.push_back(info);
-        } else {
-            break;
+        if (pblocktree->ReadBlockFileInfo(nFile, info)) { // 读取
+            vinfoBlockFile.push_back(info); // 并加入区块文件信息列表
+        } else { // 若读取失败（文件不存在）
+            break; // 跳出
         }
     }
 
     // Check presence of blk files // 检查区块文件是否存在
     LogPrintf("Checking all blk files are present...\n");
-    set<int> setBlkDataFiles;
-    BOOST_FOREACH(const PAIRTYPE(uint256, CBlockIndex*)& item, mapBlockIndex)
+    set<int> setBlkDataFiles; // 用于保存所有区块数据文件的序号
+    BOOST_FOREACH(const PAIRTYPE(uint256, CBlockIndex*)& item, mapBlockIndex) // 遍历区块索引映射列表
     {
-        CBlockIndex* pindex = item.second;
-        if (pindex->nStatus & BLOCK_HAVE_DATA) {
-            setBlkDataFiles.insert(pindex->nFile);
+        CBlockIndex* pindex = item.second; // 获取区块索引
+        if (pindex->nStatus & BLOCK_HAVE_DATA) { // 若区块状态为 BLOCK_HAVE_DATA
+            setBlkDataFiles.insert(pindex->nFile); // 把该区块所在文件号插入区块数据文件集合中
         }
     }
-    for (std::set<int>::iterator it = setBlkDataFiles.begin(); it != setBlkDataFiles.end(); it++)
+    for (std::set<int>::iterator it = setBlkDataFiles.begin(); it != setBlkDataFiles.end(); it++) // 遍历区块数据文件集合
     {
-        CDiskBlockPos pos(*it, 0);
-        if (CAutoFile(OpenBlockFile(pos, true), SER_DISK, CLIENT_VERSION).IsNull()) {
+        CDiskBlockPos pos(*it, 0); // 创建磁盘区块位置对象
+        if (CAutoFile(OpenBlockFile(pos, true), SER_DISK, CLIENT_VERSION).IsNull()) { // 创建文件指针托管临时对象
             return false;
         }
     }
 
     // Check whether we have ever pruned block & undo files // 检查我们是否曾修剪过区块和恢复文件
-    pblocktree->ReadFlag("prunedblockfiles", fHavePruned);
+    pblocktree->ReadFlag("prunedblockfiles", fHavePruned); // 读取修剪区块文件标志
     if (fHavePruned)
         LogPrintf("LoadBlockIndexDB(): Block files have previously been pruned\n");
 
     // Check whether we need to continue reindexing // 检查我们是否需要继续再索引
     bool fReindexing = false;
-    pblocktree->ReadReindexing(fReindexing);
+    pblocktree->ReadReindexing(fReindexing); // 读取再索引标志
     fReindex |= fReindexing;
 
     // Check whether we have a transaction index // 检查我们是否有交易索引
-    pblocktree->ReadFlag("txindex", fTxIndex);
+    pblocktree->ReadFlag("txindex", fTxIndex); // 读取交易索引标志
     LogPrintf("%s: transaction index %s\n", __func__, fTxIndex ? "enabled" : "disabled");
 
     // Load pointer to end of best chain // 加载指向最佳链尾部的指针
-    BlockMap::iterator it = mapBlockIndex.find(pcoinsTip->GetBestBlock());
-    if (it == mapBlockIndex.end())
-        return true;
-    chainActive.SetTip(it->second);
+    BlockMap::iterator it = mapBlockIndex.find(pcoinsTip->GetBestBlock()); // 获取最佳区块的索引
+    if (it == mapBlockIndex.end()) // 若未找到
+        return true; // 直接返回 true
+    chainActive.SetTip(it->second); // 若存在，则设置该区块索引为激活链的链尖（放入区块索引列表中）
 
-    PruneBlockIndexCandidates();
+    PruneBlockIndexCandidates(); // 修剪区块索引候选
 
     LogPrintf("%s: hashBestChain=%s height=%d date=%s progress=%f\n", __func__,
         chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(),
@@ -3964,42 +3964,42 @@ bool InitBlockIndex(const CChainParams& chainparams)
     LOCK(cs_main); // 线程安全锁
 
     // Initialize global variables that cannot be constructed at startup.
-    recentRejects.reset(new CRollingBloomFilter(120000, 0.000001)); // 初始化不能再启动时创建全局对象
+    recentRejects.reset(new CRollingBloomFilter(120000, 0.000001)); // 初始化不能再启动时创建的全局对象
 
     // Check whether we're already initialized
     if (chainActive.Genesis() != NULL) // 检查是否初始化了创世区块索引
         return true;
 
-    // Use the provided setting for -txindex in the new database
-    fTxIndex = GetBoolArg("-txindex", DEFAULT_TXINDEX);
-    pblocktree->WriteFlag("txindex", fTxIndex);
+    // Use the provided setting for -txindex in the new database // 在新数据库中对 -txindex 使用提供的设置
+    fTxIndex = GetBoolArg("-txindex", DEFAULT_TXINDEX); // 先获取默认设置
+    pblocktree->WriteFlag("txindex", fTxIndex); // 写入数据库
     LogPrintf("Initializing databases...\n");
 
     // Only add the genesis block if not reindexing (in which case we reuse the one already on disk)
     if (!fReindex) { // 如果不再索引只添加创世区块（此时我们重用磁盘上已存在的创世区块所在的区块文件）
         try {
-            CBlock &block = const_cast<CBlock&>(chainparams.GenesisBlock());
-            // Start new block file
-            unsigned int nBlockSize = ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION);
+            CBlock &block = const_cast<CBlock&>(chainparams.GenesisBlock()); // 获取创世区块的引用
+            // Start new block file // 开始新的区块文件
+            unsigned int nBlockSize = ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION); // 获取序列化大小
             CDiskBlockPos blockPos;
             CValidationState state;
-            if (!FindBlockPos(state, blockPos, nBlockSize+8, 0, block.GetBlockTime())) // 获取区块位置
+            if (!FindBlockPos(state, blockPos, nBlockSize+8, 0, block.GetBlockTime())) // 获取区块状态和位置
                 return error("LoadBlockIndex(): FindBlockPos failed");
-            if (!WriteBlockToDisk(block, blockPos, chainparams.MessageStart())) // 把区块信息写到磁盘
+            if (!WriteBlockToDisk(block, blockPos, chainparams.MessageStart())) // 把区块信息（状态和位置）写到磁盘
                 return error("LoadBlockIndex(): writing genesis block to disk failed");
             CBlockIndex *pindex = AddToBlockIndex(block); // 添加到区块索引
             if (!ReceivedBlockTransactions(block, state, pindex, blockPos)) // 接收区块交易
                 return error("LoadBlockIndex(): genesis block not accepted");
             if (!ActivateBestChain(state, chainparams, &block)) // 激活最佳链
                 return error("LoadBlockIndex(): genesis block cannot be activated");
-            // Force a chainstate write so that when we VerifyDB in a moment, it doesn't check stale data
+            // Force a chainstate write so that when we VerifyDB in a moment, it doesn't check stale data // 强制把链状态写入磁盘，以至于当我们一段时间内验证数据库时，不会检查旧数据
             return FlushStateToDisk(state, FLUSH_STATE_ALWAYS);
         } catch (const std::runtime_error& e) {
             return error("LoadBlockIndex(): failed to initialize block database: %s", e.what());
         }
     }
 
-    return true;
+    return true; // 成功返回 true
 }
 
 bool LoadExternalBlockFile(const CChainParams& chainparams, FILE* fileIn, CDiskBlockPos *dbp)

@@ -150,11 +150,11 @@ inline float ser_uint32_to_float(uint32_t y)
 //
 // Templates for serializing to anything that looks like a stream,
 // i.e. anything that supports .read(char*, size_t) and .write(char*, size_t)
-//
+// // 用于序列化任何看起来像数据流的模板，即支持 .read(char*, size_t) 和 .write(char*, size_t) 的任何东西。
 
 enum
 {
-    // primary actions
+    // primary actions // 主要行为
     SER_NETWORK         = (1 << 0),
     SER_DISK            = (1 << 1),
     SER_GETHASH         = (1 << 2),

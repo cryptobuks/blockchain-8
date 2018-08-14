@@ -86,12 +86,12 @@ bool CBlockTreeDB::WriteReindexing(bool fReindexing) { // true
 }
 
 bool CBlockTreeDB::ReadReindexing(bool &fReindexing) {
-    fReindexing = Exists(DB_REINDEX_FLAG);
+    fReindexing = Exists(DB_REINDEX_FLAG); // 检查数据库中 DB_REINDEX_FLAG 标志是否存在
     return true;
 }
 
 bool CBlockTreeDB::ReadLastBlockFile(int &nFile) {
-    return Read(DB_LAST_BLOCK, nFile);
+    return Read(DB_LAST_BLOCK, nFile); // 读取指定文件号的最后一个区块文件
 }
 
 bool CCoinsViewDB::GetStats(CCoinsStats &stats) const {
@@ -181,22 +181,22 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
 
     pcursor->Seek(make_pair(DB_BLOCK_INDEX, uint256())); // 游标指向第一个区块
 
-    // Load mapBlockIndex
-    while (pcursor->Valid()) {
+    // Load mapBlockIndex // 加载区块索引映射列表
+    while (pcursor->Valid()) { // 当游标有效时（数据库迭代器指向一个键/值对）
         boost::this_thread::interruption_point(); // 设置断点
         std::pair<char, uint256> key;
-        if (pcursor->GetKey(key) && key.first == DB_BLOCK_INDEX) {
+        if (pcursor->GetKey(key) && key.first == DB_BLOCK_INDEX) { // 获取键，且确定首个元素为区块索引 'b'
             CDiskBlockIndex diskindex;
-            if (pcursor->GetValue(diskindex)) { // 获取区块索引信息，并构建区块索引
-                // Construct block index object
+            if (pcursor->GetValue(diskindex)) { // 获取区块索引信息
+                // Construct block index object // 构建区块索引对象
                 CBlockIndex* pindexNew = InsertBlockIndex(diskindex.GetBlockHash()); // 新建一个区块索引对象
                 pindexNew->pprev          = InsertBlockIndex(diskindex.hashPrev); // 前一个区块的索引
                 pindexNew->nHeight        = diskindex.nHeight; // 区块高度
-                pindexNew->nFile          = diskindex.nFile; // 所在文件 ?????
+                pindexNew->nFile          = diskindex.nFile; // 所在区块文件 ?????
                 pindexNew->nDataPos       = diskindex.nDataPos; // blk 文件中该区块数据的位移
-                pindexNew->nUndoPos       = diskindex.nUndoPos; // rev 文件中 pending
-                pindexNew->nVersion       = diskindex.nVersion; // 版本
-                pindexNew->hashMerkleRoot = diskindex.hashMerkleRoot; // 默尔克树根
+                pindexNew->nUndoPos       = diskindex.nUndoPos; // rev 文件中该区块数据的位移
+                pindexNew->nVersion       = diskindex.nVersion; // 版本号
+                pindexNew->hashMerkleRoot = diskindex.hashMerkleRoot; // 默尔克树根哈希值
                 pindexNew->nTime          = diskindex.nTime; // 时间戳
                 pindexNew->nBits          = diskindex.nBits; // 难度
                 pindexNew->nNonce         = diskindex.nNonce; // 随机数
@@ -215,5 +215,5 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
         }
     }
 
-    return true;
+    return true; // 加载区块索引成功返回 true
 }

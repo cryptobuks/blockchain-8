@@ -9,16 +9,16 @@ using namespace std;
 
 /**
  * CChain implementation
- */
+ */ // 链成员函数实现
 void CChain::SetTip(CBlockIndex *pindex) {
-    if (pindex == NULL) {
-        vChain.clear();
-        return;
+    if (pindex == NULL) { // 若给定索引为空
+        vChain.clear(); // 清空区块索引列表
+        return; // 返回空
     }
-    vChain.resize(pindex->nHeight + 1);
-    while (pindex && vChain[pindex->nHeight] != pindex) {
-        vChain[pindex->nHeight] = pindex;
-        pindex = pindex->pprev;
+    vChain.resize(pindex->nHeight + 1); // 预开辟高度加 1 个大小的链索引（含创世区块）
+    while (pindex && vChain[pindex->nHeight] != pindex) { // 若给定索引存在，且索引列表指定高度的索引不等于该索引
+        vChain[pindex->nHeight] = pindex; // 放入索引列表
+        pindex = pindex->pprev; // 指向前一个区块索引
     }
 }
 

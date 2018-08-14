@@ -1328,24 +1328,24 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
                 pcoinsTip = new CCoinsViewCache(pcoinscatcher);
 
                 if (fReindex) { // 默认 false
-                    pblocktree->WriteReindexing(true); // 写入再索引标志为 true（区块数据库 leveldb）
+                    pblocktree->WriteReindexing(true); // 1.写入再索引标志为 true（区块数据库 leveldb）
                     //If we're reindexing in prune mode, wipe away unusable block files and all undo data files
                     if (fPruneMode) // 如果我们在修剪模式（修剪已确认的区块）下进行再索引，
                         CleanupBlockRevFiles(); // 清空无用的块文件（blk）和所有恢复数据文件（rev）
                 }
 
-                if (!LoadBlockIndex()) { // 从磁盘加载区块索引树和币数据库 pending
+                if (!LoadBlockIndex()) { // 2.从磁盘加载区块索引树和币数据库
                     strLoadError = _("Error loading block database");
                     break;
                 }
 
                 // If the loaded chain has a wrong genesis, bail out immediately // 如果加载的链的创世区块错误，马上补救
                 // (we're likely using a testnet datadir, or the other way around). // （我们可能使用测试网的数据目录，或者相反）。
-                if (!mapBlockIndex.empty() && mapBlockIndex.count(chainparams.GetConsensus().hashGenesisBlock) == 0) // 检查 mapBlockIndex 是否为空 且 是否加载了创世区块索引（通过哈希查找）
+                if (!mapBlockIndex.empty() && mapBlockIndex.count(chainparams.GetConsensus().hashGenesisBlock) == 0) // 检查 mapBlockIndex 是否为空，且是否加载了创世区块索引（通过哈希查找）
                     return InitError(_("Incorrect or no genesis block found. Wrong datadir for network?"));
 
                 // Initialize the block index (no-op if non-empty database was already loaded) // 初始化区块索引(如果非空数据库已经加载则无操作)
-                if (!InitBlockIndex(chainparams)) {
+                if (!InitBlockIndex(chainparams)) { // 初始化区块索引到磁盘
                     strLoadError = _("Error initializing block database");
                     break;
                 }

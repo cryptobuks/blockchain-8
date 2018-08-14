@@ -69,10 +69,10 @@ public:
     }
 };
 
-class CDBIterator
+class CDBIterator // 数据库迭代器
 {
 private:
-    leveldb::Iterator *piter;
+    leveldb::Iterator *piter; // leveldb 迭代器
     const std::vector<unsigned char> *obfuscate_key;
 
 public:
@@ -80,34 +80,34 @@ public:
     /**
      * @param[in] piterIn          The original leveldb iterator.
      * @param[in] obfuscate_key    If passed, XOR data with this key.
-     */
+     */ // 入参：piterIn 为原始数据库迭代器。obfuscate_key 若通过？则使用键的异或数据。
     CDBIterator(leveldb::Iterator *piterIn, const std::vector<unsigned char>* obfuscate_key) :
         piter(piterIn), obfuscate_key(obfuscate_key) { };
     ~CDBIterator();
 
-    bool Valid();
+    bool Valid(); // 判断数据库迭代器是否有效
 
     void SeekToFirst();
 
     template<typename K> void Seek(const K& key) {
-        CDataStream ssKey(SER_DISK, CLIENT_VERSION);
-        ssKey.reserve(ssKey.GetSerializeSize(key));
-        ssKey << key;
-        leveldb::Slice slKey(&ssKey[0], ssKey.size());
-        piter->Seek(slKey);
+        CDataStream ssKey(SER_DISK, CLIENT_VERSION); // 创建数据流对象
+        ssKey.reserve(ssKey.GetSerializeSize(key)); // 预开辟空间
+        ssKey << key; // 导入数据
+        leveldb::Slice slKey(&ssKey[0], ssKey.size()); // 创建 Slice 对象
+        piter->Seek(slKey); // 数据库迭代器指向 Slice 对象的首个键的位置
     }
 
     void Next();
 
     template<typename K> bool GetKey(K& key) {
-        leveldb::Slice slKey = piter->key();
+        leveldb::Slice slKey = piter->key(); // 获取键并创建 Slice 对象
         try {
-            CDataStream ssKey(slKey.data(), slKey.data() + slKey.size(), SER_DISK, CLIENT_VERSION);
-            ssKey >> key;
+            CDataStream ssKey(slKey.data(), slKey.data() + slKey.size(), SER_DISK, CLIENT_VERSION); // 序列化数据
+            ssKey >> key; // 导入 key
         } catch (const std::exception&) {
             return false;
         }
-        return true;
+        return true; // 获取键成功返回 true
     }
 
     unsigned int GetKeySize() {
@@ -115,15 +115,15 @@ public:
     }
 
     template<typename V> bool GetValue(V& value) {
-        leveldb::Slice slValue = piter->value();
+        leveldb::Slice slValue = piter->value(); // 获取当前条目对应的值
         try {
-            CDataStream ssValue(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
-            ssValue.Xor(*obfuscate_key);
-            ssValue >> value;
+            CDataStream ssValue(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION); // 创建数据流对象
+            ssValue.Xor(*obfuscate_key); // 异或
+            ssValue >> value; // 导出值
         } catch (const std::exception&) {
             return false;
         }
-        return true;
+        return true; // 获取值成功返回 true
     }
 
     unsigned int GetValueSize() {

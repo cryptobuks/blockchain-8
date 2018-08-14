@@ -301,7 +301,7 @@ public:
      * XOR the contents of this stream with a certain key.
      *
      * @param[in] key    The key used to XOR the data in this stream.
-     */
+     */ // 异或某个密钥的数据流内容。
     void Xor(const std::vector<unsigned char>& key)
     {
         if (key.size() == 0) {
@@ -335,18 +335,18 @@ public:
  * Will automatically close the file when it goes out of scope if not null.
  * If you're returning the file pointer, return file.release().
  * If you need to close the file early, use file.fclose() instead of fclose(file).
- */
+ */ // 用于文件指针 FILE* 的无引用计数的 RAII 包装器。当文件超出作用于且指针非空时，将自动关闭文件。
 class CAutoFile
 {
 private:
-    // Disallow copies
+    // Disallow copies // 禁止拷贝
     CAutoFile(const CAutoFile&);
     CAutoFile& operator=(const CAutoFile&);
 
     int nType;
     int nVersion;
 	
-    FILE* file;	
+    FILE* file;	// 文件指针
 
 public:
     CAutoFile(FILE* filenew, int nTypeIn, int nVersionIn)
@@ -361,18 +361,18 @@ public:
         fclose();
     }
 
-    void fclose()
+    void fclose() // 手动关闭文件
     {
         if (file) {
-            ::fclose(file);
-            file = NULL;
+            ::fclose(file); // 关闭文件
+            file = NULL; // 指针置空，防止野指针出现
         }
     }
 
     /** Get wrapped FILE* with transfer of ownership.
      * @note This will invalidate the CAutoFile object, and makes it the responsibility of the caller
      * of this function to clean up the returned FILE*.
-     */
+     */ // 切换到文件指针 FILE*
     FILE* release()             { FILE* ret = file; file = NULL; return ret; }
 
     /** Get wrapped FILE* without transfer of ownership.

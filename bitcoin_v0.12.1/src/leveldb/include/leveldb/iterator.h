@@ -25,8 +25,8 @@ class Iterator {
   Iterator();
   virtual ~Iterator();
 
-  // An iterator is either positioned at a key/value pair, or
-  // not valid.  This method returns true iff the iterator is valid.
+  // An iterator is either positioned at a key/value pair, or // 一个迭代器指向一个键/值对，或无效。
+  // not valid.  This method returns true iff the iterator is valid. // 如果迭代器有效，该方法返回 true。
   virtual bool Valid() const = 0;
 
   // Position at the first key in the source.  The iterator is Valid()
@@ -37,9 +37,9 @@ class Iterator {
   // Valid() after this call iff the source is not empty.
   virtual void SeekToLast() = 0;
 
-  // Position at the first key in the source that at or past target
-  // The iterator is Valid() after this call iff the source contains
-  // an entry that comes at or past target.
+  // Position at the first key in the source that at or past target // 位于源或目标的首个键的位置
+  // The iterator is Valid() after this call iff the source contains // 如果源包含一个条目或超过目标的条目，
+  // an entry that comes at or past target. // 则此调用后，该迭代器为 Valid()。
   virtual void Seek(const Slice& target) = 0;
 
   // Moves to the next entry in the source.  After this call, Valid() is
@@ -52,14 +52,14 @@ class Iterator {
   // REQUIRES: Valid()
   virtual void Prev() = 0;
 
-  // Return the key for the current entry.  The underlying storage for
-  // the returned slice is valid only until the next modification of
+  // Return the key for the current entry.  The underlying storage for // 返回当前条目的关键字。
+  // the returned slice is valid only until the next modification of // 返回的 slice 仅在下一个迭代器修改前有效。
   // the iterator.
   // REQUIRES: Valid()
   virtual Slice key() const = 0;
 
-  // Return the value for the current entry.  The underlying storage for
-  // the returned slice is valid only until the next modification of
+  // Return the value for the current entry.  The underlying storage for // 返回当前条目的值。
+  // the returned slice is valid only until the next modification of // 返回的 slice 仅在下一个迭代器修改前有效。
   // the iterator.
   // REQUIRES: Valid()
   virtual Slice value() const = 0;

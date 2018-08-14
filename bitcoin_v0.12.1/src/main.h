@@ -207,7 +207,7 @@ boost::filesystem::path GetBlockPosFilename(const CDiskBlockPos &pos, const char
 /** Import blocks from an external file */
 bool LoadExternalBlockFile(const CChainParams& chainparams, FILE* fileIn, CDiskBlockPos *dbp = NULL);
 /** Initialize a new block tree database + block data on disk */
-bool InitBlockIndex(const CChainParams& chainparams);
+bool InitBlockIndex(const CChainParams& chainparams); // 初始化一个新的区块树数据库+区块数据到磁盘
 /** Load the block tree and coins database from disk */
 bool LoadBlockIndex(); // 从磁盘加载区块树和币的数据库
 /** Unload database information */
