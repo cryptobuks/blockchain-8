@@ -441,7 +441,7 @@ public:
      * Push the modifications applied to this cache to its base.
      * Failure to call this method before destruction will cause the changes to be forgotten.
      * If false is returned, the state of this cache (and its backing view) will be undefined.
-     */
+     */ // 把用于此缓存的修改内容推送到其 base。若销毁前未调用此方法将导致忘记更改。若返回 false，表示该缓存状态未定义。
     bool Flush();
 
     /**

@@ -605,7 +605,7 @@ bool TryCreateDirectory(const boost::filesystem::path& p)
 
 void FileCommit(FILE *fileout)
 {
-    fflush(fileout); // harmless if redundantly called
+    fflush(fileout); // harmless if redundantly called // 刷新数据到磁盘
 #ifdef WIN32
     HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(fileout));
     FlushFileBuffers(hFile);
@@ -621,9 +621,9 @@ void FileCommit(FILE *fileout)
 }
 
 bool TruncateFile(FILE *file, unsigned int length) {
-#if defined(WIN32)
+#if defined(WIN32) // windows
     return _chsize(_fileno(file), length) == 0;
-#else
+#else // Unix/Linux
     return ftruncate(fileno(file), length) == 0;
 #endif
 }

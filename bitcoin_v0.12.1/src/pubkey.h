@@ -97,7 +97,7 @@ public:
     const unsigned char* end() const { return vch + size(); }
     const unsigned char& operator[](unsigned int pos) const { return vch[pos]; }
 
-    //! Comparator implementation.
+    //! Comparator implementation. // 比较操作。
     friend bool operator==(const CPubKey& a, const CPubKey& b)
     {
         return a.vch[0] == b.vch[0] &&
@@ -113,7 +113,7 @@ public:
                (a.vch[0] == b.vch[0] && memcmp(a.vch, b.vch, a.size()) < 0);
     }
 
-    //! Implement serialization, as if this was a byte vector.
+    //! Implement serialization, as if this was a byte vector. // 内置序列化，像字节容器。
     unsigned int GetSerializeSize(int nType, int nVersion) const
     {
         return size() + 1;

@@ -46,19 +46,19 @@ protected:
 };
 
 struct CMainSignals { // 主信号类
-    /** Notifies listeners of updated block chain tip */
+    /** Notifies listeners of updated block chain tip */ // 通知监听者更新区块链尖
     boost::signals2::signal<void (const CBlockIndex *)> UpdatedBlockTip;
     /** Notifies listeners of updated transaction data (transaction, and optionally the block it is found in. */
     boost::signals2::signal<void (const CTransaction &, const CBlock *)> SyncTransaction; // 通知监听者更新的交易数据（交易，和可选的所在区块）
     /** Notifies listeners of an updated transaction without new data (for now: a coinbase potentially becoming visible). */
     boost::signals2::signal<void (const uint256 &)> UpdatedTransaction;
-    /** Notifies listeners of a new active block chain. */
+    /** Notifies listeners of a new active block chain. */ // 通知监听者新激活的区块链。
     boost::signals2::signal<void (const CBlockLocator &)> SetBestChain;
     /** Notifies listeners about an inventory item being seen on the network. */
-    boost::signals2::signal<void (const uint256 &)> Inventory; // 通知监听者关于网络上看到的库存项目
-    /** Tells listeners to broadcast their data. */
-    boost::signals2::signal<void (int64_t nBestBlockTime)> Broadcast; // 通知监听者广播它们的数据
-    /** Notifies listeners of a block validation result */
+    boost::signals2::signal<void (const uint256 &)> Inventory; // 通知监听者关于网络上看到的库存项目。
+    /** Tells listeners to broadcast their data. */ // 通知监听者广播它们的数据
+    boost::signals2::signal<void (int64_t nBestBlockTime)> Broadcast;
+    /** Notifies listeners of a block validation result */ // 通知监听者区块验证的结果
     boost::signals2::signal<void (const CBlock&, const CValidationState&)> BlockChecked;
     /** Notifies listeners that a key for mining is required (coinbase) */
     boost::signals2::signal<void (boost::shared_ptr<CReserveScript>&)> ScriptForMining;

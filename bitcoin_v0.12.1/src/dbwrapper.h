@@ -26,7 +26,7 @@ public:
 void HandleError(const leveldb::Status& status) throw(dbwrapper_error);
 
 /** Batch of changes queued to be written to a CDBWrapper */
-class CDBBatch
+class CDBBatch // 排队等待写入人 CDBWrapper 的批量更改
 {
     friend class CDBWrapper;
 
@@ -240,7 +240,7 @@ public:
         return WriteBatch(batch, fSync);
     }
 
-    bool WriteBatch(CDBBatch& batch, bool fSync = false) throw(dbwrapper_error);
+    bool WriteBatch(CDBBatch& batch, bool fSync = false) throw(dbwrapper_error); // 写入一批
 
     // not available for LevelDB; provide for compatibility with BDB
     bool Flush()

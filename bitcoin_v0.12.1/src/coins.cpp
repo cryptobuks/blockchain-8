@@ -205,10 +205,10 @@ bool CCoinsViewCache::BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlockIn
 }
 
 bool CCoinsViewCache::Flush() {
-    bool fOk = base->BatchWrite(cacheCoins, hashBlock);
-    cacheCoins.clear();
-    cachedCoinsUsage = 0;
-    return fOk;
+    bool fOk = base->BatchWrite(cacheCoins, hashBlock); // 写入
+    cacheCoins.clear(); // 清空
+    cachedCoinsUsage = 0; // 置零
+    return fOk; // 返回写入状态
 }
 
 void CCoinsViewCache::Uncache(const uint256& hash)

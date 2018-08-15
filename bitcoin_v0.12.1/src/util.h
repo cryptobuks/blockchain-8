@@ -115,8 +115,8 @@ static inline bool error(const char* format)
 
 void PrintExceptionContinue(const std::exception *pex, const char* pszThread);
 void ParseParameters(int argc, const char*const argv[]); // 解析命令行参数（启动选项）
-void FileCommit(FILE *fileout);
-bool TruncateFile(FILE *file, unsigned int length);
+void FileCommit(FILE *fileout); // 文件提交
+bool TruncateFile(FILE *file, unsigned int length); // 截短文件
 int RaiseFileDescriptorLimit(int nMinFD);
 void AllocateFileRange(FILE *file, unsigned int offset, unsigned int length);
 bool RenameOver(boost::filesystem::path src, boost::filesystem::path dest);

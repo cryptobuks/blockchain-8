@@ -2069,22 +2069,22 @@ void static FlushBlockFile(bool fFinalize = false)
 {
     LOCK(cs_LastBlockFile);
 
-    CDiskBlockPos posOld(nLastBlockFile, 0);
+    CDiskBlockPos posOld(nLastBlockFile, 0); // 构建磁盘区块位置对象
 
-    FILE *fileOld = OpenBlockFile(posOld);
+    FILE *fileOld = OpenBlockFile(posOld); // 打开最后一个区块文件
     if (fileOld) {
         if (fFinalize)
-            TruncateFile(fileOld, vinfoBlockFile[nLastBlockFile].nSize);
-        FileCommit(fileOld);
-        fclose(fileOld);
+            TruncateFile(fileOld, vinfoBlockFile[nLastBlockFile].nSize); // 截短最后一个文件的大小
+        FileCommit(fileOld); // 文件提交
+        fclose(fileOld); // 关闭文件
     }
 
-    fileOld = OpenUndoFile(posOld);
+    fileOld = OpenUndoFile(posOld); // 打开恢复文件
     if (fileOld) {
         if (fFinalize)
-            TruncateFile(fileOld, vinfoBlockFile[nLastBlockFile].nUndoSize);
-        FileCommit(fileOld);
-        fclose(fileOld);
+            TruncateFile(fileOld, vinfoBlockFile[nLastBlockFile].nUndoSize); //  截短文件
+        FileCommit(fileOld); // 提价文件
+        fclose(fileOld); // 关闭文件
     }
 }
 
@@ -2451,14 +2451,14 @@ enum FlushStateMode {
  * The caches and indexes are flushed depending on the mode we're called with
  * if they're too large, if it's been a while since the last write,
  * or always and in all cases if we're in prune mode and are deleting files.
- */ // 更新磁盘上的链状态。
+ */ // 更新磁盘上的链状态。缓存和索引根据我们调用的模式刷新，如果它们太大，或经上次写入已有一段时间，或总在所有情况下，我们处于修剪模式并正在删除文件。
 bool static FlushStateToDisk(CValidationState &state, FlushStateMode mode) {
     const CChainParams& chainparams = Params();
     LOCK2(cs_main, cs_LastBlockFile);
     static int64_t nLastWrite = 0;
     static int64_t nLastFlush = 0;
     static int64_t nLastSetChain = 0;
-    std::set<int> setFilesToPrune;
+    std::set<int> setFilesToPrune; // 修剪的文件集合
     bool fFlushForPrune = false;
     try {
     if (fPruneMode && fCheckForPruning && !fReindex) {
@@ -2473,7 +2473,7 @@ bool static FlushStateToDisk(CValidationState &state, FlushStateMode mode) {
         }
     }
     int64_t nNow = GetTimeMicros();
-    // Avoid writing/flushing immediately after startup.
+    // Avoid writing/flushing immediately after startup. // 避免在启动后立刻写入/刷新。
     if (nLastWrite == 0) {
         nLastWrite = nNow;
     }
@@ -2483,70 +2483,70 @@ bool static FlushStateToDisk(CValidationState &state, FlushStateMode mode) {
     if (nLastSetChain == 0) {
         nLastSetChain = nNow;
     }
-    size_t cacheSize = pcoinsTip->DynamicMemoryUsage();
-    // The cache is large and close to the limit, but we have time now (not in the middle of a block processing).
+    size_t cacheSize = pcoinsTip->DynamicMemoryUsage(); // 获取动态内存用量
+    // The cache is large and close to the limit, but we have time now (not in the middle of a block processing). // 缓存很大并接近极限，但我们现在有时间（不再块处理的中间）。
     bool fCacheLarge = mode == FLUSH_STATE_PERIODIC && cacheSize * (10.0/9) > nCoinCacheUsage;
-    // The cache is over the limit, we have to write now.
+    // The cache is over the limit, we have to write now. // 缓存超过极限，我们现在写入。
     bool fCacheCritical = mode == FLUSH_STATE_IF_NEEDED && cacheSize > nCoinCacheUsage;
-    // It's been a while since we wrote the block index to disk. Do this frequently, so we don't need to redownload after a crash.
+    // It's been a while since we wrote the block index to disk. Do this frequently, so we don't need to redownload after a crash. // 这需要一段时间，因为我们写区块索引到磁盘。经常这么做，所以我们不需要在崩溃后重新下载
     bool fPeriodicWrite = mode == FLUSH_STATE_PERIODIC && nNow > nLastWrite + (int64_t)DATABASE_WRITE_INTERVAL * 1000000;
-    // It's been very long since we flushed the cache. Do this infrequently, to optimize cache usage.
+    // It's been very long since we flushed the cache. Do this infrequently, to optimize cache usage. // 这会花很长时间，因为我们刷新了缓存。不常这样做，以优化缓存使用。
     bool fPeriodicFlush = mode == FLUSH_STATE_PERIODIC && nNow > nLastFlush + (int64_t)DATABASE_FLUSH_INTERVAL * 1000000;
-    // Combine all conditions that result in a full cache flush.
+    // Combine all conditions that result in a full cache flush. // 合并所有导致完整缓存刷新的条件。
     bool fDoFullFlush = (mode == FLUSH_STATE_ALWAYS) || fCacheLarge || fCacheCritical || fPeriodicFlush || fFlushForPrune;
-    // Write blocks and block index to disk.
+    // Write blocks and block index to disk. // 写入区块和区块索引到磁盘。
     if (fDoFullFlush || fPeriodicWrite) {
-        // Depend on nMinDiskSpace to ensure we can write block index
-        if (!CheckDiskSpace(0))
+        // Depend on nMinDiskSpace to ensure we can write block index // 基于 nMinDiskSpace 以确保我们能写入区块索引
+        if (!CheckDiskSpace(0)) // 检查当前的磁盘空间
             return state.Error("out of disk space");
-        // First make sure all block and undo data is flushed to disk.
-        FlushBlockFile();
-        // Then update all block file information (which may refer to block and undo files).
+        // First make sure all block and undo data is flushed to disk. // 首次确保全部区块和恢复数据被刷新到磁盘
+        FlushBlockFile(); // 刷新区块文件
+        // Then update all block file information (which may refer to block and undo files). // 然后更新全部区块文件信息（可能参照区块和恢复文件）。
         {
-            std::vector<std::pair<int, const CBlockFileInfo*> > vFiles;
+            std::vector<std::pair<int, const CBlockFileInfo*> > vFiles; // <脏掉的文件号，区块文件信息指针>
             vFiles.reserve(setDirtyFileInfo.size());
             for (set<int>::iterator it = setDirtyFileInfo.begin(); it != setDirtyFileInfo.end(); ) {
                 vFiles.push_back(make_pair(*it, &vinfoBlockFile[*it]));
                 setDirtyFileInfo.erase(it++);
             }
-            std::vector<const CBlockIndex*> vBlocks;
+            std::vector<const CBlockIndex*> vBlocks; // 区块索引列表
             vBlocks.reserve(setDirtyBlockIndex.size());
-            for (set<CBlockIndex*>::iterator it = setDirtyBlockIndex.begin(); it != setDirtyBlockIndex.end(); ) {
+            for (set<CBlockIndex*>::iterator it = setDirtyBlockIndex.begin(); it != setDirtyBlockIndex.end(); ) { // 遍历脏掉的区块索引集合
                 vBlocks.push_back(*it);
                 setDirtyBlockIndex.erase(it++);
             }
-            if (!pblocktree->WriteBatchSync(vFiles, nLastBlockFile, vBlocks)) {
+            if (!pblocktree->WriteBatchSync(vFiles, nLastBlockFile, vBlocks)) { // 批量写入同步
                 return AbortNode(state, "Files to write to block index database");
             }
         }
-        // Finally remove any pruned files
+        // Finally remove any pruned files // 最终移除所有修剪的文件
         if (fFlushForPrune)
             UnlinkPrunedFiles(setFilesToPrune);
         nLastWrite = nNow;
     }
-    // Flush best chain related state. This can only be done if the blocks / block index write was also done.
+    // Flush best chain related state. This can only be done if the blocks / block index write was also done. // 刷新最佳链相关的状态。该操作仅在区块/区块索引写入完成后执行。
     if (fDoFullFlush) {
-        // Typical CCoins structures on disk are around 128 bytes in size.
-        // Pushing a new one to the database can cause it to be written
-        // twice (once in the log, and once in the tables). This is already
-        // an overestimation, as most will delete an existing entry or
-        // overwrite one. Still, use a conservative safety factor of 2.
+        // Typical CCoins structures on disk are around 128 bytes in size. // 磁盘上的 CCoins 典型结构约 128 字节。
+        // Pushing a new one to the database can cause it to be written // 将推送一个新数据到数据库可能导致
+        // twice (once in the log, and once in the tables). This is already // 它被写入 2 次（一次在日志中，一次在表中）。
+        // an overestimation, as most will delete an existing entry or // 这已经是高估了，因为大多数人会删除现有条目或覆盖现有条目。
+        // overwrite one. Still, use a conservative safety factor of 2. // 仍使用保守的安全系数 2。
         if (!CheckDiskSpace(128 * 2 * 2 * pcoinsTip->GetCacheSize()))
             return state.Error("out of disk space");
-        // Flush the chainstate (which may refer to block index entries).
+        // Flush the chainstate (which may refer to block index entries). // 刷新链状态（可参考区块索引条目）。
         if (!pcoinsTip->Flush())
             return AbortNode(state, "Failed to write to coin database");
         nLastFlush = nNow;
     }
     if (fDoFullFlush || ((mode == FLUSH_STATE_ALWAYS || mode == FLUSH_STATE_PERIODIC) && nNow > nLastSetChain + (int64_t)DATABASE_WRITE_INTERVAL * 1000000)) {
-        // Update best block in wallet (so we can detect restored wallets).
+        // Update best block in wallet (so we can detect restored wallets). // 在钱包中更新最佳区块（以至于我们能检测到恢复的钱包）。
         GetMainSignals().SetBestChain(chainActive.GetLocator());
         nLastSetChain = nNow;
     }
     } catch (const std::runtime_error& e) {
         return AbortNode(state, std::string("System error while flushing: ") + e.what());
     }
-    return true;
+    return true; // 本地化状态成功返回 true
 }
 
 void FlushStateToDisk() {
@@ -2737,12 +2737,12 @@ bool static ConnectTip(CValidationState& state, const CChainParams& chainparams,
 /**
  * Return the tip of the chain with the most work in it, that isn't
  * known to be invalid (it's however far from certain to be valid).
- */
+ */ // 返回包含最多工作量的链尖区块索引，但不知道是否无效（不确定是否有效）。
 static CBlockIndex* FindMostWorkChain() {
     do {
         CBlockIndex *pindexNew = NULL;
 
-        // Find the best candidate header.
+        // Find the best candidate header. // 找到最佳候选区块头
         {
             std::set<CBlockIndex*, CBlockIndexWorkComparator>::reverse_iterator it = setBlockIndexCandidates.rbegin();
             if (it == setBlockIndexCandidates.rend())
@@ -2750,32 +2750,32 @@ static CBlockIndex* FindMostWorkChain() {
             pindexNew = *it;
         }
 
-        // Check whether all blocks on the path between the currently active chain and the candidate are valid.
-        // Just going until the active chain is an optimization, as we know all blocks in it are valid already.
+        // Check whether all blocks on the path between the currently active chain and the candidate are valid. // 检查在当前激活链和候选链之间路径上的所有区块是否有效。
+        // Just going until the active chain is an optimization, as we know all blocks in it are valid already. // 直到激活链是一个优化的链，因为我们直到全部区块已经是有效的。
         CBlockIndex *pindexTest = pindexNew;
         bool fInvalidAncestor = false;
         while (pindexTest && !chainActive.Contains(pindexTest)) {
             assert(pindexTest->nChainTx || pindexTest->nHeight == 0);
 
-            // Pruned nodes may have entries in setBlockIndexCandidates for
-            // which block files have been deleted.  Remove those as candidates
-            // for the most work chain if we come across them; we can't switch
-            // to a chain unless we have all the non-active-chain parent blocks.
+            // Pruned nodes may have entries in setBlockIndexCandidates for // 修剪过的节点可能在 setBlockIndexCandidates 集合中含有已删除的区块文件。
+            // which block files have been deleted.  Remove those as candidates // 如果我们遇到这些文件
+            // for the most work chain if we come across them; we can't switch // 则删除作为大多数工作链的候选；
+            // to a chain unless we have all the non-active-chain parent blocks. // 除非我们拥有所有非活动链的父块，否则无法切换到链。
             bool fFailedChain = pindexTest->nStatus & BLOCK_FAILED_MASK;
             bool fMissingData = !(pindexTest->nStatus & BLOCK_HAVE_DATA);
             if (fFailedChain || fMissingData) {
-                // Candidate chain is not usable (either invalid or missing data)
+                // Candidate chain is not usable (either invalid or missing data) // 候选链不可用（无效或丢失数据）
                 if (fFailedChain && (pindexBestInvalid == NULL || pindexNew->nChainWork > pindexBestInvalid->nChainWork))
                     pindexBestInvalid = pindexNew;
                 CBlockIndex *pindexFailed = pindexNew;
-                // Remove the entire chain from the set.
+                // Remove the entire chain from the set. // 从集合中移除整个链
                 while (pindexTest != pindexFailed) {
                     if (fFailedChain) {
                         pindexFailed->nStatus |= BLOCK_FAILED_CHILD;
                     } else if (fMissingData) {
-                        // If we're missing data, then add back to mapBlocksUnlinked,
-                        // so that if the block arrives in the future we can try adding
-                        // to setBlockIndexCandidates again.
+                        // If we're missing data, then add back to mapBlocksUnlinked, // 如果我们丢失了数据，添加回未链接的区块映射列表，
+                        // so that if the block arrives in the future we can try adding // 以至于如果之后区块到达，
+                        // to setBlockIndexCandidates again. // 我们可以尝试再次添加到区块索引候选集中
                         mapBlocksUnlinked.insert(std::make_pair(pindexFailed->pprev, pindexFailed));
                     }
                     setBlockIndexCandidates.erase(pindexFailed);
@@ -2889,7 +2889,7 @@ static bool ActivateBestChainStep(CValidationState& state, const CChainParams& c
 bool ActivateBestChain(CValidationState &state, const CChainParams& chainparams, const CBlock *pblock) {
     CBlockIndex *pindexMostWork = NULL;
     do {
-        boost::this_thread::interruption_point();
+        boost::this_thread::interruption_point(); // 打个断点
         if (ShutdownRequested()) // 若请求关闭
             break; // 这里跳出
 
@@ -2898,7 +2898,7 @@ bool ActivateBestChain(CValidationState &state, const CChainParams& chainparams,
         bool fInitialDownload;
         {
             LOCK(cs_main); // 上锁
-            CBlockIndex *pindexOldTip = chainActive.Tip(); // 获取激活链尖
+            CBlockIndex *pindexOldTip = chainActive.Tip(); // 获取激活链尖区块索引
             pindexMostWork = FindMostWorkChain(); // 
 
             // Whether we have anything to do at all. // 检查我们是否有事情要做
@@ -3098,12 +3098,12 @@ bool ReceivedBlockTransactions(const CBlock &block, CValidationState& state, CBl
             if (chainActive.Tip() == NULL || !setBlockIndexCandidates.value_comp()(pindex, chainActive.Tip())) { // 若激活的链尖为空，或当前区块非激活链尖
                 setBlockIndexCandidates.insert(pindex); // 插入区块索引候选集
             }
-            std::pair<std::multimap<CBlockIndex*, CBlockIndex*>::iterator, std::multimap<CBlockIndex*, CBlockIndex*>::iterator> range = mapBlocksUnlinked.equal_range(pindex); // 
-            while (range.first != range.second) {
+            std::pair<std::multimap<CBlockIndex*, CBlockIndex*>::iterator, std::multimap<CBlockIndex*, CBlockIndex*>::iterator> range = mapBlocksUnlinked.equal_range(pindex); // 获取一对范围迭代器 <键不小于 pindex，键大于 pindex>
+            while (range.first != range.second) { // 把等于但不大于 pindex 的区块索引
                 std::multimap<CBlockIndex*, CBlockIndex*>::iterator it = range.first;
-                queue.push_back(it->second);
+                queue.push_back(it->second); // 加入索引队列
                 range.first++;
-                mapBlocksUnlinked.erase(it);
+                mapBlocksUnlinked.erase(it); // 并从未链接的区块映射列表中擦除
             }
         }
     } else { // 否则
@@ -3549,10 +3549,10 @@ bool TestBlockValidity(CValidationState& state, const CChainParams& chainparams,
 
 /**
  * BLOCK PRUNING CODE
- */
+ */ // 区块修剪代码
 
 /* Calculate the amount of disk space the block & undo files currently use */
-uint64_t CalculateCurrentUsage()
+uint64_t CalculateCurrentUsage() // 计算区块和恢复文件当前使用的磁盘空间
 {
     uint64_t retval = 0;
     BOOST_FOREACH(const CBlockFileInfo &file, vinfoBlockFile) {
@@ -3562,7 +3562,7 @@ uint64_t CalculateCurrentUsage()
 }
 
 /* Prune a block file (modify associated database entries)*/
-void PruneOneBlockFile(const int fileNumber)
+void PruneOneBlockFile(const int fileNumber) // 修剪一个区块文件（修改关联的数据库条目）
 {
     for (BlockMap::iterator it = mapBlockIndex.begin(); it != mapBlockIndex.end(); ++it) {
         CBlockIndex* pindex = it->second;
@@ -3596,10 +3596,10 @@ void PruneOneBlockFile(const int fileNumber)
 
 void UnlinkPrunedFiles(std::set<int>& setFilesToPrune)
 {
-    for (set<int>::iterator it = setFilesToPrune.begin(); it != setFilesToPrune.end(); ++it) {
+    for (set<int>::iterator it = setFilesToPrune.begin(); it != setFilesToPrune.end(); ++it) { // 遍历待修剪的文件集
         CDiskBlockPos pos(*it, 0);
-        boost::filesystem::remove(GetBlockPosFilename(pos, "blk"));
-        boost::filesystem::remove(GetBlockPosFilename(pos, "rev"));
+        boost::filesystem::remove(GetBlockPosFilename(pos, "blk")); // 移除区块文件
+        boost::filesystem::remove(GetBlockPosFilename(pos, "rev")); // 移除恢复文件
         LogPrintf("Prune: %s deleted blk/rev (%05u)\n", __func__, *it);
     }
 }
@@ -3660,7 +3660,7 @@ bool CheckDiskSpace(uint64_t nAdditionalBytes)
     if (nFreeBytesAvailable < nMinDiskSpace + nAdditionalBytes) // 磁盘剩余空间最小为 50MB
         return AbortNode("Disk space is low!", _("Error: Disk space is low!"));
 
-    return true;
+    return true; // 若剩余空间大于等于 50MB，则返回 true
 }
 
 FILE* OpenDiskFile(const CDiskBlockPos &pos, const char *prefix, bool fReadOnly)
@@ -3696,7 +3696,7 @@ FILE* OpenUndoFile(const CDiskBlockPos &pos, bool fReadOnly) {
 
 boost::filesystem::path GetBlockPosFilename(const CDiskBlockPos &pos, const char *prefix)
 {
-    return GetDataDir() / "blocks" / strprintf("%s%05u.dat", prefix, pos.nFile);
+    return GetDataDir() / "blocks" / strprintf("%s%05u.dat", prefix, pos.nFile); // 拼接 2 种前缀的区块数据文件路径名
 }
 
 CBlockIndex * InsertBlockIndex(uint256 hash)
