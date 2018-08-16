@@ -1328,13 +1328,13 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
                 pcoinsTip = new CCoinsViewCache(pcoinscatcher);
 
                 if (fReindex) { // 默认 false
-                    pblocktree->WriteReindexing(true); // 1.写入再索引标志为 true（区块数据库 leveldb）
+                    pblocktree->WriteReindexing(true); // 3.1.写入再索引标志为 true（区块数据库 leveldb）
                     //If we're reindexing in prune mode, wipe away unusable block files and all undo data files
                     if (fPruneMode) // 如果我们在修剪模式（修剪已确认的区块）下进行再索引，
                         CleanupBlockRevFiles(); // 清空无用的块文件（blk）和所有恢复数据文件（rev）
                 }
 
-                if (!LoadBlockIndex()) { // 2.从磁盘加载区块索引树和币数据库
+                if (!LoadBlockIndex()) { // 3.2.从磁盘加载区块索引树和币数据库
                     strLoadError = _("Error loading block database");
                     break;
                 }
@@ -1345,7 +1345,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
                     return InitError(_("Incorrect or no genesis block found. Wrong datadir for network?"));
 
                 // Initialize the block index (no-op if non-empty database was already loaded) // 初始化区块索引(如果非空数据库已经加载则无操作)
-                if (!InitBlockIndex(chainparams)) { // 初始化区块索引到磁盘
+                if (!InitBlockIndex(chainparams)) { // 3.3.初始化区块索引到磁盘
                     strLoadError = _("Error initializing block database");
                     break;
                 }
@@ -1394,7 +1394,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
             fLoaded = true; // 加载成功
         } while(false);
 
-        if (!fLoaded) { // 若加载失败
+        if (!fLoaded) { // 3.4.若加载失败
             // first suggest a reindex // 首次建议再索引
             if (!fReset) { // =fReindex
                 bool fRet = uiInterface.ThreadSafeMessageBox(

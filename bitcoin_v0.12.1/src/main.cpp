@@ -2807,7 +2807,7 @@ static void PruneBlockIndexCandidates() { // É¾³ýÇø¿éË÷ÒýºòÑ¡¼¯ºÏÖÐ±Òµ±Ç°Á´¼â²îµ
 /**
  * Try to make some progress towards making pindexMostWork the active block.
  * pblock is either NULL or a pointer to a CBlock corresponding to pindexMostWork.
- */
+ */ // ³¢ÊÔ¼¤»î pindexMostWork Ë÷Òý¶ÔÓ¦µÄÇø¿é¡£pblock Îª¿Õ»òÊÇÖ¸Ïò pindexMostWork ¶ÔÓ¦Çø¿éµÄÖ¸Õë¡£
 static bool ActivateBestChainStep(CValidationState& state, const CChainParams& chainparams, CBlockIndex* pindexMostWork, const CBlock* pblock)
 {
     AssertLockHeld(cs_main);
@@ -2815,7 +2815,7 @@ static bool ActivateBestChainStep(CValidationState& state, const CChainParams& c
     const CBlockIndex *pindexOldTip = chainActive.Tip();
     const CBlockIndex *pindexFork = chainActive.FindFork(pindexMostWork);
 
-    // Disconnect active blocks which are no longer in the best chain.
+    // Disconnect active blocks which are no longer in the best chain. // ¶Ï¿ª²»ÔÙÊÇ×î¼ÑÁ´ÉÏ¼¤»îÇø¿éµÄÁ¬½Ó¡£
     bool fBlocksDisconnected = false;
     while (chainActive.Tip() && chainActive.Tip() != pindexFork) {
         if (!DisconnectTip(state, chainparams.GetConsensus()))
@@ -2823,13 +2823,13 @@ static bool ActivateBestChainStep(CValidationState& state, const CChainParams& c
         fBlocksDisconnected = true;
     }
 
-    // Build list of new blocks to connect.
+    // Build list of new blocks to connect. // ¹¹½¨ÓÃÓÚÁ¬½ÓµÄÐÂÇø¿éÁÐ±í¡£
     std::vector<CBlockIndex*> vpindexToConnect;
     bool fContinue = true;
     int nHeight = pindexFork ? pindexFork->nHeight : -1;
     while (fContinue && nHeight != pindexMostWork->nHeight) {
         // Don't iterate the entire list of potential improvements toward the best tip, as we likely only need
-        // a few blocks along the way.
+        // a few blocks along the way. // ²»Òª½«Õû¸öÇ±ÔÚ¸Ä½øÁÐ±íµü´úµ½×î¼ÑÁ´¼â£¬ÒòÎªÎÒÃÇ¿ÉÄÜÖ»Ðè¼¸¸öÇø¿é¡£
         int nTargetHeight = std::min(nHeight + 32, pindexMostWork->nHeight);
         vpindexToConnect.clear();
         vpindexToConnect.reserve(nTargetHeight - nHeight);
@@ -2840,25 +2840,25 @@ static bool ActivateBestChainStep(CValidationState& state, const CChainParams& c
         }
         nHeight = nTargetHeight;
 
-        // Connect new blocks.
+        // Connect new blocks. // Á¬½Óµ½ÐÂÇø¿é¡£
         BOOST_REVERSE_FOREACH(CBlockIndex *pindexConnect, vpindexToConnect) {
             if (!ConnectTip(state, chainparams, pindexConnect, pindexConnect == pindexMostWork ? pblock : NULL)) {
                 if (state.IsInvalid()) {
-                    // The block violates a consensus rule.
+                    // The block violates a consensus rule. // ¸ÃÇø¿éÎ¥·´¹²Ê¶¹æÔò¡£
                     if (!state.CorruptionPossible())
                         InvalidChainFound(vpindexToConnect.back());
                     state = CValidationState();
                     fInvalidFound = true;
                     fContinue = false;
                     break;
-                } else {
+                } else { // ·¢ÉúÁËÒ»¸öÏµÍ³´íÎó£¨´ÅÅÌ¿Õ¼ä£¬Êý¾Ý¿â´íÎó£¬...£©¡£
                     // A system error occurred (disk space, database error, ...).
                     return false;
                 }
             } else {
                 PruneBlockIndexCandidates();
                 if (!pindexOldTip || chainActive.Tip()->nChainWork > pindexOldTip->nChainWork) {
-                    // We're in a better position than we were. Return temporarily to release the lock.
+                    // We're in a better position than we were. Return temporarily to release the lock. // ÎÒÃÇ´¦ÓÚ×î¼ÑÎ»ÖÃ¡£ÁÙÊ±·µ»ØÓÃÀ´ÊÍ·ÅËø¡£
                     fContinue = false;
                     break;
                 }
@@ -2872,7 +2872,7 @@ static bool ActivateBestChainStep(CValidationState& state, const CChainParams& c
     }
     mempool.check(pcoinsTip);
 
-    // Callbacks/notifications for a new best chain.
+    // Callbacks/notifications for a new best chain. // ÓÃÓÚÐÂ×î¼ÑÁ´µÄ»Øµ÷/Í¨Öª¡£
     if (fInvalidFound)
         CheckForkWarningConditionsOnNewFork(vpindexToConnect.back());
     else
@@ -2899,11 +2899,11 @@ bool ActivateBestChain(CValidationState &state, const CChainParams& chainparams,
         {
             LOCK(cs_main); // ÉÏËø
             CBlockIndex *pindexOldTip = chainActive.Tip(); // »ñÈ¡¼¤»îÁ´¼âÇø¿éË÷Òý
-            pindexMostWork = FindMostWorkChain(); // 
+            pindexMostWork = FindMostWorkChain(); // ²éÕÒ×î¶à¹¤×÷Á¿µÄÁ´¼âÇø¿éË÷Òý
 
             // Whether we have anything to do at all. // ¼ì²éÎÒÃÇÊÇ·ñÓÐÊÂÇéÒª×ö
-            if (pindexMostWork == NULL || pindexMostWork == chainActive.Tip())
-                return true;
+            if (pindexMostWork == NULL || pindexMostWork == chainActive.Tip()) // Èôµ±Ç°¼¤»îÁ´¼âÇø¿éÒÑÊÇ×î¼ÑÇø¿é
+                return true; // Ö±½Ó·µ»Ø true
 
             if (!ActivateBestChainStep(state, chainparams, pindexMostWork, pblock && pblock->GetHash() == pindexMostWork->GetBlockHash() ? pblock : NULL)) // ¼¤»î×î¼ÑÁ´²½Öè
                 return false;
