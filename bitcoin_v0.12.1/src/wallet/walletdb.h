@@ -30,7 +30,7 @@ class uint160;
 class uint256;
 
 /** Error statuses for the wallet database */
-enum DBErrors
+enum DBErrors // 钱包数据库错误状态枚举
 {
     DB_LOAD_OK, // 0
     DB_CORRUPT, // 1

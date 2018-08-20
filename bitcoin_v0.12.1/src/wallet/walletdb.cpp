@@ -62,8 +62,8 @@ bool CWalletDB::WriteTx(uint256 hash, const CWalletTx& wtx)
 
 bool CWalletDB::EraseTx(uint256 hash)
 {
-    nWalletDBUpdated++;
-    return Erase(std::make_pair(std::string("tx"), hash));
+    nWalletDBUpdated++; // 钱包数据库更新次数加 1
+    return Erase(std::make_pair(std::string("tx"), hash)); // 擦除指定钱包交易
 }
 
 bool CWalletDB::WriteKey(const CPubKey& vchPubKey, const CPrivKey& vchPrivKey, const CKeyMetadata& keyMeta)
@@ -786,15 +786,15 @@ DBErrors CWalletDB::FindWalletTx(CWallet* pwallet, vector<uint256>& vTxHash, vec
 
 DBErrors CWalletDB::ZapWalletTx(CWallet* pwallet, vector<CWalletTx>& vWtx)
 {
-    // build list of wallet TXs
+    // build list of wallet TXs // 构建钱包交易列表
     vector<uint256> vTxHash;
-    DBErrors err = FindWalletTx(pwallet, vTxHash, vWtx);
+    DBErrors err = FindWalletTx(pwallet, vTxHash, vWtx); // 查询并获取指定钱包的钱包交易哈希和交易对象
     if (err != DB_LOAD_OK)
         return err;
 
-    // erase each wallet TX
-    BOOST_FOREACH (uint256& hash, vTxHash) {
-        if (!EraseTx(hash))
+    // erase each wallet TX // 擦除每笔钱包交易
+    BOOST_FOREACH (uint256& hash, vTxHash) { // 遍历钱包交易哈希列表
+        if (!EraseTx(hash)) // 擦除钱包交易
             return DB_CORRUPT;
     }
 

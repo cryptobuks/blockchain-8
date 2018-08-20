@@ -4004,76 +4004,76 @@ bool InitBlockIndex(const CChainParams& chainparams)
 
 bool LoadExternalBlockFile(const CChainParams& chainparams, FILE* fileIn, CDiskBlockPos *dbp)
 {
-    // Map of disk positions for blocks with unknown parent (only used for reindex)
+    // Map of disk positions for blocks with unknown parent (only used for reindex) // 具有位置双亲的区块的磁盘位置映射（只用于再索引）
     static std::multimap<uint256, CDiskBlockPos> mapBlocksUnknownParent;
     int64_t nStart = GetTimeMillis();
 
-    int nLoaded = 0;
+    int nLoaded = 0; // 加载的区块数
     try {
-        // This takes over fileIn and calls fclose() on it in the CBufferedFile destructor
-        CBufferedFile blkdat(fileIn, 2*MAX_BLOCK_SIZE, MAX_BLOCK_SIZE+8, SER_DISK, CLIENT_VERSION);
-        uint64_t nRewind = blkdat.GetPos();
-        while (!blkdat.eof()) {
-            boost::this_thread::interruption_point();
+        // This takes over fileIn and calls fclose() on it in the CBufferedFile destructor // 这将接管 fileIn 并在 CBufferedFile 的析构函数中调用 fclose() 关闭它
+        CBufferedFile blkdat(fileIn, 2*MAX_BLOCK_SIZE, MAX_BLOCK_SIZE+8, SER_DISK, CLIENT_VERSION); // 创建缓冲文件对象
+        uint64_t nRewind = blkdat.GetPos(); // 把当前读取的位置作为回退点
+        while (!blkdat.eof()) { // 若该文件没到文件结尾
+            boost::this_thread::interruption_point(); // 打个断点
 
-            blkdat.SetPos(nRewind);
+            blkdat.SetPos(nRewind); // 设置回退点
             nRewind++; // start one byte further next time, in case of failure
-            blkdat.SetLimit(); // remove former limit
+            blkdat.SetLimit(); // remove former limit // 移除以前的限制
             unsigned int nSize = 0;
             try {
-                // locate a header
-                unsigned char buf[MESSAGE_START_SIZE];
-                blkdat.FindByte(chainparams.MessageStart()[0]);
-                nRewind = blkdat.GetPos()+1;
+                // locate a header // 定位区块头
+                unsigned char buf[MESSAGE_START_SIZE]; // 4bytes
+                blkdat.FindByte(chainparams.MessageStart()[0]); // 搜索消息头的首个字符
+                nRewind = blkdat.GetPos()+1; // 回退位置为读取位置加 1
                 blkdat >> FLATDATA(buf);
-                if (memcmp(buf, chainparams.MessageStart(), MESSAGE_START_SIZE))
+                if (memcmp(buf, chainparams.MessageStart(), MESSAGE_START_SIZE)) // 把消息头拷贝到 buf 中
                     continue;
-                // read size
-                blkdat >> nSize;
-                if (nSize < 80 || nSize > MAX_BLOCK_SIZE)
+                // read size // 读大小
+                blkdat >> nSize; // 导入区块大小
+                if (nSize < 80 || nSize > MAX_BLOCK_SIZE) // 区块头数据大小检验
                     continue;
             } catch (const std::exception&) {
-                // no valid block header found; don't complain
-                break;
+                // no valid block header found; don't complain // 无效区块头被找到，不抱怨（啥也不做）
+                break; // 直接跳出
             }
             try {
-                // read block
-                uint64_t nBlockPos = blkdat.GetPos();
-                if (dbp)
-                    dbp->nPos = nBlockPos;
-                blkdat.SetLimit(nBlockPos + nSize);
-                blkdat.SetPos(nBlockPos);
-                CBlock block;
-                blkdat >> block;
-                nRewind = blkdat.GetPos();
+                // read block // 读区块
+                uint64_t nBlockPos = blkdat.GetPos(); // 获取区块位置
+                if (dbp) // 区块数据库文件指针
+                    dbp->nPos = nBlockPos; // 设置位置
+                blkdat.SetLimit(nBlockPos + nSize); // 设置限制
+                blkdat.SetPos(nBlockPos); // 设置区块位置
+                CBlock block; // 创建空的区块对象
+                blkdat >> block; // 导入区块数据
+                nRewind = blkdat.GetPos(); // 获取当前读取的位置
 
-                // detect out of order blocks, and store them for later
-                uint256 hash = block.GetHash();
-                if (hash != chainparams.GetConsensus().hashGenesisBlock && mapBlockIndex.find(block.hashPrevBlock) == mapBlockIndex.end()) {
+                // detect out of order blocks, and store them for later // 侦测无序块，并存储下来供以后使用
+                uint256 hash = block.GetHash(); // 获取区块哈希
+                if (hash != chainparams.GetConsensus().hashGenesisBlock && mapBlockIndex.find(block.hashPrevBlock) == mapBlockIndex.end()) { // 该哈希不能等于共识上创世区块的哈希，且在区块索引映射列表中找到该区块的前一个区块
                     LogPrint("reindex", "%s: Out of order block %s, parent %s not known\n", __func__, hash.ToString(),
-                            block.hashPrevBlock.ToString());
-                    if (dbp)
-                        mapBlocksUnknownParent.insert(std::make_pair(block.hashPrevBlock, *dbp));
-                    continue;
+                            block.hashPrevBlock.ToString()); // 把前一个区块哈希转换为字符串形式
+                    if (dbp) // 如果区块磁盘位置对象非空
+                        mapBlocksUnknownParent.insert(std::make_pair(block.hashPrevBlock, *dbp)); // 插入区块的未知双亲映射列表
+                    continue; // 跳过
                 }
 
-                // process in case the block isn't known yet
-                if (mapBlockIndex.count(hash) == 0 || (mapBlockIndex[hash]->nStatus & BLOCK_HAVE_DATA) == 0) {
+                // process in case the block isn't known yet // 如果区块未知，则进行处理
+                if (mapBlockIndex.count(hash) == 0 || (mapBlockIndex[hash]->nStatus & BLOCK_HAVE_DATA) == 0) { // 若该区块哈希不存在于区块索引映射列表，或存在，且其状态为 BLOCK_HAVE_DATA
                     CValidationState state;
-                    if (ProcessNewBlock(state, chainparams, NULL, &block, true, dbp))
-                        nLoaded++;
+                    if (ProcessNewBlock(state, chainparams, NULL, &block, true, dbp)) // 处理新区块
+                        nLoaded++; // 加载的区块数加 1
                     if (state.IsError())
                         break;
-                } else if (hash != chainparams.GetConsensus().hashGenesisBlock && mapBlockIndex[hash]->nHeight % 1000 == 0) {
+                } else if (hash != chainparams.GetConsensus().hashGenesisBlock && mapBlockIndex[hash]->nHeight % 1000 == 0) { // 若区块哈希不等于创世区块哈希，且高度低于 1000
                     LogPrintf("Block Import: already had block %s at height %d\n", hash.ToString(), mapBlockIndex[hash]->nHeight);
                 }
 
-                // Recursively process earlier encountered successors of this block
-                deque<uint256> queue;
-                queue.push_back(hash);
-                while (!queue.empty()) {
-                    uint256 head = queue.front();
-                    queue.pop_front();
+                // Recursively process earlier encountered successors of this block // 递归处理该块早期遇到的后继
+                deque<uint256> queue; // 双端队列
+                queue.push_back(hash); // 放入队列
+                while (!queue.empty()) { // 当队列非空时
+                    uint256 head = queue.front(); // 取队头
+                    queue.pop_front(); // 队头出队
                     std::pair<std::multimap<uint256, CDiskBlockPos>::iterator, std::multimap<uint256, CDiskBlockPos>::iterator> range = mapBlocksUnknownParent.equal_range(head);
                     while (range.first != range.second) {
                         std::multimap<uint256, CDiskBlockPos>::iterator it = range.first;
@@ -4099,9 +4099,9 @@ bool LoadExternalBlockFile(const CChainParams& chainparams, FILE* fileIn, CDiskB
     } catch (const std::runtime_error& e) {
         AbortNode(std::string("System error: ") + e.what());
     }
-    if (nLoaded > 0)
+    if (nLoaded > 0) // 若成功加载了区块
         LogPrintf("Loaded %i blocks from external file in %dms\n", nLoaded, GetTimeMillis() - nStart);
-    return nLoaded > 0;
+    return nLoaded > 0; // 返回 true
 }
 
 void static CheckBlockIndex(const Consensus::Params& consensusParams)

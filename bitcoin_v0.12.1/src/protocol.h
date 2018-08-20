@@ -29,7 +29,7 @@
 class CMessageHeader
 {
 public:
-    typedef unsigned char MessageStartChars[MESSAGE_START_SIZE];
+    typedef unsigned char MessageStartChars[MESSAGE_START_SIZE]; // 4bytes 的消息头
 
     CMessageHeader(const MessageStartChars& pchMessageStartIn);
     CMessageHeader(const MessageStartChars& pchMessageStartIn, const char* pszCommand, unsigned int nMessageSizeIn);
@@ -224,7 +224,7 @@ extern const char *SENDHEADERS;
 /* Get a vector of all valid message types (see above) */
 const std::vector<std::string> &getAllNetMessageTypes();
 
-/** nServices flags */
+/** nServices flags */ // 服务标志
 enum {
     // NODE_NETWORK means that the node is capable of serving the block chain. It is currently
     // set by all Bitcoin Core nodes, and is unset by SPV clients or other peers that just want

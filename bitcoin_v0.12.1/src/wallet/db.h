@@ -183,16 +183,16 @@ protected:
         if (fReadOnly)
             assert(!"Erase called on database in read-only mode");
 
-        // Key
+        // Key // 关键字
         CDataStream ssKey(SER_DISK, CLIENT_VERSION);
         ssKey.reserve(1000);
         ssKey << key;
         Dbt datKey(&ssKey[0], ssKey.size());
 
-        // Erase
+        // Erase // 擦除
         int ret = pdb->del(activeTxn, &datKey, 0);
 
-        // Clear memory
+        // Clear memory // 清空内存（数据置 0）
         memset(datKey.get_data(), 0, datKey.get_size());
         return (ret == 0 || ret == DB_NOTFOUND);
     }

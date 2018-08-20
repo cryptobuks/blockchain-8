@@ -136,7 +136,7 @@ extern const std::string strMessageMagic; // 消息魔数头（字符串）
 extern CWaitableCriticalSection csBestBlock;
 extern CConditionVariable cvBlockChange; // 区块改变的条件变量
 extern bool fImporting;
-extern bool fReindex;
+extern bool fReindex; // 在索引标志，默认关闭
 extern int nScriptCheckThreads;
 extern bool fTxIndex;
 extern bool fIsBareMultisigStd;
@@ -155,13 +155,13 @@ extern CBlockIndex *pindexBestHeader;
 /** Minimum disk space required - used in CheckDiskSpace() */
 static const uint64_t nMinDiskSpace = 52428800; // 50MB
 
-/** Pruning-related variables and constants */
-/** True if any block files have ever been pruned. */
-extern bool fHavePruned; // 如果全部区块文件被修剪过则为 true
-/** True if we're running in -prune mode. */
-extern bool fPruneMode; // 修剪模式
-/** Number of MiB of block files that we're trying to stay below. */
-extern uint64_t nPruneTarget;
+/** Pruning-related variables and constants */ // 修剪相关的变量和常量
+/** True if any block files have ever been pruned. */ // 如果全部区块文件被修剪过则为 true
+extern bool fHavePruned; // 修剪标志，默认为 false，表示未修剪过
+/** True if we're running in -prune mode. */ // 如果为 true，则我们正处于 -prune 模式中
+extern bool fPruneMode; // 修剪模式，默认关闭为 false
+/** Number of MiB of block files that we're trying to stay below. */ // 我们尝试保持的低于区块文件的以 MiB 为单位的区块文件大小
+extern uint64_t nPruneTarget; // 修剪目标，默认为 0
 /** Block files containing a block-height within MIN_BLOCKS_TO_KEEP of chainActive.Tip() will not be pruned. */ // 在 chainActive.Tip() 的 MIN_BLOCKS_TO_KEEP 中区块文件包含了一个区块高度将不会被修剪。
 static const unsigned int MIN_BLOCKS_TO_KEEP = 288;
 
@@ -202,9 +202,9 @@ bool CheckDiskSpace(uint64_t nAdditionalBytes = 0);
 FILE* OpenBlockFile(const CDiskBlockPos &pos, bool fReadOnly = false);
 /** Open an undo file (rev?????.dat) */
 FILE* OpenUndoFile(const CDiskBlockPos &pos, bool fReadOnly = false);
-/** Translation to a filesystem path */
+/** Translation to a filesystem path */ // 转换为 filesystem 路径
 boost::filesystem::path GetBlockPosFilename(const CDiskBlockPos &pos, const char *prefix);
-/** Import blocks from an external file */
+/** Import blocks from an external file */ // 从外部文件导入区块
 bool LoadExternalBlockFile(const CChainParams& chainparams, FILE* fileIn, CDiskBlockPos *dbp = NULL);
 /** Initialize a new block tree database + block data on disk */
 bool InitBlockIndex(const CChainParams& chainparams); // 初始化一个新的区块树数据库+区块数据到磁盘

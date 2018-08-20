@@ -377,7 +377,7 @@ I ReadVarInt(Stream& is)
 
 /** 
  * Wrapper for serializing arrays and POD.
- */
+ */ // 用于序列化数组和 POD（旧数据类型，Plain Old Data） 类型的包装器。
 class CFlatData
 {
 protected:

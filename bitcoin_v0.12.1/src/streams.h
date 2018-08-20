@@ -446,26 +446,26 @@ public:
  *
  *  Will automatically close the file when it goes out of scope if not null.
  *  If you need to close the file early, use file.fclose() instead of fclose(file).
- */
+ */ // 无引用计数的 RAII 包装器，围绕一个文件指针 FILE* 实现环形缓冲来反序列化。它保证了回退给定字节的能力。如果文件超出范围，将自动关闭文件，前提是指针非空。如果需要提前关闭文件，使用 file.fclose() 代替 fclose(file)。
 class CBufferedFile
 {
 private:
-    // Disallow copies
+    // Disallow copies // 进制拷贝
     CBufferedFile(const CBufferedFile&);
     CBufferedFile& operator=(const CBufferedFile&);
 
     int nType;
     int nVersion;
 
-    FILE *src;            // source file
-    uint64_t nSrcPos;     // how many bytes have been read from source
-    uint64_t nReadPos;    // how many bytes have been read from this
-    uint64_t nReadLimit;  // up to which position we're allowed to read
-    uint64_t nRewind;     // how many bytes we guarantee to rewind
-    std::vector<char> vchBuf; // the buffer
+    FILE *src;            // source file // 源文件指针
+    uint64_t nSrcPos;     // how many bytes have been read from source // 从源文件中已读的字节数
+    uint64_t nReadPos;    // how many bytes have been read from this // 从这里已读的字节数
+    uint64_t nReadLimit;  // up to which position we're allowed to read // 我们允许读取的位置
+    uint64_t nRewind;     // how many bytes we guarantee to rewind // 我们保证回退的字节数
+    std::vector<char> vchBuf; // the buffer // 字符缓冲区列表
 
 protected:
-    // read data from the source to fill the buffer
+    // read data from the source to fill the buffer // 从源文件中读数据来填充到缓冲区中
     bool Fill() {
         unsigned int pos = nSrcPos % vchBuf.size();
         unsigned int readNow = vchBuf.size() - pos;
@@ -506,11 +506,11 @@ public:
     }
 
     // check whether we're at the end of the source file
-    bool eof() const {
+    bool eof() const { // 检查我们是否在源文件尾部
         return nReadPos == nSrcPos && feof(src);
     }
 
-    // read a number of bytes
+    // read a number of bytes // 读取指定自己的数据
     CBufferedFile& read(char *pch, size_t nSize) {
         if (nSize + nReadPos > nReadLimit)
             throw std::ios_base::failure("Read attempted past buffer limit");
@@ -534,11 +534,11 @@ public:
     }
 
     // return the current reading position
-    uint64_t GetPos() {
+    uint64_t GetPos() { // 获取当前读取的位置
         return nReadPos;
     }
 
-    // rewind to a given reading position
+    // rewind to a given reading position // 回退到给定的阅读位置
     bool SetPos(uint64_t nPos) {
         nReadPos = nPos;
         if (nReadPos + nRewind < nSrcPos) {
@@ -581,7 +581,7 @@ public:
     }
 
     // search for a given byte in the stream, and remain positioned on it
-    void FindByte(char ch) {
+    void FindByte(char ch) { // 在流中搜索给定字节，并进行定位
         while (true) {
             if (nReadPos == nSrcPos)
                 Fill();

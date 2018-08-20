@@ -2358,18 +2358,18 @@ DBErrors CWallet::LoadWallet(bool& fFirstRunRet)
 
 DBErrors CWallet::ZapWalletTx(std::vector<CWalletTx>& vWtx)
 {
-    if (!fFileBacked)
-        return DB_LOAD_OK;
-    DBErrors nZapWalletTxRet = CWalletDB(strWalletFile,"cr+").ZapWalletTx(this, vWtx);
+    if (!fFileBacked) // 若钱包未备份
+        return DB_LOAD_OK; // 返回 0
+    DBErrors nZapWalletTxRet = CWalletDB(strWalletFile,"cr+").ZapWalletTx(this, vWtx); // 打开钱包数据库
     if (nZapWalletTxRet == DB_NEED_REWRITE)
     {
-        if (CDB::Rewrite(strWalletFile, "\x04pool"))
+        if (CDB::Rewrite(strWalletFile, "\x04pool")) // 重写钱包数据库文件
         {
-            LOCK(cs_wallet);
-            setKeyPool.clear();
-            // Note: can't top-up keypool here, because wallet is locked.
-            // User will be prompted to unlock wallet the next operation
-            // that requires a new key.
+            LOCK(cs_wallet); // 钱包上锁
+            setKeyPool.clear(); // 密钥池集合清空
+            // Note: can't top-up keypool here, because wallet is locked. // 注：这里不能填充密钥池，因为钱包已锁定
+            // User will be prompted to unlock wallet the next operation // 在需要新密钥的下一个操作时解锁钱包，
+            // that requires a new key. // 系统将提示用户。
         }
     }
 

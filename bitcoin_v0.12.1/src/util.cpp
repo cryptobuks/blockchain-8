@@ -762,7 +762,7 @@ boost::filesystem::path GetTempPath() {
 
 void runCommand(const std::string& strCommand)
 {
-    int nErr = ::system(strCommand.c_str());
+    int nErr = ::system(strCommand.c_str()); // Ö´ÐÐÃüÁî bash ÃüÁî
     if (nErr)
         LogPrintf("runCommand error: system(%s) returned %d\n", strCommand, nErr);
 }

@@ -535,10 +535,10 @@ static void BlockNotifyCallback(bool initialSync, const CBlockIndex *pBlockIndex
     if (initialSync || !pBlockIndex)
         return;
 
-    std::string strCmd = GetArg("-blocknotify", "");
+    std::string strCmd = GetArg("-blocknotify", ""); // 获取指定的命令
 
-    boost::replace_all(strCmd, "%s", pBlockIndex->GetBlockHash().GetHex());
-    boost::thread t(runCommand, strCmd); // thread runs free
+    boost::replace_all(strCmd, "%s", pBlockIndex->GetBlockHash().GetHex()); // 替换最佳区块哈希的 16 进制形式
+    boost::thread t(runCommand, strCmd); // thread runs free // 传入命令，运行处理命令线程
 }
 
 struct CImportingNow
@@ -599,22 +599,22 @@ void CleanupBlockRevFiles() // 删除某个缺失区块之后的所有区块数据，和前缀为 rev 
 
 void ThreadImport(std::vector<boost::filesystem::path> vImportFiles) // 导入区块线程处理函数
 {
-    const CChainParams& chainparams = Params();
-    RenameThread("bitcoin-loadblk"); // 加载区块线程
+    const CChainParams& chainparams = Params(); // 获取区块链参数
+    RenameThread("bitcoin-loadblk"); // 重命名为加载区块线程
     // -reindex // 再索引选项
     if (fReindex) {
-        CImportingNow imp;
-        int nFile = 0;
-        while (true) {
-            CDiskBlockPos pos(nFile, 0);
-            if (!boost::filesystem::exists(GetBlockPosFilename(pos, "blk")))
-                break; // No block files left to reindex
-            FILE *file = OpenBlockFile(pos, true);
-            if (!file)
-                break; // This error is logged in OpenBlockFile
+        CImportingNow imp; // 创建导入对象，把导入标志置为 true
+        int nFile = 0; // 文件序号从 0 开始
+        while (true) { // 循环加载区块
+            CDiskBlockPos pos(nFile, 0); // 创建区块文件位置对象
+            if (!boost::filesystem::exists(GetBlockPosFilename(pos, "blk"))) // 判断该文件是否存在
+                break; // No block files left to reindex // 若没有剩余区块文件用于再索引，则跳出
+            FILE *file = OpenBlockFile(pos, true); // 若该文件存在，则打开
+            if (!file) // 若文件打开失败
+                break; // This error is logged in OpenBlockFile // 记录错误信息到日志
             LogPrintf("Reindexing block file blk%05u.dat...\n", (unsigned int)nFile);
-            LoadExternalBlockFile(chainparams, file, &pos);
-            nFile++;
+            LoadExternalBlockFile(chainparams, file, &pos); // 加载外部的区块文件
+            nFile++; // 文件号加 1
         }
         pblocktree->WriteReindexing(false);
         fReindex = false;
@@ -1433,7 +1433,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
     // ********************************************************* Step 8: load wallet // 若启用钱包功能，则加载钱包
 #ifdef ENABLE_WALLET // 钱包有效的宏
     if (fDisableWallet) { // 默认 false
-        pwalletMain = NULL;
+        pwalletMain = NULL; // 钱包指针置空
         LogPrintf("Wallet disabled!\n");
     } else {
 
@@ -1443,22 +1443,22 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
         if (GetBoolArg("-zapwallettxes", false)) { // 分离钱包交易选项，默认关闭
             uiInterface.InitMessage(_("Zapping all transactions from wallet..."));
 
-            pwalletMain = new CWallet(strWalletFile); // 根据指定的钱包文件名创建并初始化钱包对象
-            DBErrors nZapWalletRet = pwalletMain->ZapWalletTx(vWtx); // 钱包从钱包中分离所有交易 pending
+            pwalletMain = new CWallet(strWalletFile); // 创建并初始化钱包对象
+            DBErrors nZapWalletRet = pwalletMain->ZapWalletTx(vWtx); // 从钱包中分离所有交易到钱包交易列表
             if (nZapWalletRet != DB_LOAD_OK) {
                 uiInterface.InitMessage(_("Error loading wallet.dat: Wallet corrupted"));
                 return false;
             }
 
-            delete pwalletMain;
-            pwalletMain = NULL;
+            delete pwalletMain; // 删除钱包对象
+            pwalletMain = NULL; // 指针置空
         }
 
         uiInterface.InitMessage(_("Loading wallet...")); // 开始加载钱包
 
         nStart = GetTimeMillis(); // 获取当前时间
         bool fFirstRun = true; // 首次运行标志，初始为 true
-        pwalletMain = new CWallet(strWalletFile); // 通过钱包文件名创建钱包对象
+        pwalletMain = new CWallet(strWalletFile); // 创建钱包对象
         DBErrors nLoadWalletRet = pwalletMain->LoadWallet(fFirstRun); // 加载钱包到内存（键值对）
         if (nLoadWalletRet != DB_LOAD_OK) // 加载钱包状态错误
         {
@@ -1479,9 +1479,9 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
             }
             else
                 strErrors << _("Error loading wallet.dat") << "\n";
-        }
+        } // 加载钱包成功
 
-        if (GetBoolArg("-upgradewallet", fFirstRun)) // 升级钱包选项，若钱包加载成功，首次运行标志在这里应该为 false
+        if (GetBoolArg("-upgradewallet", fFirstRun)) // 升级钱包选项，首次运行标志在这里应该为 false
         {
             int nMaxVersion = GetArg("-upgradewallet", 0);
             if (nMaxVersion == 0) // the -upgradewallet without argument case
@@ -1499,10 +1499,10 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
 
         if (fFirstRun) // 若是首次运行
         {
-            // Create new keyUser and set as default key
+            // Create new keyUser and set as default key // 创建新用户密钥并设置为默认密钥
             RandAddSeedPerfmon(); // 随机数种子
 
-            CPubKey newDefaultKey; // 新公钥
+            CPubKey newDefaultKey; // 新公钥对象
             if (pwalletMain->GetKeyFromPool(newDefaultKey)) { // 从钥匙池取一个公钥
                 pwalletMain->SetDefaultKey(newDefaultKey); // 设置该公钥为默认公钥
                 if (!pwalletMain->SetAddressBook(pwalletMain->vchDefaultKey.GetID(), "", "receive")) // 设置默认公钥到地址簿默认账户 "" 下，并设置目的为接收
@@ -1531,10 +1531,10 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
         }
         if (chainActive.Tip() && chainActive.Tip() != pindexRescan) // 链尖非创世区块也非分叉区块
         {
-            //We can't rescan beyond non-pruned blocks, stop and throw an error
-            //this might happen if a user uses a old wallet within a pruned node
-            // or if he ran -disablewallet for a longer time, then decided to re-enable
-            if (fPruneMode) // 如果一个用户在一个已修剪的节点使用一个旧版钱包或他长时间运行 -disablewallet 选项后决定再次开启钱包功能时，我们不能再扫描已修剪的区块，此时我们停止并抛出一个可能发生的错误
+            //We can't rescan beyond non-pruned blocks, stop and throw an error // 我们无法再扫描超出非修剪的区块，停止或抛出一个错误。
+            //this might happen if a user uses a old wallet within a pruned node // 如果用户在已修剪节点中使用旧钱包或者在更长时间中运行的 -disablewallet，
+            // or if he ran -disablewallet for a longer time, then decided to re-enable // 则可能发生这种情况。
+            if (fPruneMode) // 修剪模式标志，默认为 false
             {
                 CBlockIndex *block = chainActive.Tip(); // 获取激活的链尖区块索引
                 while (block && block->pprev && (block->pprev->nStatus & BLOCK_HAVE_DATA) && block->pprev->nTx > 0 && pindexRescan != block) // 找到 pindexRescan 所对应区块
@@ -1555,14 +1555,14 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
             // Restore wallet transaction metadata after -zapwallettxes=1 // 在 zapwallettxes 选项设置模式 1 后，恢复钱包交易元数据
             if (GetBoolArg("-zapwallettxes", false) && GetArg("-zapwallettxes", "1") != "2")
             { // 该选项设置会删除所有钱包交易且只恢复在启动时通过使用 -rescan 再扫描选项的部分区块链（模式）
-                CWalletDB walletdb(strWalletFile);
+                CWalletDB walletdb(strWalletFile); // 创建钱包数据库对象
 
-                BOOST_FOREACH(const CWalletTx& wtxOld, vWtx)
+                BOOST_FOREACH(const CWalletTx& wtxOld, vWtx) // 遍历钱包交易列表
                 {
-                    uint256 hash = wtxOld.GetHash();
-                    std::map<uint256, CWalletTx>::iterator mi = pwalletMain->mapWallet.find(hash);
-                    if (mi != pwalletMain->mapWallet.end())
-                    {
+                    uint256 hash = wtxOld.GetHash(); // 获取钱包交易哈希
+                    std::map<uint256, CWalletTx>::iterator mi = pwalletMain->mapWallet.find(hash); // 在钱包映射交易映射列表中查找该交易
+                    if (mi != pwalletMain->mapWallet.end()) // 若找到
+                    { // 更新该笔钱包交易
                         const CWalletTx* copyFrom = &wtxOld;
                         CWalletTx* copyTo = &mi->second;
                         copyTo->mapValue = copyFrom->mapValue;
@@ -1572,48 +1572,48 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
                         copyTo->fFromMe = copyFrom->fFromMe;
                         copyTo->strFromAccount = copyFrom->strFromAccount;
                         copyTo->nOrderPos = copyFrom->nOrderPos;
-                        copyTo->WriteToDisk(&walletdb);
+                        copyTo->WriteToDisk(&walletdb); // 写入钱包数据文件中
                     }
                 }
             }
         }
-        pwalletMain->SetBroadcastTransactions(GetBoolArg("-walletbroadcast", DEFAULT_WALLETBROADCAST));
+        pwalletMain->SetBroadcastTransactions(GetBoolArg("-walletbroadcast", DEFAULT_WALLETBROADCAST)); // 设置广播交易，默认为 true
     } // (!fDisableWallet)
 #else // ENABLE_WALLET
     LogPrintf("No wallet support compiled in!\n");
 #endif // !ENABLE_WALLET
 
-    // ********************************************************* Step 9: data directory maintenance // 若是裁剪模式，则进行 blockstore 的裁剪
+    // ********************************************************* Step 9: data directory maintenance // 若是裁剪模式且关闭了再索引选项，则进行 blockstore 的裁剪
 
-    // if pruning, unset the service bit and perform the initial blockstore prune
-    // after any wallet rescanning has taken place.
-    if (fPruneMode) { // 裁剪标志，默认关闭
+    // if pruning, unset the service bit and perform the initial blockstore prune // 如果正在修剪，
+    // after any wallet rescanning has taken place. // 在任何钱包再扫描发生后，取消设置服务位并执行初始区块存储修剪。
+    if (fPruneMode) { // 裁剪标志，默认为 false
         LogPrintf("Unsetting NODE_NETWORK on prune mode\n");
-        nLocalServices &= ~NODE_NETWORK;
-        if (!fReindex) {
-            uiInterface.InitMessage(_("Pruning blockstore..."));
+        nLocalServices &= ~NODE_NETWORK; // 取消设置本地服务中的 NODE_NETWORK
+        if (!fReindex) { // 若再索引标志关闭
+            uiInterface.InitMessage(_("Pruning blockstore...")); // 开始修剪区块存储
             PruneAndFlush(); // 设置修建标志并刷新磁盘上的链状态
         }
     }
 
     // ********************************************************* Step 10: import blocks // 导入区块数据
 
-    if (mapArgs.count("-blocknotify"))
-        uiInterface.NotifyBlockTip.connect(BlockNotifyCallback);
+    if (mapArgs.count("-blocknotify")) // 若注册了区块通知的命令
+        uiInterface.NotifyBlockTip.connect(BlockNotifyCallback); // 连接区块通知回调函数
 
     uiInterface.InitMessage(_("Activating best chain..."));
     // scan for better chains in the block chain database, that are not yet connected in the active best chain // 扫描区块链数据库中的最佳链，这些链还没连接到激活的最佳链
     CValidationState state;
-    if (!ActivateBestChain(state, chainparams)) // 激活最佳链
+    if (!ActivateBestChain(state, chainparams)) // 激活最佳链，并获取验证状态
         strErrors << "Failed to connect best block";
 
-    std::vector<boost::filesystem::path> vImportFiles; // 存放导入区块文件的路径
+    std::vector<boost::filesystem::path> vImportFiles; // 导入文件列表（存放导入区块文件的路径）
     if (mapArgs.count("-loadblock")) // 导入区块文件选项
     {
-        BOOST_FOREACH(const std::string& strFile, mapMultiArgs["-loadblock"])
-            vImportFiles.push_back(strFile);
+        BOOST_FOREACH(const std::string& strFile, mapMultiArgs["-loadblock"]) // 遍历指定的区块文件
+            vImportFiles.push_back(strFile); // 放入文件列表
     }
-    threadGroup.create_thread(boost::bind(&ThreadImport, vImportFiles)); // 创建一个线程用于导入区块
+    threadGroup.create_thread(boost::bind(&ThreadImport, vImportFiles)); // 创建一个用于导入区块线程
     if (chainActive.Tip() == NULL) { // 至少创世区块要加载完成
         LogPrintf("Waiting for genesis block to be imported...\n");
         while (!fRequestShutdown && chainActive.Tip() == NULL) // 必须保证至少加载创世区块

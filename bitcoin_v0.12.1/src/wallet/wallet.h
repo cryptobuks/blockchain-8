@@ -59,7 +59,7 @@ static const unsigned int DEFAULT_TX_CONFIRM_TARGET = 2;
 static const CAmount nHighTransactionMaxFeeWarning = 100 * nHighTransactionFeeWarning;
 //! Largest (in bytes) free transaction we're willing to create // 我们希望创建的最大（以字节为单位）免费交易
 static const unsigned int MAX_FREE_TRANSACTION_CREATE_SIZE = 1000; // 创建的最大免费交易大小（1000B）
-static const bool DEFAULT_WALLETBROADCAST = true;
+static const bool DEFAULT_WALLETBROADCAST = true; // 钱包交易广播，默认开启
 
 class CAccountingEntry;
 class CBlockIndex;
@@ -524,10 +524,10 @@ public:
 
     CWallet(const std::string& strWalletFileIn)
     {
-        SetNull();
+        SetNull(); // 初始化钱包
 
-        strWalletFile = strWalletFileIn;
-        fFileBacked = true;
+        strWalletFile = strWalletFileIn; // 设置钱包文件
+        fFileBacked = true; // 文件备份标志置为 true
     }
 
     ~CWallet()
@@ -536,7 +536,7 @@ public:
         pwalletdbEncryption = NULL;
     }
 
-    void SetNull()
+    void SetNull() // 钱包对象内存初始化
     {
         nWalletVersion = FEATURE_BASE;
         nWalletMaxVersion = FEATURE_BASE;
