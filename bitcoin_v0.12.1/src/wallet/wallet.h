@@ -712,9 +712,9 @@ public:
     CAmount GetDebit(const CTransaction& tx, const isminefilter& filter) const;
     CAmount GetCredit(const CTransaction& tx, const isminefilter& filter) const;
     CAmount GetChange(const CTransaction& tx) const;
-    void SetBestChain(const CBlockLocator& loc);
+    void SetBestChain(const CBlockLocator& loc); // 设置最佳链
 
-    DBErrors LoadWallet(bool& fFirstRunRet);
+    DBErrors LoadWallet(bool& fFirstRunRet); // 加载钱包到内存
     DBErrors ZapWalletTx(std::vector<CWalletTx>& vWtx);
 
     bool SetAddressBook(const CTxDestination& address, const std::string& strName, const std::string& purpose); // 设置地址簿（地址，所属账户，地址用途）
@@ -746,7 +746,7 @@ public:
         return setKeyPool.size(); // 返回密钥池索引集合的大小
     }
 
-    bool SetDefaultKey(const CPubKey &vchPubKey);
+    bool SetDefaultKey(const CPubKey &vchPubKey); // 设置默认密钥
 
     //! signify that a particular wallet feature is now used. this may change nWalletVersion and nWalletMaxVersion if those are lower
     bool SetMinVersion(enum WalletFeature, CWalletDB* pwalletdbIn = NULL, bool fExplicit = false);

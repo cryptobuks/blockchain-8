@@ -794,7 +794,7 @@ DBErrors CWalletDB::ZapWalletTx(CWallet* pwallet, vector<CWalletTx>& vWtx)
 
     // erase each wallet TX // 擦除每笔钱包交易
     BOOST_FOREACH (uint256& hash, vTxHash) { // 遍历钱包交易哈希列表
-        if (!EraseTx(hash)) // 擦除钱包交易
+        if (!EraseTx(hash)) // 擦除数据库中的钱包交易
             return DB_CORRUPT;
     }
 

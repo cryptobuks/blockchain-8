@@ -197,7 +197,7 @@ void UnregisterNodeSignals(CNodeSignals& nodeSignals);
  */ // 处理传入的区块。只有在已知最有效的区块被激活后返回。但它无法保证拿到的块已经被检查过有效性。
 bool ProcessNewBlock(CValidationState& state, const CChainParams& chainparams, const CNode* pfrom, const CBlock* pblock, bool fForceProcessing, CDiskBlockPos* dbp);
 /** Check whether enough disk space is available for an incoming block */
-bool CheckDiskSpace(uint64_t nAdditionalBytes = 0);
+bool CheckDiskSpace(uint64_t nAdditionalBytes = 0); // 检查硬盘空间接收一个新区块是否充足
 /** Open a block file (blk?????.dat) */
 FILE* OpenBlockFile(const CDiskBlockPos &pos, bool fReadOnly = false);
 /** Open an undo file (rev?????.dat) */

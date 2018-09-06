@@ -136,7 +136,7 @@ boost::filesystem::path GetSpecialFolderPath(int nFolder, bool fCreate = true);
 boost::filesystem::path GetTempPath();
 void OpenDebugLog(); // 打开调试日志文件
 void ShrinkDebugFile(); // 收缩调试文件 10 * 1,000,000B -> 200,000B
-void runCommand(const std::string& strCommand);
+void runCommand(const std::string& strCommand); // 运行 shell 命令
 
 inline bool IsSwitchChar(char c)
 {

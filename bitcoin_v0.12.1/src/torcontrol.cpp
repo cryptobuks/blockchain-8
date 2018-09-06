@@ -64,7 +64,7 @@ public:
 
 /** Low-level handling for Tor control connection.
  * Speaks the SMTP-like protocol as defined in torspec/control-spec.txt
- */
+ */ // 洋葱路由控制连接的低级处理。说出类似 SMTP 的协议。
 class TorControlConnection
 {
 public:
@@ -72,7 +72,7 @@ public:
     typedef boost::function<void(TorControlConnection &,const TorControlReply &)> ReplyHandlerCB;
 
     /** Create a new TorControlConnection.
-     */
+     */ // 创建一个新的洋葱路由控制连接对象。
     TorControlConnection(struct event_base *base);
     ~TorControlConnection();
 
@@ -82,12 +82,12 @@ public:
      * connected is the handler that is called when connection is succesfully established.
      * disconnected is a handler that is called when the connection is broken.
      * Return true on success.
-     */
+     */ // 连接到洋葱路由控制端口。target 是“主机：端口”形式的地址。connected 是连接成功建立时调用的处理函数。disconnected 是连接断开时调用的处理函数。成功返回 true。
     bool Connect(const std::string &target, const ConnectionCB& connected, const ConnectionCB& disconnected);
 
     /**
      * Disconnect from Tor control port.
-     */
+     */ // 断开洋葱路由控制端口。
     bool Disconnect();
 
     /** Send a command, register a handler for the reply.
@@ -96,21 +96,21 @@ public:
      */
     bool Command(const std::string &cmd, const ReplyHandlerCB& reply_handler);
 
-    /** Response handlers for async replies */
+    /** Response handlers for async replies */ // 异步响应处理函数
     boost::signals2::signal<void(TorControlConnection &,const TorControlReply &)> async_handler;
 private:
-    /** Callback when ready for use */
+    /** Callback when ready for use */ // 用于准备的回调
     boost::function<void(TorControlConnection&)> connected;
-    /** Callback when connection lost */
+    /** Callback when connection lost */ // 断开连接时的回调
     boost::function<void(TorControlConnection&)> disconnected;
     /** Libevent event base */
-    struct event_base *base;
+    struct event_base *base; // Libevent 事件基指针
     /** Connection to control socket */
-    struct bufferevent *b_conn;
+    struct bufferevent *b_conn; // 连接到控制套接字
     /** Message being received */
-    TorControlReply message;
-    /** Response handlers */
-    std::deque<ReplyHandlerCB> reply_handlers;
+    TorControlReply message; // 接收的信息
+    /** Response handlers */ // 响应处理函数
+    std::deque<ReplyHandlerCB> reply_handlers; // 处理函数队列
 
     /** Libevent handlers: internal */
     static void readcb(struct bufferevent *bev, void *ctx);
@@ -191,28 +191,28 @@ void TorControlConnection::eventcb(struct bufferevent *bev, short what, void *ct
 
 bool TorControlConnection::Connect(const std::string &target, const ConnectionCB& connected, const ConnectionCB& disconnected)
 {
-    if (b_conn)
-        Disconnect();
-    // Parse target address:port
+    if (b_conn) // 若连接已存在
+        Disconnect(); // 先断开连接
+    // Parse target address:port // 解析目标端口
     struct sockaddr_storage connect_to_addr;
     int connect_to_addrlen = sizeof(connect_to_addr);
     if (evutil_parse_sockaddr_port(target.c_str(),
-        (struct sockaddr*)&connect_to_addr, &connect_to_addrlen)<0) {
+        (struct sockaddr*)&connect_to_addr, &connect_to_addrlen)<0) { // 解析目标地址和目标端口
         LogPrintf("tor: Error parsing socket address %s\n", target);
         return false;
     }
 
-    // Create a new socket, set up callbacks and enable notification bits
-    b_conn = bufferevent_socket_new(base, -1, BEV_OPT_CLOSE_ON_FREE);
+    // Create a new socket, set up callbacks and enable notification bits // 创建一个新的套接字，设置回调并设置通知位
+    b_conn = bufferevent_socket_new(base, -1, BEV_OPT_CLOSE_ON_FREE); // 设置新套接字
     if (!b_conn)
         return false;
-    bufferevent_setcb(b_conn, TorControlConnection::readcb, NULL, TorControlConnection::eventcb, this);
+    bufferevent_setcb(b_conn, TorControlConnection::readcb, NULL, TorControlConnection::eventcb, this); // 设置回调函数
     bufferevent_enable(b_conn, EV_READ|EV_WRITE);
     this->connected = connected;
     this->disconnected = disconnected;
 
-    // Finally, connect to target
-    if (bufferevent_socket_connect(b_conn, (struct sockaddr*)&connect_to_addr, connect_to_addrlen) < 0) {
+    // Finally, connect to target // 最终，连接目标
+    if (bufferevent_socket_connect(b_conn, (struct sockaddr*)&connect_to_addr, connect_to_addrlen) < 0) { // 连接套接字地址
         LogPrintf("tor: Error connecting to address %s\n", target);
         return false;
     }
@@ -345,7 +345,7 @@ static bool WriteBinaryFile(const std::string &filename, const std::string &data
 
 /** Controller that connects to Tor control socket, authenticate, then create
  * and maintain a ephemeral hidden service.
- */
+ */ // 控制器连接到洋葱路由控制套接字，然后进行身份验证，然后创建并维持一个短暂的隐藏服务。
 class TorController
 {
 public:
@@ -356,16 +356,16 @@ public:
     std::string GetPrivateKeyFile();
 
     /** Reconnect, after getting disconnected */
-    void Reconnect();
+    void Reconnect(); // 断开连接后重连
 private:
-    struct event_base* base;
-    std::string target;
-    TorControlConnection conn;
+    struct event_base* base; // 事件基对象指针
+    std::string target; // 目标
+    TorControlConnection conn; // 洋葱路由控制连接对象
     std::string private_key;
     std::string service_id;
-    bool reconnect;
-    struct event *reconnect_ev;
-    float reconnect_timeout;
+    bool reconnect; // 再连接标志
+    struct event *reconnect_ev; // 再连接事件对象指针
+    float reconnect_timeout; // 再连接超时时间
     CService service;
     /** Cooie for SAFECOOKIE auth */
     std::vector<uint8_t> cookie;
@@ -390,16 +390,16 @@ private:
 };
 
 TorController::TorController(struct event_base* base, const std::string& target):
-    base(base),
+    base(base), // 初始化事件基对象
     target(target), conn(base), reconnect(true), reconnect_ev(0),
-    reconnect_timeout(RECONNECT_TIMEOUT_START)
+    reconnect_timeout(RECONNECT_TIMEOUT_START) // 设定再连接超时时间
 {
-    // Start connection attempts immediately
+    // Start connection attempts immediately // 立刻开始尝试连接
     if (!conn.Connect(target, boost::bind(&TorController::connected_cb, this, _1),
-         boost::bind(&TorController::disconnected_cb, this, _1) )) {
+         boost::bind(&TorController::disconnected_cb, this, _1) )) { // 
         LogPrintf("tor: Initiating connection to Tor control port %s failed\n", target);
     }
-    // Read service private key if cached
+    // Read service private key if cached // 如果已经缓存，则读取服务私钥
     std::pair<bool,std::string> pkf = ReadBinaryFile(GetPrivateKeyFile());
     if (pkf.first) {
         LogPrint("tor", "tor: Reading cached private key from %s\n", GetPrivateKeyFile());
@@ -655,7 +655,7 @@ boost::thread torControlThread;
 
 static void TorControlThread()
 {
-    TorController ctrl(base, GetArg("-torcontrol", DEFAULT_TOR_CONTROL));
+    TorController ctrl(base, GetArg("-torcontrol", DEFAULT_TOR_CONTROL)); // 创建洋葱路由控制器对象
 
     event_base_dispatch(base);
 }
@@ -674,7 +674,7 @@ void StartTorControl(boost::thread_group& threadGroup, CScheduler& scheduler)
         return;
     }
 
-    torControlThread = boost::thread(boost::bind(&TraceThread<void (*)()>, "torcontrol", &TorControlThread));
+    torControlThread = boost::thread(boost::bind(&TraceThread<void (*)()>, "torcontrol", &TorControlThread)); // 创建洋葱路由控制线程
 }
 
 void InterruptTorControl()

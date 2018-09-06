@@ -1944,15 +1944,15 @@ bool UndoReadFromDisk(CBlockUndo& blockundo, const CDiskBlockPos& pos, const uin
     return true;
 }
 
-/** Abort with a message */
+/** Abort with a message */ // 反馈信息并关闭节点服务
 bool AbortNode(const std::string& strMessage, const std::string& userMessage="")
 {
     strMiscWarning = strMessage;
-    LogPrintf("*** %s\n", strMessage);
+    LogPrintf("*** %s\n", strMessage); // 记录日志
     uiInterface.ThreadSafeMessageBox(
         userMessage.empty() ? _("Error: A fatal internal error occurred, see debug.log for details") : userMessage,
-        "", CClientUIInterface::MSG_ERROR);
-    StartShutdown();
+        "", CClientUIInterface::MSG_ERROR); // UI 显示错误信息
+    StartShutdown(); // 关闭节点服务
     return false;
 }
 
@@ -3652,15 +3652,15 @@ void FindFilesToPrune(std::set<int>& setFilesToPrune, uint64_t nPruneAfterHeight
            nLastBlockWeCanPrune, count);
 }
 
-bool CheckDiskSpace(uint64_t nAdditionalBytes)
+bool CheckDiskSpace(uint64_t nAdditionalBytes) // 0
 {
-    uint64_t nFreeBytesAvailable = boost::filesystem::space(GetDataDir()).available; // 获取数据目录所在磁盘的剩余（可用）空间的大小，单位 Byte
+    uint64_t nFreeBytesAvailable = boost::filesystem::space(GetDataDir()).available; // 1.获取数据目录所在磁盘的剩余（可用）空间的大小，单位 Byte
 
-    // Check for nMinDiskSpace bytes (currently 50MB)
-    if (nFreeBytesAvailable < nMinDiskSpace + nAdditionalBytes) // 磁盘剩余空间最小为 50MB
-        return AbortNode("Disk space is low!", _("Error: Disk space is low!"));
+    // Check for nMinDiskSpace bytes (currently 50MB) // 2.检查硬盘最小空间（当前为 50MB）
+    if (nFreeBytesAvailable < nMinDiskSpace + nAdditionalBytes) // 磁盘剩余空间小于 50MB
+        return AbortNode("Disk space is low!", _("Error: Disk space is low!")); // 返回相应信息并关闭节点
 
-    return true; // 若剩余空间大于等于 50MB，则返回 true
+    return true; // 若剩余空间充足，则返回 true
 }
 
 FILE* OpenDiskFile(const CDiskBlockPos &pos, const char *prefix, bool fReadOnly)

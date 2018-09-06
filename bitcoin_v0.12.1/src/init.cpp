@@ -270,7 +270,7 @@ void HandleSIGHUP(int)
 
 bool static InitError(const std::string &str)
 {
-    uiInterface.ThreadSafeMessageBox(str, "", CClientUIInterface::MSG_ERROR);
+    uiInterface.ThreadSafeMessageBox(str, "", CClientUIInterface::MSG_ERROR); // 弹出消息框，提示用户
     return false;
 }
 
@@ -616,43 +616,43 @@ void ThreadImport(std::vector<boost::filesystem::path> vImportFiles) // 导入区块
             LoadExternalBlockFile(chainparams, file, &pos); // 加载外部的区块文件
             nFile++; // 文件号加 1
         }
-        pblocktree->WriteReindexing(false);
-        fReindex = false;
+        pblocktree->WriteReindexing(false); // 写入再索引标志
+        fReindex = false; // 再索引置为 false
         LogPrintf("Reindexing finished\n");
-        // To avoid ending up in a situation without genesis block, re-try initializing (no-op if reindexing worked):
-        InitBlockIndex(chainparams);
+        // To avoid ending up in a situation without genesis block, re-try initializing (no-op if reindexing worked): // 为避免在没有创世区块的情况下结束，再次尝试初始化（若再索引起作用了，则无操作）：
+        InitBlockIndex(chainparams); // 初始化区块索引数据库
     }
 
-    // hardcoded $DATADIR/bootstrap.dat
-    boost::filesystem::path pathBootstrap = GetDataDir() / "bootstrap.dat";
-    if (boost::filesystem::exists(pathBootstrap)) {
-        FILE *file = fopen(pathBootstrap.string().c_str(), "rb");
+    // hardcoded $DATADIR/bootstrap.dat // 硬编码的 $DATADIR/bootstrap.dat
+    boost::filesystem::path pathBootstrap = GetDataDir() / "bootstrap.dat"; // 路径拼接
+    if (boost::filesystem::exists(pathBootstrap)) { // 若该文件存在
+        FILE *file = fopen(pathBootstrap.string().c_str(), "rb"); // 以 2 进制只读模式打开文件
         if (file) {
             CImportingNow imp;
             boost::filesystem::path pathBootstrapOld = GetDataDir() / "bootstrap.dat.old";
             LogPrintf("Importing bootstrap.dat...\n");
-            LoadExternalBlockFile(chainparams, file);
-            RenameOver(pathBootstrap, pathBootstrapOld);
+            LoadExternalBlockFile(chainparams, file); // 加载外部的区块文件
+            RenameOver(pathBootstrap, pathBootstrapOld); // 重命名文件，增加 .old 后缀
         } else {
             LogPrintf("Warning: Could not open bootstrap file %s\n", pathBootstrap.string());
         }
     }
 
     // -loadblock= // 导入区块选项
-    BOOST_FOREACH(const boost::filesystem::path& path, vImportFiles) {
-        FILE *file = fopen(path.string().c_str(), "rb");
+    BOOST_FOREACH(const boost::filesystem::path& path, vImportFiles) { // 遍历待导入的区块文件路径列表
+        FILE *file = fopen(path.string().c_str(), "rb"); // 以二进制只读模式打开
         if (file) {
             CImportingNow imp;
             LogPrintf("Importing blocks file %s...\n", path.string());
-            LoadExternalBlockFile(chainparams, file);
+            LoadExternalBlockFile(chainparams, file); // 加载外部区块文件到内存
         } else {
             LogPrintf("Warning: Could not open blocks file %s\n", path.string());
         }
     }
 
-    if (GetBoolArg("-stopafterblockimport", DEFAULT_STOPAFTERBLOCKIMPORT)) {
+    if (GetBoolArg("-stopafterblockimport", DEFAULT_STOPAFTERBLOCKIMPORT)) { // 导入区块后停止
         LogPrintf("Stopping after block import\n");
-        StartShutdown();
+        StartShutdown(); // 关闭客户端
     }
 }
 
@@ -1431,7 +1431,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
     fFeeEstimatesInitialized = true; // 费用估计初始化状态标志置为 true
 
     // ********************************************************* Step 8: load wallet // 若启用钱包功能，则加载钱包
-#ifdef ENABLE_WALLET // 钱包有效的宏
+#ifdef ENABLE_WALLET // 1.钱包有效的宏
     if (fDisableWallet) { // 默认 false
         pwalletMain = NULL; // 钱包指针置空
         LogPrintf("Wallet disabled!\n");
@@ -1443,7 +1443,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
         if (GetBoolArg("-zapwallettxes", false)) { // 分离钱包交易选项，默认关闭
             uiInterface.InitMessage(_("Zapping all transactions from wallet..."));
 
-            pwalletMain = new CWallet(strWalletFile); // 创建并初始化钱包对象
+            pwalletMain = new CWallet(strWalletFile); // 1.1.创建并初始化钱包对象
             DBErrors nZapWalletRet = pwalletMain->ZapWalletTx(vWtx); // 从钱包中分离所有交易到钱包交易列表
             if (nZapWalletRet != DB_LOAD_OK) {
                 uiInterface.InitMessage(_("Error loading wallet.dat: Wallet corrupted"));
@@ -1458,7 +1458,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
 
         nStart = GetTimeMillis(); // 获取当前时间
         bool fFirstRun = true; // 首次运行标志，初始为 true
-        pwalletMain = new CWallet(strWalletFile); // 创建钱包对象
+        pwalletMain = new CWallet(strWalletFile); // 1.2.创建新的钱包对象
         DBErrors nLoadWalletRet = pwalletMain->LoadWallet(fFirstRun); // 加载钱包到内存（键值对）
         if (nLoadWalletRet != DB_LOAD_OK) // 加载钱包状态错误
         {
@@ -1481,7 +1481,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
                 strErrors << _("Error loading wallet.dat") << "\n";
         } // 加载钱包成功
 
-        if (GetBoolArg("-upgradewallet", fFirstRun)) // 升级钱包选项，首次运行标志在这里应该为 false
+        if (GetBoolArg("-upgradewallet", fFirstRun)) // 1.3.升级钱包选项，首次运行标志在这里应该为 false
         {
             int nMaxVersion = GetArg("-upgradewallet", 0);
             if (nMaxVersion == 0) // the -upgradewallet without argument case
@@ -1497,7 +1497,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
             pwalletMain->SetMaxVersion(nMaxVersion); // 设置最大版本
         }
 
-        if (fFirstRun) // 若是首次运行
+        if (fFirstRun) // 1.4.若是首次运行
         {
             // Create new keyUser and set as default key // 创建新用户密钥并设置为默认密钥
             RandAddSeedPerfmon(); // 随机数种子
@@ -1518,7 +1518,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
         RegisterValidationInterface(pwalletMain); // 注册一个钱包用于接收 bitcoin core 的升级
 
         CBlockIndex *pindexRescan = chainActive.Tip(); // 获取链尖区块索引
-        if (GetBoolArg("-rescan", false)) // 再扫描选项，默认关闭
+        if (GetBoolArg("-rescan", false)) // 1.5.再扫描选项，默认关闭
             pindexRescan = chainActive.Genesis(); // 获取当前链的创世区块索引
         else
         {
@@ -1579,7 +1579,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
         }
         pwalletMain->SetBroadcastTransactions(GetBoolArg("-walletbroadcast", DEFAULT_WALLETBROADCAST)); // 设置广播交易，默认为 true
     } // (!fDisableWallet)
-#else // ENABLE_WALLET
+#else // 2.!ENABLE_WALLET
     LogPrintf("No wallet support compiled in!\n");
 #endif // !ENABLE_WALLET
 
@@ -1592,28 +1592,28 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
         nLocalServices &= ~NODE_NETWORK; // 取消设置本地服务中的 NODE_NETWORK
         if (!fReindex) { // 若再索引标志关闭
             uiInterface.InitMessage(_("Pruning blockstore...")); // 开始修剪区块存储
-            PruneAndFlush(); // 设置修建标志并刷新磁盘上的链状态
+            PruneAndFlush(); // 设置修剪标志并刷新磁盘上的链状态
         }
     }
 
     // ********************************************************* Step 10: import blocks // 导入区块数据
 
-    if (mapArgs.count("-blocknotify")) // 若注册了区块通知的命令
+    if (mapArgs.count("-blocknotify")) // 1.若注册了区块通知的命令
         uiInterface.NotifyBlockTip.connect(BlockNotifyCallback); // 连接区块通知回调函数
 
     uiInterface.InitMessage(_("Activating best chain..."));
     // scan for better chains in the block chain database, that are not yet connected in the active best chain // 扫描区块链数据库中的最佳链，这些链还没连接到激活的最佳链
     CValidationState state;
-    if (!ActivateBestChain(state, chainparams)) // 激活最佳链，并获取验证状态
+    if (!ActivateBestChain(state, chainparams)) // 2.激活最佳链，并获取验证状态
         strErrors << "Failed to connect best block";
 
     std::vector<boost::filesystem::path> vImportFiles; // 导入文件列表（存放导入区块文件的路径）
     if (mapArgs.count("-loadblock")) // 导入区块文件选项
     {
-        BOOST_FOREACH(const std::string& strFile, mapMultiArgs["-loadblock"]) // 遍历指定的区块文件
+        BOOST_FOREACH(const std::string& strFile, mapMultiArgs["-loadblock"]) // 3.遍历指定的区块文件
             vImportFiles.push_back(strFile); // 放入文件列表
     }
-    threadGroup.create_thread(boost::bind(&ThreadImport, vImportFiles)); // 创建一个用于导入区块线程
+    threadGroup.create_thread(boost::bind(&ThreadImport, vImportFiles)); // 4.创建一个用于导入区块线程
     if (chainActive.Tip() == NULL) { // 至少创世区块要加载完成
         LogPrintf("Waiting for genesis block to be imported...\n");
         while (!fRequestShutdown && chainActive.Tip() == NULL) // 必须保证至少加载创世区块
@@ -1622,27 +1622,27 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
 
     // ********************************************************* Step 11: start node // 启动节点服务，监听网络 P2P 请求，挖矿线程
 
-    if (!CheckDiskSpace()) // 检测硬剩余盘空间是否充足（最少 50MB），用于接收并存储新区块
-        return false;
+    if (!CheckDiskSpace()) // 1.检测硬盘剩余空间是否充足（最少 50MB），用于接收并存储新区块
+        return false; // 若空间不足，返回 false 退出
 
-    if (!strErrors.str().empty()) // 检查错误信息
-        return InitError(strErrors.str());
+    if (!strErrors.str().empty()) // 2.检查前面的初始化过程是否有错误信息
+        return InitError(strErrors.str()); // 若存在错误信息，返回错误信息并退出
 
-    RandAddSeedPerfmon(); // 用于给钱包生成随机私钥种子
+    RandAddSeedPerfmon(); // 3.用于给钱包生成随机私钥种子
 
-    //// debug print // 调试打印
-    LogPrintf("mapBlockIndex.size() = %u\n",   mapBlockIndex.size());
-    LogPrintf("nBestHeight = %d\n",                   chainActive.Height());
+    //// debug print // 4.调试打印，记录相关信息
+    LogPrintf("mapBlockIndex.size() = %u\n",   mapBlockIndex.size()); // 区块索引大小
+    LogPrintf("nBestHeight = %d\n",                   chainActive.Height()); // 最佳区块链高度
 #ifdef ENABLE_WALLET
-    LogPrintf("setKeyPool.size() = %u\n",      pwalletMain ? pwalletMain->setKeyPool.size() : 0);
-    LogPrintf("mapWallet.size() = %u\n",       pwalletMain ? pwalletMain->mapWallet.size() : 0);
-    LogPrintf("mapAddressBook.size() = %u\n",  pwalletMain ? pwalletMain->mapAddressBook.size() : 0);
+    LogPrintf("setKeyPool.size() = %u\n",      pwalletMain ? pwalletMain->setKeyPool.size() : 0); // 钱包内密钥池大小
+    LogPrintf("mapWallet.size() = %u\n",       pwalletMain ? pwalletMain->mapWallet.size() : 0); // 钱包交易列表大小
+    LogPrintf("mapAddressBook.size() = %u\n",  pwalletMain ? pwalletMain->mapAddressBook.size() : 0); // 钱包内地址簿的大小
 #endif
 
-    if (GetBoolArg("-listenonion", DEFAULT_LISTEN_ONION)) // 监听洋葱路由，默认打开
+    if (GetBoolArg("-listenonion", DEFAULT_LISTEN_ONION)) // 5.监听洋葱路由，默认打开
         StartTorControl(threadGroup, scheduler);
 
-    StartNode(threadGroup, scheduler); // 启动各种线程
+    StartNode(threadGroup, scheduler); // 6.启动各种线程
 
     // Monitor the chain, and alert if we get blocks much quicker or slower than expected
     // The "bad chain alert" scheduler has been disabled because the current system gives far
@@ -1657,7 +1657,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler) // [P]3.1
     //scheduler.scheduleEvery(f, nPowTargetSpacing);
     // --- end disabled ---
 
-    // Generate coins in the background // 挖矿作用：产生比特币，记录交易
+    // Generate coins in the background // 7.挖矿作用：产生比特币，记录交易
     GenerateBitcoins(GetBoolArg("-gen", DEFAULT_GENERATE), GetArg("-genproclimit", DEFAULT_GENERATE_THREADS), chainparams); // 创建挖矿线程，默认关闭，线程数默认为 1（0 表示禁止挖矿，-1 表示 CPU 核数）
 
     // ********************************************************* Step 12: finished // 完成

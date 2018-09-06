@@ -22,32 +22,32 @@ void CChain::SetTip(CBlockIndex *pindex) {
     }
 }
 
-CBlockLocator CChain::GetLocator(const CBlockIndex *pindex) const {
+CBlockLocator CChain::GetLocator(const CBlockIndex *pindex) const { // NULL
     int nStep = 1;
     std::vector<uint256> vHave;
-    vHave.reserve(32);
+    vHave.reserve(32); // 预开辟 32 个空间
 
-    if (!pindex)
-        pindex = Tip();
+    if (!pindex) // NULL
+        pindex = Tip(); // 获取链尖区块索引
     while (pindex) {
         vHave.push_back(pindex->GetBlockHash());
-        // Stop when we have added the genesis block.
-        if (pindex->nHeight == 0)
-            break;
-        // Exponentially larger steps back, plus the genesis block.
+        // Stop when we have added the genesis block. // 当我们添加过创世区块后就停止。
+        if (pindex->nHeight == 0) // 若高度为 0
+            break; // 直接跳出
+        // Exponentially larger steps back, plus the genesis block. // 更大的步骤，加上创世区块。
         int nHeight = std::max(pindex->nHeight - nStep, 0);
         if (Contains(pindex)) {
-            // Use O(1) CChain index if possible.
+            // Use O(1) CChain index if possible. // 如果可能，使用链索引。
             pindex = (*this)[nHeight];
         } else {
-            // Otherwise, use O(log n) skiplist.
+            // Otherwise, use O(log n) skiplist. // 否则，使用跳表。
             pindex = pindex->GetAncestor(nHeight);
         }
         if (vHave.size() > 10)
             nStep *= 2;
     }
 
-    return CBlockLocator(vHave);
+    return CBlockLocator(vHave); // 包装成区块位置临时对象并返回
 }
 
 const CBlockIndex *CChain::FindFork(const CBlockIndex *pindex) const {
