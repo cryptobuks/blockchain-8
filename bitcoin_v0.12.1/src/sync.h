@@ -216,7 +216,7 @@ public:
     }
 };
 
-/** RAII-style semaphore lock */
+/** RAII-style semaphore lock */ // RAII 风格的信号量锁
 class CSemaphoreGrant
 {
 private:

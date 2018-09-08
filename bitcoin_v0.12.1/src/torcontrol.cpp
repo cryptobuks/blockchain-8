@@ -93,13 +93,13 @@ public:
     /** Send a command, register a handler for the reply.
      * A trailing CRLF is automatically added.
      * Return true on success.
-     */
+     */ // 发送一条命令，注册响应的处理函数。自动在尾部添加回车换行 CRLF（即\r\n）
     bool Command(const std::string &cmd, const ReplyHandlerCB& reply_handler);
 
     /** Response handlers for async replies */ // 异步响应处理函数
     boost::signals2::signal<void(TorControlConnection &,const TorControlReply &)> async_handler;
 private:
-    /** Callback when ready for use */ // 用于准备的回调
+    /** Callback when ready for use */ // 用于连接准备的回调
     boost::function<void(TorControlConnection&)> connected;
     /** Callback when connection lost */ // 断开连接时的回调
     boost::function<void(TorControlConnection&)> disconnected;
@@ -208,8 +208,8 @@ bool TorControlConnection::Connect(const std::string &target, const ConnectionCB
         return false;
     bufferevent_setcb(b_conn, TorControlConnection::readcb, NULL, TorControlConnection::eventcb, this); // 设置回调函数
     bufferevent_enable(b_conn, EV_READ|EV_WRITE);
-    this->connected = connected;
-    this->disconnected = disconnected;
+    this->connected = connected; // 设置连接回调函数
+    this->disconnected = disconnected; // 设置断开连接回调函数
 
     // Finally, connect to target // 最终，连接目标
     if (bufferevent_socket_connect(b_conn, (struct sockaddr*)&connect_to_addr, connect_to_addrlen) < 0) { // 连接套接字地址
@@ -222,8 +222,8 @@ bool TorControlConnection::Connect(const std::string &target, const ConnectionCB
 bool TorControlConnection::Disconnect()
 {
     if (b_conn)
-        bufferevent_free(b_conn);
-    b_conn = 0;
+        bufferevent_free(b_conn); // 释放连接
+    b_conn = 0; // 指针置空，防止出现野指针
     return true;
 }
 
@@ -231,12 +231,12 @@ bool TorControlConnection::Command(const std::string &cmd, const ReplyHandlerCB&
 {
     if (!b_conn)
         return false;
-    struct evbuffer *buf = bufferevent_get_output(b_conn);
+    struct evbuffer *buf = bufferevent_get_output(b_conn); // 获取输出缓冲区
     if (!buf)
         return false;
-    evbuffer_add(buf, cmd.data(), cmd.size());
-    evbuffer_add(buf, "\r\n", 2);
-    reply_handlers.push_back(reply_handler);
+    evbuffer_add(buf, cmd.data(), cmd.size()); // 缓冲区追加命令
+    evbuffer_add(buf, "\r\n", 2); // 追加 "\r\n"
+    reply_handlers.push_back(reply_handler); // 加入响应函数处理队列
     return true;
 }
 
@@ -307,38 +307,38 @@ static std::map<std::string,std::string> ParseTorReplyMapping(const std::string 
  *
  * @param maxsize Puts a maximum size limit on the file that is read. If the file is larger than this, truncated data
  *         (with len > maxsize) will be returned.
- */
+ */ // 读取某文件的整个内容并以字符串形式返回获取的内容。返回一个对 <状态，读取的字符串>
 static std::pair<bool,std::string> ReadBinaryFile(const std::string &filename, size_t maxsize=std::numeric_limits<size_t>::max())
 {
-    FILE *f = fopen(filename.c_str(), "rb");
-    if (f == NULL)
-        return std::make_pair(false,"");
-    std::string retval;
-    char buffer[128];
-    size_t n;
-    while ((n=fread(buffer, 1, sizeof(buffer), f)) > 0) {
-        retval.append(buffer, buffer+n);
-        if (retval.size() > maxsize)
-            break;
+    FILE *f = fopen(filename.c_str(), "rb"); // 以 2 进制只读模式打开文件
+    if (f == NULL) // 若打开失败
+        return std::make_pair(false,""); // 返回<false,空串>对
+    std::string retval; // 待获取的字符串类型的文件内容
+    char buffer[128]; // 128 字节的缓冲区
+    size_t n; // 保存实际读取的字节数
+    while ((n=fread(buffer, 1, sizeof(buffer), f)) > 0) { // 读取 128 字节到 buffer，若到文件尾，下次实际读入字节为 0
+        retval.append(buffer, buffer+n); // 把实际读取的字节追加到返回值中
+        if (retval.size() > maxsize) // 当返回值字符串大小大于最大值时
+            break; // 跳出
     }
-    fclose(f);
-    return std::make_pair(true,retval);
+    fclose(f); // 关闭文件
+    return std::make_pair(true,retval); // 返回成功读取的内容<true,文件内容字符串>
 }
 
 /** Write contents of std::string to a file.
  * @return true on success.
- */
+ */ // 写字符串的内容到某文件。成功返回 true。
 static bool WriteBinaryFile(const std::string &filename, const std::string &data)
 {
-    FILE *f = fopen(filename.c_str(), "wb");
-    if (f == NULL)
-        return false;
-    if (fwrite(data.data(), 1, data.size(), f) != data.size()) {
-        fclose(f);
-        return false;
+    FILE *f = fopen(filename.c_str(), "wb"); // 以 2 进制只写方式打开文件
+    if (f == NULL) // 若文件打开失败
+        return false; // 返回 false
+    if (fwrite(data.data(), 1, data.size(), f) != data.size()) { // 写入内容
+        fclose(f); // 写入失败（写入长度不等于字符串大小），关闭文件
+        return false; // 返回 false
     }
-    fclose(f);
-    return true;
+    fclose(f); // 成功写入，关闭文件
+    return true; // 返回 true
 }
 
 /****** Bitcoin specific TorController implementation ********/
@@ -353,7 +353,7 @@ public:
     ~TorController();
 
     /** Get name fo file to store private key in */
-    std::string GetPrivateKeyFile();
+    std::string GetPrivateKeyFile(); // 获取（拼接）洋葱路由私钥文件名
 
     /** Reconnect, after getting disconnected */
     void Reconnect(); // 断开连接后重连
@@ -361,12 +361,12 @@ private:
     struct event_base* base; // 事件基对象指针
     std::string target; // 目标
     TorControlConnection conn; // 洋葱路由控制连接对象
-    std::string private_key;
+    std::string private_key; // 洋葱路由私钥
     std::string service_id;
     bool reconnect; // 再连接标志
     struct event *reconnect_ev; // 再连接事件对象指针
     float reconnect_timeout; // 再连接超时时间
-    CService service;
+    CService service; // 服务对象（IP+Port）
     /** Cooie for SAFECOOKIE auth */
     std::vector<uint8_t> cookie;
     /** ClientNonce for SAFECOOKIE auth */
@@ -378,11 +378,11 @@ private:
     void auth_cb(TorControlConnection& conn, const TorControlReply& reply);
     /** Callback for AUTHCHALLENGE result */
     void authchallenge_cb(TorControlConnection& conn, const TorControlReply& reply);
-    /** Callback for PROTOCOLINFO result */
+    /** Callback for PROTOCOLINFO result */ // 协议信息结果回调函数
     void protocolinfo_cb(TorControlConnection& conn, const TorControlReply& reply);
-    /** Callback after succesful connection */
+    /** Callback after succesful connection */ // 成功连接后的回调函数
     void connected_cb(TorControlConnection& conn);
-    /** Callback after connection lost or failed connection attempt */
+    /** Callback after connection lost or failed connection attempt */ // 连接断开或失败的连接尝试后的回调函数
     void disconnected_cb(TorControlConnection& conn);
 
     /** Callback for reconnect timer */
@@ -396,14 +396,14 @@ TorController::TorController(struct event_base* base, const std::string& target)
 {
     // Start connection attempts immediately // 立刻开始尝试连接
     if (!conn.Connect(target, boost::bind(&TorController::connected_cb, this, _1),
-         boost::bind(&TorController::disconnected_cb, this, _1) )) { // 
+         boost::bind(&TorController::disconnected_cb, this, _1) )) { // 连接洋葱路由控制端口
         LogPrintf("tor: Initiating connection to Tor control port %s failed\n", target);
     }
     // Read service private key if cached // 如果已经缓存，则读取服务私钥
-    std::pair<bool,std::string> pkf = ReadBinaryFile(GetPrivateKeyFile());
-    if (pkf.first) {
+    std::pair<bool,std::string> pkf = ReadBinaryFile(GetPrivateKeyFile()); // 读取洋葱路由私钥文件内容
+    if (pkf.first) { // 若读取成功
         LogPrint("tor", "tor: Reading cached private key from %s\n", GetPrivateKeyFile());
-        private_key = pkf.second;
+        private_key = pkf.second; // 设置私钥
     }
 }
 
@@ -603,27 +603,27 @@ void TorController::protocolinfo_cb(TorControlConnection& conn, const TorControl
 
 void TorController::connected_cb(TorControlConnection& conn)
 {
-    reconnect_timeout = RECONNECT_TIMEOUT_START;
-    // First send a PROTOCOLINFO command to figure out what authentication is expected
-    if (!conn.Command("PROTOCOLINFO 1", boost::bind(&TorController::protocolinfo_cb, this, _1, _2)))
+    reconnect_timeout = RECONNECT_TIMEOUT_START; // 设置重连超时时间
+    // First send a PROTOCOLINFO command to figure out what authentication is expected // 首先发送一条协议信息命令，用于找出预期的身份验证
+    if (!conn.Command("PROTOCOLINFO 1", boost::bind(&TorController::protocolinfo_cb, this, _1, _2))) // 发送 "PROTOCOLINFO 1" 命令
         LogPrintf("tor: Error sending initial protocolinfo command\n");
 }
 
 void TorController::disconnected_cb(TorControlConnection& conn)
 {
-    // Stop advertizing service when disconnected
-    if (service.IsValid())
-        RemoveLocal(service);
-    service = CService();
-    if (!reconnect)
-        return;
+    // Stop advertizing service when disconnected // 当断开连接时，停止广告服务
+    if (service.IsValid()) // 若服务有效
+        RemoveLocal(service); // 移除本地服务
+    service = CService(); // 创建服务空对象
+    if (!reconnect) // 若重连关闭
+        return; // 直接返回
 
     LogPrint("tor", "tor: Not connected to Tor control port %s, trying to reconnect\n", target);
 
-    // Single-shot timer for reconnect. Use exponential backoff.
+    // Single-shot timer for reconnect. Use exponential backoff. // 用于重连的单次计时器。使用指数回退
     struct timeval time = MillisToTimeval(int64_t(reconnect_timeout * 1000.0));
-    reconnect_ev = event_new(base, -1, 0, reconnect_cb, this);
-    event_add(reconnect_ev, &time);
+    reconnect_ev = event_new(base, -1, 0, reconnect_cb, this); // 创建新的事件对象
+    event_add(reconnect_ev, &time); // 添加事件对象和时间间隔
     reconnect_timeout *= RECONNECT_TIMEOUT_EXP;
 }
 
@@ -640,7 +640,7 @@ void TorController::Reconnect()
 
 std::string TorController::GetPrivateKeyFile()
 {
-    return (GetDataDir() / "onion_private_key").string();
+    return (GetDataDir() / "onion_private_key").string(); // 返回凭借的数据文件名字符串
 }
 
 void TorController::reconnect_cb(evutil_socket_t fd, short what, void *arg)

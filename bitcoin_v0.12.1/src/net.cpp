@@ -1928,7 +1928,7 @@ void static Discover(boost::thread_group& threadGroup)
 void StartNode(boost::thread_group& threadGroup, CScheduler& scheduler)
 {
     uiInterface.InitMessage(_("Loading addresses..."));
-    // Load addresses for peers.dat // 从 peers.dat 文件中加载地址
+    // Load addresses for peers.dat // 1.从 peers.dat 文件中加载地址
     int64_t nStart = GetTimeMillis();
     {
         CAddrDB adb;
@@ -1936,15 +1936,15 @@ void StartNode(boost::thread_group& threadGroup, CScheduler& scheduler)
             LogPrintf("Invalid or missing peers.dat; recreating\n");
     }
 
-    //try to read stored banlist // 尝试读取存储的黑名单
+    //try to read stored banlist // 2.尝试读取存储的黑名单
     CBanDB bandb;
     banmap_t banmap;
     if (!bandb.Read(banmap)) // 从 banlist.dat 中加载黑名单（禁用列表）
         LogPrintf("Invalid or missing banlist.dat; recreating\n");
 
-    CNode::SetBanned(banmap); //thread save setter
-    CNode::SetBannedSetDirty(false); //no need to write down just read or nonexistent data
-    CNode::SweepBanned(); //sweap out unused entries
+    CNode::SetBanned(banmap); //thread save setter // 线程保存 setter
+    CNode::SetBannedSetDirty(false); //no need to write down just read or nonexistent data // 无需记下只读或不存在的数据
+    CNode::SweepBanned(); //sweap out unused entries // 清理无用的条目
 
     LogPrintf("Loaded %i addresses from peers.dat  %dms\n",
            addrman.size(), GetTimeMillis() - nStart);
@@ -1957,42 +1957,42 @@ void StartNode(boost::thread_group& threadGroup, CScheduler& scheduler)
     }
 
     if (pnodeLocalHost == NULL)
-        pnodeLocalHost = new CNode(INVALID_SOCKET, CAddress(CService("127.0.0.1", 0), nLocalServices)); // 节点实例化
+        pnodeLocalHost = new CNode(INVALID_SOCKET, CAddress(CService("127.0.0.1", 0), nLocalServices)); // 3.节点实例化
 
-    Discover(threadGroup); // 发现并保存本地 IP 地址
+    Discover(threadGroup); // 4.发现并保存本地 IP 地址
 
     //
-    // Start threads // 启动线程
-    //
+    // Start threads
+    // // 5.启动线程
 
     if (!GetBoolArg("-dnsseed", true)) // dns 种子，默认打开
         LogPrintf("DNS seeding disabled\n");
     else
-        threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "dnsseed", &ThreadDNSAddressSeed)); // 从 DNS seed 中解析 IP 地址，并加入 IP 地址管理器 CAddrMan
+        threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "dnsseed", &ThreadDNSAddressSeed)); // 5.1.从 DNS seed 中解析 IP 地址，并加入 IP 地址管理器 CAddrMan
 
-    // Map ports with UPnP
+    // Map ports with UPnP // 使用 UPnP 映射端口
     MapPort(GetBoolArg("-upnp", DEFAULT_UPNP)); // 端口映射，默认关闭
 
-    // Send and receive from sockets, accept connections
+    // Send and receive from sockets, accept connections // 5.2.从套接字发送并接收，接受连入请求
     threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "net", &ThreadSocketHandler)); // 负责监听端口来接收其他节点的传入连接，断开无用节点，节点消息处理（接收、发送数据，对于长时间不活动的节点进行断开标记）
 
-    // Initiate outbound connections from -addnode
+    // Initiate outbound connections from -addnode // 5.3.启动来自 -addnode 选项的外围连接
     threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "addcon", &ThreadOpenAddedConnections)); // 负责初始化通过 -addnode 参数设置的传出连接
 
-    // Initiate outbound connections
+    // Initiate outbound connections // 5.4.启动来自 -connect 选项外围连接
     threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "opencon", &ThreadOpenConnections)); // 负责连接其他节点的 IP，包含通过 -connect 参数设置的连接，和通过 DNS seed 解析出的地址管理器中的 IP 地址
 
-    // Process messages
+    // Process messages // 5.5.处理消息
     threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "msghand", &ThreadMessageHandler)); // 调用 ProcessMessages 处理接收到的消息（用信号建立联系）
 
-    // Dump network addresses
+    // Dump network addresses // 5.6.导出网络地址
     scheduler.scheduleEvery(&DumpData, DUMP_ADDRESSES_INTERVAL); // 每 15 分钟本地化伙伴 IP 地址到 peers.dat
 }
 
 bool StopNode()
 {
     LogPrintf("StopNode()\n");
-    MapPort(false);
+    MapPort(false); // 端口映射关闭
     if (semOutbound)
         for (int i=0; i<MAX_OUTBOUND_CONNECTIONS; i++)
             semOutbound->post();
