@@ -225,7 +225,7 @@ void ThreadScriptCheck(); // 运行一个脚本检查线程的实例
 /** Try to detect Partition (network isolation) attacks against us */
 void PartitionCheck(bool (*initialDownloadCheck)(), CCriticalSection& cs, const CBlockIndex *const &bestHeader, int64_t nPowTargetSpacing);
 /** Check whether we are doing an initial block download (synchronizing from disk or network) */
-bool IsInitialBlockDownload(); // 检查我们是否正在初始化去快下载（从硬盘或网络进行同步）
+bool IsInitialBlockDownload(); // 检查我们是否正在初始化区块下载（从硬盘或网络进行同步）
 /** Format a string that describes several potential problems detected by the core.
  * strFor can have three values: // strFor 有 3 种取值：
  * - "rpc": get critical warnings, which should put the client in safe mode if non-empty

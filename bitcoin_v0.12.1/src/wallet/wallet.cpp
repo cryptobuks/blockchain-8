@@ -2474,7 +2474,7 @@ bool CWallet::TopUpKeyPool(unsigned int kpSize)
 
         CWalletDB walletdb(strWalletFile); // 通过钱包文件名创建钱包数据库对象
 
-        // Top up key pool
+        // Top up key pool // 填充满密钥池
         unsigned int nTargetSize;
         if (kpSize > 0) // 这里的 kpSize 默认为 0
             nTargetSize = kpSize;

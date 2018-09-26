@@ -1587,12 +1587,12 @@ bool IsInitialBlockDownload()
         return true;
     static bool lockIBDState = false;
     if (lockIBDState)
-        return false;
+        return false; // 只有从这里返回，才满足挖矿条件
     bool state = (chainActive.Height() < pindexBestHeader->nHeight - 24 * 6 ||
             pindexBestHeader->GetBlockTime() < GetTime() - chainParams.MaxTipAge()); // 最新的块据当前时间的间隔不能超过 nMaxTipAge，否则不能挖矿
     if (!state)
         lockIBDState = true;
-    return state; // 只有从这里返回，才满足挖矿条件
+    return state;
 }
 
 bool fLargeWorkForkFound = false;

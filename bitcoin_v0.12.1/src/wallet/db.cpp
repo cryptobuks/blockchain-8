@@ -421,10 +421,10 @@ bool CDB::Rewrite(const string& strFile, const char* pszSkip)
 }
 
 
-void CDBEnv::Flush(bool fShutdown)
+void CDBEnv::Flush(bool fShutdown) // false
 {
     int64_t nStart = GetTimeMillis();
-    // Flush log data to the actual data file on all files that are not in use
+    // Flush log data to the actual data file on all files that are not in use // 刷新日志文件到未使用的所有文件上的实际数据文件
     LogPrint("db", "CDBEnv::Flush: Flush(%s)%s\n", fShutdown ? "true" : "false", fDbEnvInit ? "" : " database not started");
     if (!fDbEnvInit)
         return;

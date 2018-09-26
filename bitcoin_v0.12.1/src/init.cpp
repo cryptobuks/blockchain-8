@@ -175,8 +175,8 @@ void Interrupt(boost::thread_group& threadGroup)
 void Shutdown()
 {
     LogPrintf("%s: In progress...\n", __func__);
-    static CCriticalSection cs_Shutdown;
-    TRY_LOCK(cs_Shutdown, lockShutdown);
+    static CCriticalSection cs_Shutdown; // 创建关闭锁临界对象
+    TRY_LOCK(cs_Shutdown, lockShutdown); // 上锁
     if (!lockShutdown)
         return;
 
@@ -187,34 +187,34 @@ void Shutdown()
     RenameThread("bitcoin-shutoff");
     mempool.AddTransactionsUpdated(1);
 
-    StopHTTPRPC();
-    StopREST();
-    StopRPC();
-    StopHTTPServer();
+    StopHTTPRPC(); // 关闭 HTTP RPC 服务
+    StopREST(); // 关闭 REST
+    StopRPC(); // 关闭 RPC
+    StopHTTPServer(); // 关闭 HTTP 服务器
 #ifdef ENABLE_WALLET
-    if (pwalletMain)
-        pwalletMain->Flush(false);
+    if (pwalletMain) // 若钱包存在
+        pwalletMain->Flush(false); // 刷新钱包数据库后关闭
 #endif
     GenerateBitcoins(false, 0, Params()); // 关闭矿工线程
-    StopNode();
-    StopTorControl();
-    UnregisterNodeSignals(GetNodeSignals());
+    StopNode(); // 关闭节点
+    StopTorControl(); // 关闭洋葱路由
+    UnregisterNodeSignals(GetNodeSignals()); // 解注册所有注册的节点信号函数
 
-    if (fFeeEstimatesInitialized)
+    if (fFeeEstimatesInitialized) // 若费用估计已初始化
     {
-        boost::filesystem::path est_path = GetDataDir() / FEE_ESTIMATES_FILENAME;
-        CAutoFile est_fileout(fopen(est_path.string().c_str(), "wb"), SER_DISK, CLIENT_VERSION);
-        if (!est_fileout.IsNull())
-            mempool.WriteFeeEstimates(est_fileout);
+        boost::filesystem::path est_path = GetDataDir() / FEE_ESTIMATES_FILENAME; // 路径拼接获取费用估计文件路径
+        CAutoFile est_fileout(fopen(est_path.string().c_str(), "wb"), SER_DISK, CLIENT_VERSION); // 打开费用估计文件
+        if (!est_fileout.IsNull()) // 若文件正常打开
+            mempool.WriteFeeEstimates(est_fileout); // 写入估算最低交易费用和确认所需优先级的统计数据
         else
             LogPrintf("%s: Failed to write fee estimates to %s\n", __func__, est_path.string());
         fFeeEstimatesInitialized = false;
     }
 
-    {
-        LOCK(cs_main);
+    { // 同步链状态到磁盘
+        LOCK(cs_main); // 上锁
         if (pcoinsTip != NULL) {
-            FlushStateToDisk();
+            FlushStateToDisk(); // 刷新区块状态、索引到磁盘
         }
         delete pcoinsTip;
         pcoinsTip = NULL;
@@ -222,12 +222,12 @@ void Shutdown()
         pcoinscatcher = NULL;
         delete pcoinsdbview;
         pcoinsdbview = NULL;
-        delete pblocktree;
+        delete pblocktree; // 删除区块树数据库
         pblocktree = NULL;
     }
 #ifdef ENABLE_WALLET
     if (pwalletMain)
-        pwalletMain->Flush(true);
+        pwalletMain->Flush(true); // 刷新钱包
 #endif
 
 #if ENABLE_ZMQ
@@ -238,26 +238,26 @@ void Shutdown()
     }
 #endif
 
-#ifndef WIN32
+#ifndef WIN32 // Unix/Linux
     try {
-        boost::filesystem::remove(GetPidFile());
+        boost::filesystem::remove(GetPidFile()); // 删除进程号文件
     } catch (const boost::filesystem::filesystem_error& e) {
         LogPrintf("%s: Unable to remove pidfile: %s\n", __func__, e.what());
     }
 #endif
-    UnregisterAllValidationInterfaces();
+    UnregisterAllValidationInterfaces(); // 解注册所有验证接口
 #ifdef ENABLE_WALLET
-    delete pwalletMain;
-    pwalletMain = NULL;
+    delete pwalletMain; // 删除钱包堆对象
+    pwalletMain = NULL; // 指针置空
 #endif
     globalVerifyHandle.reset();
-    ECC_Stop();
-    LogPrintf("%s: done\n", __func__);
+    ECC_Stop(); // 关闭椭圆曲线
+    LogPrintf("%s: done\n", __func__); // 记录日志，关闭完成
 }
 
 /**
  * Signal handlers are very limited in what they are allowed to do, so:
- */
+ */ // 信号处理程序在允许的范围内非常有限，因此：
 void HandleSIGTERM(int)
 {
     fRequestShutdown = true;
@@ -692,79 +692,79 @@ bool AppInitServers(boost::thread_group& threadGroup)
 // Parameter interaction based on rules // 基于规则的参数交互
 void InitParameterInteraction()
 {
-    // when specifying an explicit binding address, you want to listen on it
-    // even when -connect or -proxy is specified
-    if (mapArgs.count("-bind")) {
-        if (SoftSetBoolArg("-listen", true))
+    // when specifying an explicit binding address, you want to listen on it // 在指定显示绑定的地址时，
+    // even when -connect or -proxy is specified // 尽管指定了 -connect 和 -proxy 选项，你也要监听它
+    if (mapArgs.count("-bind")) { // 若绑定了指定地址
+        if (SoftSetBoolArg("-listen", true)) // 同时监听该地址
             LogPrintf("%s: parameter interaction: -bind set -> setting -listen=1\n", __func__);
     }
-    if (mapArgs.count("-whitebind")) {
+    if (mapArgs.count("-whitebind")) { // 白名单绑定同上
         if (SoftSetBoolArg("-listen", true))
             LogPrintf("%s: parameter interaction: -whitebind set -> setting -listen=1\n", __func__);
     }
 
-    if (mapArgs.count("-connect") && mapMultiArgs["-connect"].size() > 0) {
-        // when only connecting to trusted nodes, do not seed via DNS, or listen by default
-        if (SoftSetBoolArg("-dnsseed", false))
+    if (mapArgs.count("-connect") && mapMultiArgs["-connect"].size() > 0) { // 若连接了指定地址的节点
+        // when only connecting to trusted nodes, do not seed via DNS, or listen by default // 当只连接可信节点时，不使用 DNS 种子或默认监听
+        if (SoftSetBoolArg("-dnsseed", false)) // 关闭 dnsseed
             LogPrintf("%s: parameter interaction: -connect set -> setting -dnsseed=0\n", __func__);
-        if (SoftSetBoolArg("-listen", false))
+        if (SoftSetBoolArg("-listen", false)) // 关闭 listen
             LogPrintf("%s: parameter interaction: -connect set -> setting -listen=0\n", __func__);
     }
 
-    if (mapArgs.count("-proxy")) {
-        // to protect privacy, do not listen by default if a default proxy server is specified
-        if (SoftSetBoolArg("-listen", false))
+    if (mapArgs.count("-proxy")) { // 若使用了代理
+        // to protect privacy, do not listen by default if a default proxy server is specified // 用于保护隐私，如果指定了默认的代理服务器，则不使用默认监听
+        if (SoftSetBoolArg("-listen", false)) // 关闭监听
             LogPrintf("%s: parameter interaction: -proxy set -> setting -listen=0\n", __func__);
-        // to protect privacy, do not use UPNP when a proxy is set. The user may still specify -listen=1
-        // to listen locally, so don't rely on this happening through -listen below.
-        if (SoftSetBoolArg("-upnp", false))
+        // to protect privacy, do not use UPNP when a proxy is set. The user may still specify -listen=1 // 为了保护隐私，当设置了代理时不使用 UPNP。用户可能仍指定 -listen=1 来监听本地，
+        // to listen locally, so don't rely on this happening through -listen below. // 所以不要通过下面的 -listen 设置依赖这种情况
+        if (SoftSetBoolArg("-upnp", false)) // 关闭端口映射
             LogPrintf("%s: parameter interaction: -proxy set -> setting -upnp=0\n", __func__);
-        // to protect privacy, do not discover addresses by default
-        if (SoftSetBoolArg("-discover", false))
+        // to protect privacy, do not discover addresses by default // 用于保护隐私，不使用默认的发现地址
+        if (SoftSetBoolArg("-discover", false)) // 关闭地址发现
             LogPrintf("%s: parameter interaction: -proxy set -> setting -discover=0\n", __func__);
     }
 
-    if (!GetBoolArg("-listen", DEFAULT_LISTEN)) {
-        // do not map ports or try to retrieve public IP when not listening (pointless)
-        if (SoftSetBoolArg("-upnp", false))
+    if (!GetBoolArg("-listen", DEFAULT_LISTEN)) { // 监听选项，默认开启
+        // do not map ports or try to retrieve public IP when not listening (pointless) // 在不监听时不映射端口或尝试检索公共 IP
+        if (SoftSetBoolArg("-upnp", false)) // 关闭端口映射
             LogPrintf("%s: parameter interaction: -listen=0 -> setting -upnp=0\n", __func__);
-        if (SoftSetBoolArg("-discover", false))
+        if (SoftSetBoolArg("-discover", false)) // 关闭地址发现
             LogPrintf("%s: parameter interaction: -listen=0 -> setting -discover=0\n", __func__);
-        if (SoftSetBoolArg("-listenonion", false))
+        if (SoftSetBoolArg("-listenonion", false)) // 关闭洋葱路由
             LogPrintf("%s: parameter interaction: -listen=0 -> setting -listenonion=0\n", __func__);
     }
 
-    if (mapArgs.count("-externalip")) {
-        // if an explicit public IP is specified, do not try to find others
-        if (SoftSetBoolArg("-discover", false))
+    if (mapArgs.count("-externalip")) { // 若指定了外部 ip
+        // if an explicit public IP is specified, do not try to find others // 如果指定了公共 IP，则不尝试发现其他 IP
+        if (SoftSetBoolArg("-discover", false)) // 关闭地址发现
             LogPrintf("%s: parameter interaction: -externalip set -> setting -discover=0\n", __func__);
     }
 
-    if (GetBoolArg("-salvagewallet", false)) {
-        // Rewrite just private keys: rescan to find transactions
-        if (SoftSetBoolArg("-rescan", true))
+    if (GetBoolArg("-salvagewallet", false)) { // 若关闭了回复钱包选项
+        // Rewrite just private keys: rescan to find transactions // 只重写私钥：再扫描用于发现交易
+        if (SoftSetBoolArg("-rescan", true)) // 开启再扫描
             LogPrintf("%s: parameter interaction: -salvagewallet=1 -> setting -rescan=1\n", __func__);
     }
 
-    // -zapwallettx implies a rescan
-    if (GetBoolArg("-zapwallettxes", false)) {
-        if (SoftSetBoolArg("-rescan", true))
+    // -zapwallettx implies a rescan // -zapwallettx 意味着再扫描
+    if (GetBoolArg("-zapwallettxes", false)) { // 若关闭 zap 钱包交易选项
+        if (SoftSetBoolArg("-rescan", true)) // 则开启再扫描选项
             LogPrintf("%s: parameter interaction: -zapwallettxes=<mode> -> setting -rescan=1\n", __func__);
     }
 
-    // disable walletbroadcast and whitelistrelay in blocksonly mode
-    if (GetBoolArg("-blocksonly", DEFAULT_BLOCKSONLY)) {
-        if (SoftSetBoolArg("-whitelistrelay", false))
+    // disable walletbroadcast and whitelistrelay in blocksonly mode // 在仅块默认中关闭钱包广播和白名单中继
+    if (GetBoolArg("-blocksonly", DEFAULT_BLOCKSONLY)) { // 仅区块模式，默认关闭，若开启了
+        if (SoftSetBoolArg("-whitelistrelay", false)) // 则关闭白名单中继
             LogPrintf("%s: parameter interaction: -blocksonly=1 -> setting -whitelistrelay=0\n", __func__);
 #ifdef ENABLE_WALLET
-        if (SoftSetBoolArg("-walletbroadcast", false))
+        if (SoftSetBoolArg("-walletbroadcast", false)) // 同时关闭钱包广播
             LogPrintf("%s: parameter interaction: -blocksonly=1 -> setting -walletbroadcast=0\n", __func__);
 #endif
     }
 
-    // Forcing relay from whitelisted hosts implies we will accept relays from them in the first place.
-    if (GetBoolArg("-whitelistforcerelay", DEFAULT_WHITELISTFORCERELAY)) {
-        if (SoftSetBoolArg("-whitelistrelay", true))
+    // Forcing relay from whitelisted hosts implies we will accept relays from them in the first place. // 强制从白名单主机中中继表明我们将从它们（交易）所在的首个位置接受中继。
+    if (GetBoolArg("-whitelistforcerelay", DEFAULT_WHITELISTFORCERELAY)) { // 百名单强制中继，默认开启
+        if (SoftSetBoolArg("-whitelistrelay", true)) // 则开启白名单中继选项
             LogPrintf("%s: parameter interaction: -whitelistforcerelay=1 -> setting -whitelistrelay=1\n", __func__);
     }
 }
