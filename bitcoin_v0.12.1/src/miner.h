@@ -13,7 +13,7 @@
 /** Search the genesis block */
 void getGenesisBlock(CBlock *pblock);
 
-class CBlockIndex;
+class CBlockIndex; // 所需类的前置声明
 class CChainParams;
 class CReserveKey;
 class CScript;
@@ -36,7 +36,7 @@ struct CBlockTemplate // 区块模板类
 void GenerateBitcoins(bool fGenerate, int nThreads, const CChainParams& chainparams); // 杀掉矿工线程或创建新的矿工线程
 /** Generate a new block, without valid proof-of-work */
 CBlockTemplate* CreateNewBlock(const CChainParams& chainparams, const CScript& scriptPubKeyIn); // 生成一个新块，不带工作量证明
-/** Modify the extranonce in a block */
+/** Modify the extranonce in a block */ // 修改区块内的 extranonce
 void IncrementExtraNonce(CBlock* pblock, const CBlockIndex* pindexPrev, unsigned int& nExtraNonce);
 int64_t UpdateTime(CBlockHeader* pblock, const Consensus::Params& consensusParams, const CBlockIndex* pindexPrev);
 

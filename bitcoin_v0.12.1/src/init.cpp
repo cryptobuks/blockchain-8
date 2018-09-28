@@ -155,7 +155,7 @@ public:
             abort();
         }
     }
-    // Writes do not need similar protection, as failure to write is handled by the caller.
+    // Writes do not need similar protection, as failure to write is handled by the caller. // 写入不需要类似的保护，因为调用失败是由调用者处理的。
 };
 
 static CCoinsViewDB *pcoinsdbview = NULL;
@@ -184,7 +184,7 @@ void Shutdown()
     /// for example if the data directory was found to be locked.
     /// Be sure that anything that writes files or flushes caches only does this if the respective
     /// module was initialized.
-    RenameThread("bitcoin-shutoff");
+    RenameThread("bitcoin-shutoff"); // 重命名比特币关闭线程
     mempool.AddTransactionsUpdated(1);
 
     StopHTTPRPC(); // 关闭 HTTP RPC 服务

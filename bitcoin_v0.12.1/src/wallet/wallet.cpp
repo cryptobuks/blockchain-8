@@ -196,32 +196,32 @@ bool CWallet::LoadCScript(const CScript& redeemScript)
 
 bool CWallet::AddWatchOnly(const CScript &dest)
 {
-    if (!CCryptoKeyStore::AddWatchOnly(dest))
+    if (!CCryptoKeyStore::AddWatchOnly(dest)) // 添加 watch-only 地址到密钥库
         return false;
-    nTimeFirstKey = 1; // No birthday information for watch-only keys.
-    NotifyWatchonlyChanged(true);
+    nTimeFirstKey = 1; // No birthday information for watch-only keys. // watch-only 密钥没有创建时间信息。
+    NotifyWatchonlyChanged(true); // 通知 watch-only 地址已改变
     if (!fFileBacked)
         return true;
-    return CWalletDB(strWalletFile).WriteWatchOnly(dest);
+    return CWalletDB(strWalletFile).WriteWatchOnly(dest); // 把 watch-only 地址写入钱包数据库文件中
 }
 
 bool CWallet::RemoveWatchOnly(const CScript &dest)
 {
     AssertLockHeld(cs_wallet);
-    if (!CCryptoKeyStore::RemoveWatchOnly(dest))
+    if (!CCryptoKeyStore::RemoveWatchOnly(dest)) // 从密钥库中移除 watch-only 地址
         return false;
-    if (!HaveWatchOnly())
-        NotifyWatchonlyChanged(false);
-    if (fFileBacked)
-        if (!CWalletDB(strWalletFile).EraseWatchOnly(dest))
+    if (!HaveWatchOnly()) // 若没有 watch-only 地址
+        NotifyWatchonlyChanged(false); // 通知 watch-only 地址已改变
+    if (fFileBacked) // 若文件备份开启
+        if (!CWalletDB(strWalletFile).EraseWatchOnly(dest)) // 从钱包数据库中擦除 watch-only 地址
             return false;
 
     return true;
 }
 
-bool CWallet::LoadWatchOnly(const CScript &dest)
+bool CWallet::LoadWatchOnly(const CScript &dest) // 加载 watch-only 地址
 {
-    return CCryptoKeyStore::AddWatchOnly(dest);
+    return CCryptoKeyStore::AddWatchOnly(dest); // 只把 watch-only 地址放入内存中的密钥库
 }
 
 bool CWallet::Unlock(const SecureString& strWalletPassphrase)
@@ -323,11 +323,11 @@ bool CWallet::SetMinVersion(enum WalletFeature nVersion, CWalletDB* pwalletdbIn,
     return true;
 }
 
-bool CWallet::SetMaxVersion(int nVersion)
+bool CWallet::SetMaxVersion(int nVersion) // 设置钱包最大版本
 {
     LOCK(cs_wallet); // nWalletVersion, nWalletMaxVersion
-    // cannot downgrade below current version
-    if (nWalletVersion > nVersion)
+    // cannot downgrade below current version // 不能降级至当前版本以下
+    if (nWalletVersion > nVersion) // 若设置版本大于等于当前
         return false;
 
     nWalletMaxVersion = nVersion;

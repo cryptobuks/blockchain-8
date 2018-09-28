@@ -24,10 +24,10 @@
 #include <event2/event.h>
 #include <event2/thread.h>
 
-/** Default control port */
+/** Default control port */ // 洋葱路由默认控制端口
 const std::string DEFAULT_TOR_CONTROL = "127.0.0.1:9051";
 /** Tor cookie size (from control-spec.txt) */
-static const int TOR_COOKIE_SIZE = 32;
+static const int TOR_COOKIE_SIZE = 32; // 洋葱路由 cookie 大小
 /** Size of client/server nonce for SAFECOOKIE */
 static const int TOR_NONCE_SIZE = 32;
 /** For computing serverHash in SAFECOOKIE */
@@ -41,19 +41,19 @@ static const float RECONNECT_TIMEOUT_EXP = 1.5;
 /** Maximum length for lines received on TorControlConnection.
  * tor-control-spec.txt mentions that there is explicitly no limit defined to line length,
  * this is belt-and-suspenders sanity limit to prevent memory exhaustion.
- */
-static const int MAX_LINE_LENGTH = 100000;
+ */ // 洋葱路由控制连接接收的最大行数。
+static const int MAX_LINE_LENGTH = 100000; // 100,000 行
 
 /****** Low-level TorControlConnection ********/
 
 /** Reply from Tor, can be single or multi-line */
-class TorControlReply
+class TorControlReply // 来自洋葱路由的响应，一行或多行
 {
 public:
-    TorControlReply() { Clear(); }
+    TorControlReply() { Clear(); } // 无参构造函数
 
     int code;
-    std::vector<std::string> lines;
+    std::vector<std::string> lines; // 响应内容
 
     void Clear()
     {
@@ -244,7 +244,7 @@ bool TorControlConnection::Command(const std::string &cmd, const ReplyHandlerCB&
 
 /* Split reply line in the form 'AUTH METHODS=...' into a type
  * 'AUTH' and arguments 'METHODS=...'.
- */
+ */ // 以格式 'AUTH METHODS=...' 分离响应行到类型 'AUTH' 和参数 'METHODS=...' 中。
 static std::pair<std::string,std::string> SplitTorReplyLine(const std::string &s)
 {
     size_t ptr=0;
@@ -259,7 +259,7 @@ static std::pair<std::string,std::string> SplitTorReplyLine(const std::string &s
 }
 
 /** Parse reply arguments in the form 'METHODS=COOKIE,SAFECOOKIE COOKIEFILE=".../control_auth_cookie"'.
- */
+ */ // 解析反馈参数以这种格式'METHODS=COOKIE,SAFECOOKIE COOKIEFILE=".../control_auth_cookie"'。
 static std::map<std::string,std::string> ParseTorReplyMapping(const std::string &s)
 {
     std::map<std::string,std::string> mapping;
@@ -368,13 +368,13 @@ private:
     float reconnect_timeout; // 再连接超时时间
     CService service; // 服务对象（IP+Port）
     /** Cooie for SAFECOOKIE auth */
-    std::vector<uint8_t> cookie;
+    std::vector<uint8_t> cookie; // 用于安全 COOKIE 验证的 cookie
     /** ClientNonce for SAFECOOKIE auth */
-    std::vector<uint8_t> clientNonce;
+    std::vector<uint8_t> clientNonce; // 用于安全 COOKIE 验证的客户端随机数
 
-    /** Callback for ADD_ONION result */
+    /** Callback for ADD_ONION result */ // 用于添加洋葱路由连接的回调
     void add_onion_cb(TorControlConnection& conn, const TorControlReply& reply);
-    /** Callback for AUTHENTICATE result */
+    /** Callback for AUTHENTICATE result */ // 用于认证的回调
     void auth_cb(TorControlConnection& conn, const TorControlReply& reply);
     /** Callback for AUTHCHALLENGE result */
     void authchallenge_cb(TorControlConnection& conn, const TorControlReply& reply);
@@ -385,7 +385,7 @@ private:
     /** Callback after connection lost or failed connection attempt */ // 连接断开或失败的连接尝试后的回调函数
     void disconnected_cb(TorControlConnection& conn);
 
-    /** Callback for reconnect timer */
+    /** Callback for reconnect timer */ // 用于重连定时器的回调
     static void reconnect_cb(evutil_socket_t fd, short what, void *arg);
 };
 
@@ -486,7 +486,7 @@ void TorController::auth_cb(TorControlConnection& conn, const TorControlReply& r
  *      HMAC-SHA256("Tor safe cookie authentication controller-to-server hash",
  *                  CookieString | ClientNonce | ServerNonce)
  *
- */
+ */ // 计算洋葱路由 SAFECOOKIE 响应。
 static std::vector<uint8_t> ComputeResponse(const std::string &key, const std::vector<uint8_t> &cookie,  const std::vector<uint8_t> &clientNonce, const std::vector<uint8_t> &serverNonce)
 {
     CHMAC_SHA256 computeHash((const uint8_t*)key.data(), key.size());
@@ -631,9 +631,9 @@ void TorController::Reconnect()
 {
     /* Try to reconnect and reestablish if we get booted - for example, Tor
      * may be restarting.
-     */
+     */ // 若被启动，则尝试重新连接并重新建立连接 - 例如，洋葱路由可能正在重启。
     if (!conn.Connect(target, boost::bind(&TorController::connected_cb, this, _1),
-         boost::bind(&TorController::disconnected_cb, this, _1) )) {
+         boost::bind(&TorController::disconnected_cb, this, _1) )) { // 尝试重连
         LogPrintf("tor: Re-initiating connection to Tor control port %s failed\n", target);
     }
 }

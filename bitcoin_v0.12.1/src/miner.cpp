@@ -382,16 +382,16 @@ void getGenesisBlock(CBlock *pblock) // 获取创世区块的基本信息（nNonce, hash, me
 {
 	arith_uint256 hashTarget = arith_uint256().SetCompact(pblock->nBits);
 	printf("hashTarget: %s\n", hashTarget.ToString().c_str());
-	uint256 hash;
-	uint32_t nNonce = 0;
-	int64_t nStart = GetTime();
+	uint256 hash; // 待获取的 hash
+	uint32_t nNonce = 0; // 随机数初始化为 0
+	int64_t nStart = GetTime(); // 获取当前时间
 	while (true) {
-		if (ScanHash(pblock, nNonce, &hash))
+		if (ScanHash(pblock, nNonce, &hash)) // 扫描满足条件的 hash
 		{
 			printf("block hash: %s", hash.ToString().c_str());
-		    if (UintToArith256(hash) <= hashTarget)
+		    if (UintToArith256(hash) <= hashTarget) // 若小于难度目标值，这满足条件
 		    {
-				printf(" true\n"
+				printf(" true\n" // 创世区块找到
 						"Congratulation! You found the genesis block. total time: %lds\n"
 						"the nNonce: %u\n"
 						"genesis block hash: %s\n"
@@ -515,7 +515,7 @@ void static BitcoinMiner(const CChainParams& chainparams)
                            // so that we can use the correct time.
                 if (chainparams.GetConsensus().fPowAllowMinDifficultyBlocks) // 在测试网中会重设难度目标值
                 {
-                    // Changing pblock->nTime can change work required on testnet:
+                    // Changing pblock->nTime can change work required on testnet: // 在测试网中改变区块时间可以改变所需的工作量
                     hashTarget.SetCompact(pblock->nBits);
                 }
             }
