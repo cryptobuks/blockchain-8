@@ -59,4 +59,9 @@
 
 ### 比特币核心服务启动流程 v0.12.1
 
+<details>
+<summary>bitcoind</summary>
+
 ![bitcoindsetup](/images/bitcoindsetup.png)
+
+</details>
