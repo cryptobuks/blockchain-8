@@ -380,30 +380,28 @@ static bool ProcessBlockFound(const CBlock* pblock, const CChainParams& chainpar
 
 void getGenesisBlock(CBlock *pblock) // 获取创世区块的基本信息（nNonce, hash, merkleroot）
 {
-	arith_uint256 hashTarget = arith_uint256().SetCompact(pblock->nBits);
-	printf("hashTarget: %s\n", hashTarget.ToString().c_str());
-	uint256 hash; // 待获取的 hash
-	uint32_t nNonce = 0; // 随机数初始化为 0
-	int64_t nStart = GetTime(); // 获取当前时间
-	while (true) {
-		if (ScanHash(pblock, nNonce, &hash)) // 扫描满足条件的 hash
-		{
-			printf("block hash: %s", hash.ToString().c_str());
-		    if (UintToArith256(hash) <= hashTarget) // 若小于难度目标值，这满足条件
-		    {
-				printf(" true\n" // 创世区块找到
-						"Congratulation! You found the genesis block. total time: %lds\n"
-						"the nNonce: %u\n"
-						"genesis block hash: %s\n"
-						"genesis block merkle root: %s\n", GetTime() - nStart, nNonce, hash.ToString().c_str(), pblock->hashMerkleRoot.ToString().c_str());
-				break;
-			}
-			else
-			{
-				printf(" false\n");
-			}
-		}
-	}
+    arith_uint256 hashTarget = arith_uint256().SetCompact(pblock->nBits);
+    printf("hashTarget: %s\n", hashTarget.ToString().c_str());
+    uint256 hash; // 待获取的 hash
+    uint32_t nNonce = 0; // 随机数初始化为 0
+    int64_t nStart = GetTime(); // 获取当前时间
+    while (true) {
+        if (ScanHash(pblock, nNonce, &hash)) // 扫描满足条件的 hash
+        {
+            printf("block hash: %s", hash.ToString().c_str());
+            if (UintToArith256(hash) <= hashTarget) // 若小于难度目标值，这满足条件
+            {
+                printf(" true\n" // 创世区块找到
+                       "Congratulation! You found the genesis block. total time: %lds\n"
+                       "the nNonce: %u\n"
+                       "genesis block hash: %s\n"
+                       "genesis block merkle root: %s\n", GetTime() - nStart, nNonce, hash.ToString().c_str(), pblock->hashMerkleRoot.ToString().c_str());
+                break;
+            }
+            else
+           	    printf(" false\n");
+        }
+    }
 }
 
 void static BitcoinMiner(const CChainParams& chainparams)
