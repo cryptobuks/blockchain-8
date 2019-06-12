@@ -111,15 +111,13 @@ public:
         nPruneAfterHeight = 100000;
 
         //genesis = CreateGenesisBlock(1231006505, 2083236893, 0x1d00ffff, 1, 50 * COIN); // 创世区块硬编位置
-        genesis = CreateGenesisBlock(1560352057, 0, 0x207fffff, 1, 50 * COIN);
-        getGenesisBlock(&genesis); // 挖创世区块的代码
+        genesis = CreateGenesisBlock(1560352057, 73721, 0x207fffff, 1, 50 * COIN);
+        //getGenesisBlock(&genesis); // 挖创世区块的代码
         consensus.hashGenesisBlock = genesis.GetHash();
-        printf("main network hashGenesisBlock: %s\n", consensus.hashGenesisBlock.ToString().c_str());
-        printf("main network genesis.hashMerkleRoot: %s\n", genesis.hashMerkleRoot.ToString().c_str());
         //assert(consensus.hashGenesisBlock == uint256S("0x000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"));
         //assert(genesis.hashMerkleRoot == uint256S("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"));
-        assert(consensus.hashGenesisBlock == uint256S("0x"));
-        assert(genesis.hashMerkleRoot == uint256S("0x"));
+        assert(consensus.hashGenesisBlock == uint256S("0x00000a4568587ea6079eac117af39bbd431e2fec0cdc5e3962d0e67449a9a044"));
+        assert(genesis.hashMerkleRoot == uint256S("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"));
 
         //vSeeds.push_back(CDNSSeedData("bitcoin.sipa.be", "seed.bitcoin.sipa.be")); // Pieter Wuille // dnsseed 若没有可以注释掉
         //vSeeds.push_back(CDNSSeedData("bluematt.me", "dnsseed.bluematt.me")); // Matt Corallo
@@ -142,34 +140,34 @@ public:
         fMineBlocksOnDemand = false; // 挖矿需求标志，默认关闭，回归测试打开
         fTestnetToBeDeprecatedFieldRPC = false;
 
-        checkpointData = (CCheckpointData) { // 检测点：区块号对应其哈希，区块生成后填入，用于验证当前链上的区块，检测当前链的完整性
-            boost::assign::map_list_of
-            ( 11111, uint256S("0x0000000069e244f73d78e8fd29ba2fd2ed618bd6fa2ee92559f542fdb26e7c1d"))
-            ( 33333, uint256S("0x000000002dd5588a74784eaa7ab0507a18ad16a236e7b1ce69f00d7ddfb5d0a6"))
-            ( 74000, uint256S("0x0000000000573993a3c9e41ce34471c079dcf5f52a0e824a81e7f953b8661a20"))
-            (105000, uint256S("0x00000000000291ce28027faea320c8d2b054b2e0fe44a773f3eefb151d6bdc97"))
-            (134444, uint256S("0x00000000000005b12ffd4cd315cd34ffd4a594f430ac814c91184a0d42d2b0fe"))
-            (168000, uint256S("0x000000000000099e61ea72015e79632f216fe6cb33d7899acb35b75c8303b763"))
-            (193000, uint256S("0x000000000000059f452a5f7340de6682a977387c17010ff6e6c3bd83ca8b1317"))
-            (210000, uint256S("0x000000000000048b95347e83192f69cf0366076336c639f9b7228e9ba171342e"))
-            (216116, uint256S("0x00000000000001b4f4b433e81ee46494af945cf96014816a4e2370f11b23df4e"))
-            (225430, uint256S("0x00000000000001c108384350f74090433e7fcf79a606b8e797f065b130575932"))
-            (250000, uint256S("0x000000000000003887df1f29024b06fc2200b55f8af8f35453d7be294df2d214"))
-            (279000, uint256S("0x0000000000000001ae8c72a0b0c301f67e3afca10e819efa9041e458e9bd7e40"))
-            (295000, uint256S("0x00000000000000004d9b4ef50f0f9d686fd69db2e03af35a100370c64632a983")),
-            1397080064, // * UNIX timestamp of last checkpoint block
-            36544669,   // * total number of transactions between genesis and last checkpoint
-                        //   (the tx=... number in the SetBestChain debug.log lines)
-            60000.0     // * estimated number of transactions per day after checkpoint
-        }; // 主要目的：防止网络分叉
-        //checkpointData = (CCheckpointData) {
+        //checkpointData = (CCheckpointData) { // 检测点：区块号对应其哈希，区块生成后填入，用于验证当前链上的区块，检测当前链的完整性
         //    boost::assign::map_list_of
-        //    ( 0, uint256S("0x00000000b183b4db893e4dfc15bd22c5371080c13966e511751de4fe82c96384")),
-        //    1521496800, // * UNIX timestamp of last checkpoint block
-        //    0,   // * total number of transactions between genesis and last checkpoint
-        //         //   (the tx=... number in the SetBestChain debug.log lines)
-        //    2    // * estimated number of transactions per day after checkpoint
-        //};
+        //    ( 11111, uint256S("0x0000000069e244f73d78e8fd29ba2fd2ed618bd6fa2ee92559f542fdb26e7c1d"))
+        //    ( 33333, uint256S("0x000000002dd5588a74784eaa7ab0507a18ad16a236e7b1ce69f00d7ddfb5d0a6"))
+        //    ( 74000, uint256S("0x0000000000573993a3c9e41ce34471c079dcf5f52a0e824a81e7f953b8661a20"))
+        //    (105000, uint256S("0x00000000000291ce28027faea320c8d2b054b2e0fe44a773f3eefb151d6bdc97"))
+        //    (134444, uint256S("0x00000000000005b12ffd4cd315cd34ffd4a594f430ac814c91184a0d42d2b0fe"))
+        //    (168000, uint256S("0x000000000000099e61ea72015e79632f216fe6cb33d7899acb35b75c8303b763"))
+        //    (193000, uint256S("0x000000000000059f452a5f7340de6682a977387c17010ff6e6c3bd83ca8b1317"))
+        //    (210000, uint256S("0x000000000000048b95347e83192f69cf0366076336c639f9b7228e9ba171342e"))
+        //    (216116, uint256S("0x00000000000001b4f4b433e81ee46494af945cf96014816a4e2370f11b23df4e"))
+        //    (225430, uint256S("0x00000000000001c108384350f74090433e7fcf79a606b8e797f065b130575932"))
+        //    (250000, uint256S("0x000000000000003887df1f29024b06fc2200b55f8af8f35453d7be294df2d214"))
+        //    (279000, uint256S("0x0000000000000001ae8c72a0b0c301f67e3afca10e819efa9041e458e9bd7e40"))
+        //    (295000, uint256S("0x00000000000000004d9b4ef50f0f9d686fd69db2e03af35a100370c64632a983")),
+        //    1397080064, // * UNIX timestamp of last checkpoint block
+        //    36544669,   // * total number of transactions between genesis and last checkpoint
+        //                //   (the tx=... number in the SetBestChain debug.log lines)
+        //    60000.0     // * estimated number of transactions per day after checkpoint
+        //}; // 主要目的：防止网络分叉
+        checkpointData = (CCheckpointData) {
+            boost::assign::map_list_of
+            (73721, uint256S("0x00000a4568587ea6079eac117af39bbd431e2fec0cdc5e3962d0e67449a9a044")),
+            1560352057, // * UNIX timestamp of last checkpoint block
+            0,   // * total number of transactions between genesis and last checkpoint
+                 //   (the tx=... number in the SetBestChain debug.log lines)
+            2    // * estimated number of transactions per day after checkpoint
+        };
     }
 };
 static CMainParams mainParams; // 全局静态主网参数对象
@@ -213,15 +211,11 @@ public:
         nPruneAfterHeight = 1000;
 
         genesis = CreateGenesisBlock(1296688602, 414098458, 0x1d00ffff, 1, 50 * COIN);
-        //genesis = CreateGenesisBlock(1521611815, 37853934, 0x1d00ffff, 1, 50 * COIN);
-        //getGenesisBlock(&genesis); // 挖创世区块的代码
         consensus.hashGenesisBlock = genesis.GetHash();
         //printf("testnet hashGenesisBlock: %s\n", consensus.hashGenesisBlock.ToString().c_str());
         //printf("testnet genesis.hashMerkleRoot: %s\n", genesis.hashMerkleRoot.ToString().c_str());
         assert(consensus.hashGenesisBlock == uint256S("0x000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943"));
         assert(genesis.hashMerkleRoot == uint256S("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"));
-        //assert(consensus.hashGenesisBlock == uint256S("0x00000000ebb5be714214be9f3933e85f7264f7f386954517591c343eea4087dc"));
-        //assert(genesis.hashMerkleRoot == uint256S("0x4f2a288c72bed9ea981a47997d751d7a20464a14b39fd156415ee4a59dd8908a"));
 
         vFixedSeeds.clear(); // 测试网中先清空 dns seed 再添加
         vSeeds.clear();
@@ -250,13 +244,6 @@ public:
             1488,
             300
         };
-        //checkpointData = (CCheckpointData) {
-        //    boost::assign::map_list_of
-        //    ( 0, uint256S("00000000ebb5be714214be9f3933e85f7264f7f386954517591c343eea4087dc")),
-        //    1521611815,
-        //    0,
-        //    3
-        //};
 
     }
 };
@@ -298,15 +285,11 @@ public:
         nPruneAfterHeight = 1000;
 
         genesis = CreateGenesisBlock(1296688602, 2, 0x207fffff, 1, 50 * COIN);
-        //genesis = CreateGenesisBlock(1521614475, 156402, 0x207fffff, 1, 50 * COIN);
-        //getGenesisBlock(&genesis); // 挖创世区块的代码
         consensus.hashGenesisBlock = genesis.GetHash();
         //printf("regression test hashGenesisBlock: %s\n", consensus.hashGenesisBlock.ToString().c_str());
         //printf("regression test genesis.hashMerkleRoot: %s\n", genesis.hashMerkleRoot.ToString().c_str());
         assert(consensus.hashGenesisBlock == uint256S("0x0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206"));
         assert(genesis.hashMerkleRoot == uint256S("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"));
-        //assert(consensus.hashGenesisBlock == uint256S("0x00007974ff4da740cf0a251c85891f5354671bc0525ece76cc52c60a09a37396"));
-        //assert(genesis.hashMerkleRoot == uint256S("0x4f2a288c72bed9ea981a47997d751d7a20464a14b39fd156415ee4a59dd8908a"));
 
         vFixedSeeds.clear(); //! Regtest mode doesn't have any fixed seeds.
         vSeeds.clear();  //! Regtest mode doesn't have any DNS seeds.
@@ -324,13 +307,6 @@ public:
             0,
             0
         };
-        //checkpointData = (CCheckpointData){
-        //    boost::assign::map_list_of
-        //    ( 0, uint256S("00007974ff4da740cf0a251c85891f5354671bc0525ece76cc52c60a09a37396")),
-        //    0,
-        //    0,
-        //    0
-        //};
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,111);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,196);
         base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,239);
