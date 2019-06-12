@@ -162,7 +162,7 @@ public:
         //}; // 主要目的：防止网络分叉
         checkpointData = (CCheckpointData) {
             boost::assign::map_list_of
-            (73721, uint256S("0x00000a4568587ea6079eac117af39bbd431e2fec0cdc5e3962d0e67449a9a044")),
+            (0, uint256S("0x00000a4568587ea6079eac117af39bbd431e2fec0cdc5e3962d0e67449a9a044")),
             1560352057, // * UNIX timestamp of last checkpoint block
             0,   // * total number of transactions between genesis and last checkpoint
                  //   (the tx=... number in the SetBestChain debug.log lines)
@@ -185,7 +185,8 @@ public:
         consensus.nMajorityWindow = 100;
         consensus.BIP34Height = 21111;
         consensus.BIP34Hash = uint256S("0x0000000023b3a96d3484e5abb3755c413e7d41500f8e2a5c3f0dd01299cd8ef8");
-        consensus.powLimit = uint256S("00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+        //consensus.powLimit = uint256S("00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+        consensus.powLimit = uint256S("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.nPowTargetTimespan = 14 * 24 * 60 * 60; // two weeks
         consensus.nPowTargetSpacing = 10 * 60;
         consensus.fPowAllowMinDifficultyBlocks = true; // 更新区块创建时间会改变区块的难度
@@ -201,20 +202,22 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nStartTime = 1456790400; // March 1st, 2016
         consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nTimeout = 1493596800; // May 1st, 2017
 
-        pchMessageStart[0] = 0x0b;//0xdc
-        pchMessageStart[1] = 0x11;//0xfe
-        pchMessageStart[2] = 0x09;//0xca
-        pchMessageStart[3] = 0x07;//0xdc
+        pchMessageStart[0] = 0xdc;//0x0b;
+        pchMessageStart[1] = 0xfe;//0x11;
+        pchMessageStart[2] = 0xca;//0x09;
+        pchMessageStart[3] = 0xdc;//0x07;
         vAlertPubKey = ParseHex("04302390343f91cc401d56d68b123028bf52e5fca1939df127f63c6467cdf9c8e2c14b61104cf817d0b780da337893ecc4aaff1309e536162dabbdb45200ca2b0a");
-        nDefaultPort = 18333;//18332
+        nDefaultPort = 18332;//18333;
         nMaxTipAge = 0x7fffffff; // 测试网离线时间超过 24h
         nPruneAfterHeight = 1000;
 
-        genesis = CreateGenesisBlock(1296688602, 414098458, 0x1d00ffff, 1, 50 * COIN);
+        //genesis = CreateGenesisBlock(1296688602, 414098458, 0x1d00ffff, 1, 50 * COIN);
+        genesis = CreateGenesisBlock(1560352057, 73721, 0x207fffff, 1, 50 * COIN);
+        //getGenesisBlock(&genesis); // 挖创世区块的代码
         consensus.hashGenesisBlock = genesis.GetHash();
-        //printf("testnet hashGenesisBlock: %s\n", consensus.hashGenesisBlock.ToString().c_str());
-        //printf("testnet genesis.hashMerkleRoot: %s\n", genesis.hashMerkleRoot.ToString().c_str());
-        assert(consensus.hashGenesisBlock == uint256S("0x000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943"));
+        //assert(consensus.hashGenesisBlock == uint256S("0x000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943"));
+        //assert(genesis.hashMerkleRoot == uint256S("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"));
+        assert(consensus.hashGenesisBlock == uint256S("0x00000a4568587ea6079eac117af39bbd431e2fec0cdc5e3962d0e67449a9a044"));
         assert(genesis.hashMerkleRoot == uint256S("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"));
 
         vFixedSeeds.clear(); // 测试网中先清空 dns seed 再添加
@@ -237,12 +240,20 @@ public:
         fMineBlocksOnDemand = false;
         fTestnetToBeDeprecatedFieldRPC = true;
 
+        //checkpointData = (CCheckpointData) {
+        //    boost::assign::map_list_of
+        //    ( 546, uint256S("000000002a936ca763904c3c35fce2f3556c559c0214345d31b1bcebf76acb70")),
+        //    1337966069,
+        //    1488,
+        //    300
+        //};
         checkpointData = (CCheckpointData) {
             boost::assign::map_list_of
-            ( 546, uint256S("000000002a936ca763904c3c35fce2f3556c559c0214345d31b1bcebf76acb70")),
-            1337966069,
-            1488,
-            300
+            (0, uint256S("0x00000a4568587ea6079eac117af39bbd431e2fec0cdc5e3962d0e67449a9a044")),
+            1560352057, // * UNIX timestamp of last checkpoint block
+            0,   // * total number of transactions between genesis and last checkpoint
+                 //   (the tx=... number in the SetBestChain debug.log lines)
+            2    // * estimated number of transactions per day after checkpoint
         };
 
     }
@@ -276,19 +287,21 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nStartTime = 0;
         consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nTimeout = 999999999999ULL;
 
-        pchMessageStart[0] = 0xfa;//0xcd
-        pchMessageStart[1] = 0xbf;//0xef
-        pchMessageStart[2] = 0xb5;//0xac
-        pchMessageStart[3] = 0xda;//0xcd
+        pchMessageStart[0] = 0xcd;//0xfa;
+        pchMessageStart[1] = 0xef;//0xbf;
+        pchMessageStart[2] = 0xac;//0xb5;
+        pchMessageStart[3] = 0xcd;//0xda;
         nMaxTipAge = 24 * 60 * 60; // 回归测试网无法开启挖矿线程，这里对挖矿线程无意义
-        nDefaultPort = 18444;//18443
+        nDefaultPort = 18443;//18444;
         nPruneAfterHeight = 1000;
 
-        genesis = CreateGenesisBlock(1296688602, 2, 0x207fffff, 1, 50 * COIN);
+        //genesis = CreateGenesisBlock(1296688602, 2, 0x207fffff, 1, 50 * COIN);
+        genesis = CreateGenesisBlock(1560352057, 73721, 0x207fffff, 1, 50 * COIN);
+        //getGenesisBlock(&genesis); // 挖创世区块的代码
         consensus.hashGenesisBlock = genesis.GetHash();
-        //printf("regression test hashGenesisBlock: %s\n", consensus.hashGenesisBlock.ToString().c_str());
-        //printf("regression test genesis.hashMerkleRoot: %s\n", genesis.hashMerkleRoot.ToString().c_str());
-        assert(consensus.hashGenesisBlock == uint256S("0x0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206"));
+        //assert(consensus.hashGenesisBlock == uint256S("0x0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206"));
+        //assert(genesis.hashMerkleRoot == uint256S("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"));
+        assert(consensus.hashGenesisBlock == uint256S("0x00000a4568587ea6079eac117af39bbd431e2fec0cdc5e3962d0e67449a9a044"));
         assert(genesis.hashMerkleRoot == uint256S("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"));
 
         vFixedSeeds.clear(); //! Regtest mode doesn't have any fixed seeds.
@@ -300,12 +313,20 @@ public:
         fMineBlocksOnDemand = true;
         fTestnetToBeDeprecatedFieldRPC = false;
 
-        checkpointData = (CCheckpointData){
+        //checkpointData = (CCheckpointData){
+        //    boost::assign::map_list_of
+        //    ( 0, uint256S("0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206")),
+        //    0,
+        //    0,
+        //    0
+        //};
+        checkpointData = (CCheckpointData) {
             boost::assign::map_list_of
-            ( 0, uint256S("0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206")),
-            0,
-            0,
-            0
+            (0, uint256S("0x00000a4568587ea6079eac117af39bbd431e2fec0cdc5e3962d0e67449a9a044")),
+            1560352057, // * UNIX timestamp of last checkpoint block
+            0,   // * total number of transactions between genesis and last checkpoint
+                 //   (the tx=... number in the SetBestChain debug.log lines)
+            2    // * estimated number of transactions per day after checkpoint
         };
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,111);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,196);
