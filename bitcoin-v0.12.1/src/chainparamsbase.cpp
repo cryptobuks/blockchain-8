@@ -32,7 +32,7 @@ class CBaseMainParams : public CBaseChainParams
 public:
     CBaseMainParams()
     {
-        nRPCPort = 8332;//8331 // 与 bitcoin-cli 进行通讯的默认端口
+        nRPCPort = 8331;//8332; // 与 bitcoin-cli 进行通讯的默认端口
     }
 };
 static CBaseMainParams mainParams; // 全局静态主网基础参数对象

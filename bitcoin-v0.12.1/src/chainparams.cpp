@@ -79,7 +79,8 @@ public:
         consensus.nMajorityWindow = 1000;
         consensus.BIP34Height = 227931;
         consensus.BIP34Hash = uint256S("0x000000000000024b89b42a942fe0d9fea3bb44ab7bd1b19115dd6a759c0808b8");
-        consensus.powLimit = uint256S("00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff"); // 最低难度，可由 nBits 对应的 hashTarget 推出
+        //consensus.powLimit = uint256S("00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff"); // 最低难度，可由 nBits 对应的 hashTarget 推出
+        consensus.powLimit = uint256S("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.nPowTargetTimespan = 14 * 24 * 60 * 60; // two weeks // 调整难度时间
         consensus.nPowTargetSpacing = 10 * 60; // 产生区块时间，平均每 10 分钟出一个，若时间太短，则易分叉（因为区块传播需要时间），且不存在区块离线时间（原因不明）
         consensus.fPowAllowMinDifficultyBlocks = false; // 更新区块创建时间不会改变区块的难度
@@ -100,32 +101,32 @@ public:
          * The characters are rarely used upper ASCII, not valid as UTF-8, and produce
          * a large 32-bit integer with any alignment.
          */
-        pchMessageStart[0] = 0xf9;//0xdc // 约定通讯协议头
-        pchMessageStart[1] = 0xbe;//0xca // 随意设置，不重即可
-        pchMessageStart[2] = 0xb4;//0xfe
-        pchMessageStart[3] = 0xd9;//0xdc
+        pchMessageStart[0] = 0xdc;//0xf9; // 约定通讯协议头
+        pchMessageStart[1] = 0xca;//0xbe; // 随意设置，不重即可
+        pchMessageStart[2] = 0xfe;//0xb4;
+        pchMessageStart[3] = 0xdc;//0xd9;
         vAlertPubKey = ParseHex("04fc9702847840aaf195de8442ebecedf5b095cdbb9bc716bda9110971b28a49e0ead8564ff0db22209e0374782c093bb899692d524e9d6a6956e7c5ecbcd68284"); // 用于 ALERT 消息
-        nDefaultPort = 8333;//8332 // 接受连接的默认监听端口
+        nDefaultPort = 8332;//8333; // 接受连接的默认监听端口
         nMaxTipAge = 24 * 60 * 60; // 挖矿代码中限制区块链的离线时间不能超过 24h
         nPruneAfterHeight = 100000;
 
-        genesis = CreateGenesisBlock(1231006505, 2083236893, 0x1d00ffff, 1, 50 * COIN); // 创世区块硬编位置
-        //genesis = CreateGenesisBlock(1521496800, 3304190909, 0x1d00ffff, 1, 50 * COIN);
-		//getGenesisBlock(&genesis); // 挖创世区块的代码
+        //genesis = CreateGenesisBlock(1231006505, 2083236893, 0x1d00ffff, 1, 50 * COIN); // 创世区块硬编位置
+        genesis = CreateGenesisBlock(1560352057, 0, 0x207fffff, 1, 50 * COIN);
+        getGenesisBlock(&genesis); // 挖创世区块的代码
         consensus.hashGenesisBlock = genesis.GetHash();
-		//printf("main network hashGenesisBlock: %s\n", consensus.hashGenesisBlock.ToString().c_str());
-		//printf("main network genesis.hashMerkleRoot: %s\n", genesis.hashMerkleRoot.ToString().c_str());
-        assert(consensus.hashGenesisBlock == uint256S("0x000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"));
-        assert(genesis.hashMerkleRoot == uint256S("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"));
-        //assert(consensus.hashGenesisBlock == uint256S("0x00000000b183b4db893e4dfc15bd22c5371080c13966e511751de4fe82c96384"));
-        //assert(genesis.hashMerkleRoot == uint256S("0x4f2a288c72bed9ea981a47997d751d7a20464a14b39fd156415ee4a59dd8908a"));
+        printf("main network hashGenesisBlock: %s\n", consensus.hashGenesisBlock.ToString().c_str());
+        printf("main network genesis.hashMerkleRoot: %s\n", genesis.hashMerkleRoot.ToString().c_str());
+        //assert(consensus.hashGenesisBlock == uint256S("0x000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"));
+        //assert(genesis.hashMerkleRoot == uint256S("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"));
+        assert(consensus.hashGenesisBlock == uint256S("0x"));
+        assert(genesis.hashMerkleRoot == uint256S("0x"));
 
-        vSeeds.push_back(CDNSSeedData("bitcoin.sipa.be", "seed.bitcoin.sipa.be")); // Pieter Wuille // dnsseed 若没有可以注释掉
-        vSeeds.push_back(CDNSSeedData("bluematt.me", "dnsseed.bluematt.me")); // Matt Corallo
-        vSeeds.push_back(CDNSSeedData("dashjr.org", "dnsseed.bitcoin.dashjr.org")); // Luke Dashjr
-        vSeeds.push_back(CDNSSeedData("bitcoinstats.com", "seed.bitcoinstats.com")); // Christian Decker
-        vSeeds.push_back(CDNSSeedData("xf2.org", "bitseed.xf2.org")); // Jeff Garzik
-        vSeeds.push_back(CDNSSeedData("bitcoin.jonasschnelli.ch", "seed.bitcoin.jonasschnelli.ch")); // Jonas Schnelli
+        //vSeeds.push_back(CDNSSeedData("bitcoin.sipa.be", "seed.bitcoin.sipa.be")); // Pieter Wuille // dnsseed 若没有可以注释掉
+        //vSeeds.push_back(CDNSSeedData("bluematt.me", "dnsseed.bluematt.me")); // Matt Corallo
+        //vSeeds.push_back(CDNSSeedData("dashjr.org", "dnsseed.bitcoin.dashjr.org")); // Luke Dashjr
+        //vSeeds.push_back(CDNSSeedData("bitcoinstats.com", "seed.bitcoinstats.com")); // Christian Decker
+        //vSeeds.push_back(CDNSSeedData("xf2.org", "bitseed.xf2.org")); // Jeff Garzik
+        //vSeeds.push_back(CDNSSeedData("bitcoin.jonasschnelli.ch", "seed.bitcoin.jonasschnelli.ch")); // Jonas Schnelli
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,0); // 公钥地址前缀，10 进制的 0 对应 base58 编码的 1
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,5); // 脚本地址前缀，10 进制的 5 对应 base58 编码的 3
@@ -133,7 +134,7 @@ public:
         base58Prefixes[EXT_PUBLIC_KEY] = boost::assign::list_of(0x04)(0x88)(0xB2)(0x1E).convert_to_container<std::vector<unsigned char> >();
         base58Prefixes[EXT_SECRET_KEY] = boost::assign::list_of(0x04)(0x88)(0xAD)(0xE4).convert_to_container<std::vector<unsigned char> >();
 
-        vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_main, pnSeed6_main + ARRAYLEN(pnSeed6_main)); // dnsseed 若没有可以注释掉
+        //vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_main, pnSeed6_main + ARRAYLEN(pnSeed6_main)); // dnsseed 若没有可以注释掉
 
         fMiningRequiresPeers = true; // 挖矿是否需要伙伴，即是否单机挖矿，默认关闭，回归测试打开
         fDefaultConsistencyChecks = false; // 检查交易内存池完整性 和 区块索引的标志
@@ -164,11 +165,11 @@ public:
         //checkpointData = (CCheckpointData) {
         //    boost::assign::map_list_of
         //    ( 0, uint256S("0x00000000b183b4db893e4dfc15bd22c5371080c13966e511751de4fe82c96384")),
-		//		1521496800, // * UNIX timestamp of last checkpoint block
-		//		0,   // * total number of transactions between genesis and last checkpoint
-		//		     //   (the tx=... number in the SetBestChain debug.log lines)
-		//        2    // * estimated number of transactions per day after checkpoint
-		//};
+        //    1521496800, // * UNIX timestamp of last checkpoint block
+        //    0,   // * total number of transactions between genesis and last checkpoint
+        //         //   (the tx=... number in the SetBestChain debug.log lines)
+        //    2    // * estimated number of transactions per day after checkpoint
+        //};
     }
 };
 static CMainParams mainParams; // 全局静态主网参数对象
@@ -213,10 +214,10 @@ public:
 
         genesis = CreateGenesisBlock(1296688602, 414098458, 0x1d00ffff, 1, 50 * COIN);
         //genesis = CreateGenesisBlock(1521611815, 37853934, 0x1d00ffff, 1, 50 * COIN);
-		//getGenesisBlock(&genesis); // 挖创世区块的代码
+        //getGenesisBlock(&genesis); // 挖创世区块的代码
         consensus.hashGenesisBlock = genesis.GetHash();
-		//printf("testnet hashGenesisBlock: %s\n", consensus.hashGenesisBlock.ToString().c_str());
-		//printf("testnet genesis.hashMerkleRoot: %s\n", genesis.hashMerkleRoot.ToString().c_str());
+        //printf("testnet hashGenesisBlock: %s\n", consensus.hashGenesisBlock.ToString().c_str());
+        //printf("testnet genesis.hashMerkleRoot: %s\n", genesis.hashMerkleRoot.ToString().c_str());
         assert(consensus.hashGenesisBlock == uint256S("0x000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943"));
         assert(genesis.hashMerkleRoot == uint256S("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"));
         //assert(consensus.hashGenesisBlock == uint256S("0x00000000ebb5be714214be9f3933e85f7264f7f386954517591c343eea4087dc"));
@@ -298,10 +299,10 @@ public:
 
         genesis = CreateGenesisBlock(1296688602, 2, 0x207fffff, 1, 50 * COIN);
         //genesis = CreateGenesisBlock(1521614475, 156402, 0x207fffff, 1, 50 * COIN);
-		//getGenesisBlock(&genesis); // 挖创世区块的代码
+        //getGenesisBlock(&genesis); // 挖创世区块的代码
         consensus.hashGenesisBlock = genesis.GetHash();
-		//printf("regression test hashGenesisBlock: %s\n", consensus.hashGenesisBlock.ToString().c_str());
-		//printf("regression test genesis.hashMerkleRoot: %s\n", genesis.hashMerkleRoot.ToString().c_str());
+        //printf("regression test hashGenesisBlock: %s\n", consensus.hashGenesisBlock.ToString().c_str());
+        //printf("regression test genesis.hashMerkleRoot: %s\n", genesis.hashMerkleRoot.ToString().c_str());
         assert(consensus.hashGenesisBlock == uint256S("0x0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206"));
         assert(genesis.hashMerkleRoot == uint256S("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"));
         //assert(consensus.hashGenesisBlock == uint256S("0x00007974ff4da740cf0a251c85891f5354671bc0525ece76cc52c60a09a37396"));
