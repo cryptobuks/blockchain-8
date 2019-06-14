@@ -22,6 +22,7 @@
 * [精通比特币（第二版） \| 巴比特图书](http://book.8btc.com/masterbitcoin2cn)
 * [区块链技术指南](https://yeasy.gitbooks.io/blockchain_guide/content)
 * [比特币开发者指南-巴比特图书](http://book.8btc.com/books/6/bitcoin-developer-guide/_book)
+* [How Does Bitcoin Work?](https://learnmeabitcoin.com)
 
 ### 官方网站
 
