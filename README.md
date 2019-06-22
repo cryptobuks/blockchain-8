@@ -63,6 +63,6 @@
 <details>
 <summary>bitcoind</summary>
 
-![bitcoindsetup](/images/bitcoindsetup.png)
+![bitcoindsetup](/images/bitcoind-v0.12.1-initiating.png)
 
 </details>
