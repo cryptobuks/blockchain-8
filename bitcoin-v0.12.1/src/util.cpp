@@ -475,7 +475,7 @@ boost::filesystem::path GetDefaultDataDir()
     TryCreateDirectory(pathRet);
     return pathRet / "Bitcoin";
 #else
-    // UNIX/Linux
+    // Unix
     return pathRet / ".bitcoin";
 #endif
 #endif
