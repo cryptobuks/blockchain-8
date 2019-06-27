@@ -8,17 +8,15 @@
 
 ### 白皮书
 
-* [Bitcoin: A Peer-to-Peer Electronic Cash System](https://bitcoin.org/bitcoin.pdf) - 比特币白皮书（英文原版）
-* [Bitcoin: A Peer-to-Peer Electronic Cash System](https://bitcoin.org/en/bitcoin-paper) - 比特币白皮书（多种语言官方版本）
-* [Bitcoin whitepaper repository on GitHub](https://github.com/wbnns/bitcoinwhitepaper) - 比特币白皮书（GitHub 仓库）
-* [Bitcoin Whitepaper - Satoshi Nakamoto](http://satoshinakamoto.me/whitepaper) - 比特币白皮书（多语言非官方版本）
-* [比特币白皮书：一种点对点的电子现金系统 \| 巴比特](http://www.8btc.com/wiki/bitcoin-a-peer-to-peer-electronic-cash-system) - 比特币白皮书（中译版）
-* [比特币白皮书 个人翻译+注解](https://zhuanlan.zhihu.com/p/25039679) - 比特币白皮书（知乎）
-* [比特币白皮书中英对照 - mistydew](https://mistydew.github.io/blog/2018/04/Bitcoin-A-Peer-to-Peer-Electronic-Cash-System.html) - 比特币白皮书（双语）
+* [Bitcoin: A Peer-to-Peer Electronic Cash System](https://bitcoin.org/bitcoin.pdf) - 原版
+* [Bitcoin: A Peer-to-Peer Electronic Cash System](https://bitcoin.org/en/bitcoin-paper) - 官方多语言版
+* [Bitcoin whitepaper repository on GitHub](https://github.com/wbnns/bitcoinwhitepaper)
+* [Bitcoin Whitepaper - Satoshi Nakamoto](http://satoshinakamoto.me/whitepaper) - 非官方多语言版
+* [比特币白皮书 个人翻译+注解](https://zhuanlan.zhihu.com/p/25039679) - 知乎
+* [比特币白皮书中英对照 - mistydew](https://mistydew.github.io/blog/2018/04/Bitcoin-A-Peer-to-Peer-Electronic-Cash-System.html)
 
 ### 实现机制
 
-* [精通比特币 \| 巴比特图书](http://book.8btc.com/master_bitcoin)
 * [精通比特币（第二版） \| 巴比特图书](http://book.8btc.com/masterbitcoin2cn)
 * [区块链技术指南](https://yeasy.gitbooks.io/blockchain_guide/content)
 * [比特币开发者指南-巴比特图书](http://book.8btc.com/books/6/bitcoin-developer-guide/_book)
@@ -30,29 +28,31 @@
 
 ### 官方文档
 
-* [Developer Documentation - Bitcoin](https://bitcoin.org/en/developer-documentation) - 开发者文档
-* [Bitcoin Improvement Proposals](https://github.com/bitcoin/bips#readme) - 改进建议
-* [Technical Pages - Wiki](https://en.bitcoin.it/wiki/Category:Technical) - 维基
+* [Developer Documentation - Bitcoin](https://bitcoin.org/en/developer-documentation)
+* [Bitcoin Improvement Proposals](https://github.com/bitcoin/bips#readme)
+* [Technical Pages - Wiki](https://en.bitcoin.it/wiki/Category:Technical)
 
 ### 官方源码
 
-* [fkysly/bitcoin0.1.0](https://github.com/fkysly/bitcoin0.1.0) the legendary Satoshi version
-* [bitcoin/bitcoin](https://github.com/bitcoin/bitcoin/tree/v0.12.1) v0.12.1
-* [bitcoin/bitcoin](https://github.com/bitcoin/bitcoin) last release
+* [fkysly/bitcoin0.1.0](https://github.com/fkysly/bitcoin0.1.0) - the legendary Satoshi version
+* [bitcoin/bitcoin at v0.12.1](https://github.com/bitcoin/bitcoin/tree/v0.12.1)
+* [bitcoin/bitcoin](https://github.com/bitcoin/bitcoin) - last release
 
 ### 源码剖析
 
 * [比特币源码解析 - 呼，是出一口气；吸，是争一口气!](https://blog.csdn.net/pure_lady/article/category/7131199/2)
-* [比特币源码解读 - ttblack](https://www.jianshu.com/u/ef215107c407) v0.9.5rc2
-* [比特币源码研读 - 菜菜子_forest](https://www.jianshu.com/u/30081a05cf95) 0.14
-* [比特币源码剖析 - mistydew](https://mistydew.github.io/blog/2018/05/bitcoin-source-anatomy-00.html) v0.12.1
+* [比特币源码解读 - ttblack](https://www.jianshu.com/u/ef215107c407) - v0.9.5rc2
+* [比特币源码研读 - 菜菜子_forest](https://www.jianshu.com/u/30081a05cf95) - 0.14
+* [比特币源码剖析 - mistydew](https://mistydew.github.io/blog/2018/05/bitcoin-source-anatomy-00.html) - v0.12.1
 
 ### 基础知识
 
 * [cppreference.com](https://en.cppreference.com/w)
 * [Reference - C++ Reference](http://www.cplusplus.com/reference)
-* [Boost C++ Libraries](https://www.boost.org)
+* [Boost C++ Libraries](https://www.boost.org) - 官方
+* [Boost Library Documentaion](https://www.boost.org/doc/libs)
 * [The Boost C++ Libraries](https://theboostcpplibraries.com)
+* [Boost C++ Libraries](http://boost.ez2learn.com) - 中文
 * [Fast portable non-blocking network programming with Libevent](http://www.wangafu.net/~nickm/libevent-book)
 * [JSON](http://www.json.org)
 * [Remote procedure call - Wikipedia](https://en.wikipedia.org/wiki/Remote_procedure_call)
