@@ -385,7 +385,8 @@ void getGenesisBlock(CBlock *pblock) // 获取创世区块的基本信息（nNonce, hash, me
     uint256 hash; // 待获取的 hash
     uint32_t nNonce = 0; // 随机数初始化为 0
     int64_t nStart = GetTime(); // 获取当前时间
-    while (true) {
+    while (true)
+    {
         if (ScanHash(pblock, nNonce, &hash)) // 扫描满足条件的 hash
         {
             printf("block hash: %s", hash.ToString().c_str());
@@ -399,7 +400,9 @@ void getGenesisBlock(CBlock *pblock) // 获取创世区块的基本信息（nNonce, hash, me
                 break;
             }
             else
+            {
            	    printf(" false\n");
+            }
         }
     }
 }
