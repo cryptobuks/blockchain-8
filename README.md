@@ -1,12 +1,10 @@
 # Blockchain | 区块链
 
-## Preface | 写在前面
-
-> 与其说比特币是区块链技术的第一个应用，不如说区块链技术是为了实现虚拟数字货币比特币而出现的一种重组现有技术而得到的“新”技术，至于除数字货币之外还能实现什么应用，我想等比特币落地那一天一切都会揭晓。
+与其说比特币是区块链技术的第一个应用，不如说区块链技术是为了实现虚拟数字货币比特币而出现的一种重组现有技术而得到的“新”技术，至于除数字货币之外还能实现什么应用，我想等比特币落地那一天一切都会揭晓。
 
 ## Bitcoin | 比特币（区块链 v1.0）
 
-### Whitepaper | 白皮书
+### White Paper | 白皮书
 
 * [Bitcoin: A Peer-to-Peer Electronic Cash System](https://bitcoin.org/bitcoin.pdf) - 原版
 * [Bitcoin: A Peer-to-Peer Electronic Cash System](https://bitcoin.org/en/bitcoin-paper) - 官方多语言版
