@@ -59,11 +59,6 @@
 * [Remote procedure call - Wikipedia](https://en.wikipedia.org/wiki/Remote_procedure_call)
 * [JSON-RPC](https://www.jsonrpc.org)
 
-### bitcoind setup process v0.12.1 | 比特币核心服务启动流程
+### bitcoind startup process v0.12.1 | 比特币核心服务启动流程
 
-<details>
-<summary>bitcoind</summary>
-
-![bitcoindsetup](/images/bitcoind-v0.12.1-initiating.png)
-
-</details>
+![bitcoind-stratup](/images/bitcoind-startup-v0.12.1.png)
