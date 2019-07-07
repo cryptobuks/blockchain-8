@@ -1,0 +1,83 @@
+// Copyright (c) 2015 The Bitcoin Core developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#ifndef BITCOIN_SCHEDULER_H
+#define BITCOIN_SCHEDULER_H
+
+//
+// NOTE:
+// boost::thread / boost::function / boost::chrono should be ported to
+// std::thread / std::function / std::chrono when we support C++11.
+//
+#include <boost/function.hpp>
+#include <boost/chrono/chrono.hpp>
+#include <boost/thread.hpp>
+#include <map>
+
+//
+// Simple class for background tasks that should be run
+// periodically or once "after a while"
+//
+// Usage:
+//
+// CScheduler* s = new CScheduler();
+// s->scheduleFromNow(doSomething, 11); // Assuming a: void doSomething() { }
+// s->scheduleFromNow(boost::bind(Class::func, this, argument), 3);
+// boost::thread* t = new boost::thread(boost::bind(CScheduler::serviceQueue, s));
+//
+// ... then at program shutdown, clean up the thread running serviceQueue:
+// t->interrupt();
+// t->join();
+// delete t;
+// delete s; // Must be done after thread is interrupted/joined.
+// // 用于定期运行或在“一段时间后”运行后台任务的简单类。
+
+class CScheduler // 调度器类
+{
+public:
+    CScheduler();
+    ~CScheduler();
+
+    typedef boost::function<void(void)> Function;
+
+    // Call func at/after time t
+    void schedule(Function f, boost::chrono::system_clock::time_point t);
+
+    // Convenience method: call f once deltaSeconds from now
+    void scheduleFromNow(Function f, int64_t deltaSeconds); // 便捷方法：从现在起每 delta 秒调用一次 f
+
+    // Another convenience method: call f approximately
+    // every deltaSeconds forever, starting deltaSeconds from now.
+    // To be more precise: every time f is finished, it
+    // is rescheduled to run deltaSeconds later. If you
+    // need more accurate scheduling, don't use this method.
+    void scheduleEvery(Function f, int64_t deltaSeconds);
+
+    // To keep things as simple as possible, there is no unschedule. // 为了使事情尽可能的简单，这里没有调度。
+
+    // Services the queue 'forever'. Should be run in a thread, // “永远”服务队列。应该运行一个线程，
+    // and interrupted using boost::interrupt_thread // 并使用 boost::interrupt_thread 打断。
+    void serviceQueue(); // scheduler 调度器线程函数循环主体
+
+    // Tell any threads running serviceQueue to stop as soon as they're
+    // done servicing whatever task they're currently servicing (drain=false)
+    // or when there is no work left to be done (drain=true)
+    void stop(bool drain=false);
+
+    // Returns number of tasks waiting to be serviced,
+    // and first and last task times
+    size_t getQueueInfo(boost::chrono::system_clock::time_point &first,
+                        boost::chrono::system_clock::time_point &last) const;
+
+private:
+    std::multimap<boost::chrono::system_clock::time_point, Function> taskQueue; // 任务队列
+    boost::condition_variable newTaskScheduled; // 任务队列条件变量
+    mutable boost::mutex newTaskMutex; // 任务队列锁
+    int nThreadsServicingQueue; // 记录服务队列的线程数
+    bool stopRequested;
+    bool stopWhenEmpty;
+    bool shouldStop() { return stopRequested || (stopWhenEmpty && taskQueue.empty()); } // 终止条件：stopRequested 为 true 或 stopWhenEmpty 为 true 且任务队列为空
+};
+
+#endif
